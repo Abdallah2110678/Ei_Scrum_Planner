@@ -1,11 +1,12 @@
 import React from 'react';
-import RegistrationForm from './screens/registerationForm/registeration.jsx';
-function App() {
+import Home from './Home'; // Import the Home component
+
+const App = () => {
   return (
     <div>
-      <RegistrationForm />
+      <Home /> {/* Render the Home component */}
     </div>
   );
-}
+};
 
 export default App;
