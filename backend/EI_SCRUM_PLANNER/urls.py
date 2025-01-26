@@ -17,7 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from users.views import SignInView, SignUpView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('emotion_detection.urls')),
+    path('signup/', SignUpView.as_view(), name='signup'),
+    path('signin/', SignInView.as_view(), name='signin'),
 ]
