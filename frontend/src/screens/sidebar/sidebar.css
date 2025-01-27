@@ -1,0 +1,64 @@
+/* Sidebar Container */
+.sidebar {
+    width: 250px;
+    background-color: #f8f9fa; /* Light background color */
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    height: 100vh; /* Full height of the viewport */
+    position: fixed; /* Fixed position to stay in place */
+    top: 0; /* Align to the top */
+    left: 0; /* Align to the left */
+    overflow-y: auto; /* Enable scrolling if content overflows */
+  }
+  
+  /* Sidebar Header */
+  .sidebar-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0; /* Divider line */
+  }
+  
+  .sidebar-header h2 {
+    font-size: 20px;
+    color: #333;
+    margin: 0;
+  }
+  
+  /* Sidebar Menu */
+  .sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* Sidebar Item */
+  .sidebar-item {
+    margin-bottom: 10px;
+  }
+  
+  /* Sidebar Link */
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .sidebar-link:hover {
+    background-color: #e9ecef; /* Light hover background */
+    color: #000; /* Darker text on hover */
+  }
+  
+  /* Sidebar Icon */
+  .sidebar-icon {
+    font-size: 18px;
+    margin-right: 10px; /* Space between icon and text */
+  }
+  
+  /* Sidebar Text */
+  .sidebar-text {
+    font-size: 16px;
+  }

@@ -1,0 +1,133 @@
+/* src/screens/Backlog.css */
+.backlog-container {
+    padding: 30px;
+    font-family: Arial, sans-serif;
+    flex-grow: 1; /* Take up remaining space */
+    height: 100%; /* Full height of the parent container */
+    box-sizing: border-box; /* Include padding in height calculation */
+    width: calc(100% - 220px); /* Subtract sidebar width (220px) from 100% */
+    margin-left: 220px; /* Offset by sidebar width */
+    border-radius: 8px; /* Keep border radius */
+    background-color: #ffffff; /* Keep background color */
+  }
+  
+  .projects-school-links {
+    padding-top: 40px; /* Space above the links */
+    display: flex; /* Display links in a row */
+    gap: 5px;
+  }
+  
+  .projects-school-links a {
+    text-decoration: none; /* Remove underline from links */
+    color: #333; /* Dark gray color for links */
+    font-weight: 500; /* Medium font weight */
+    font-size: 14px; /* Adjust font size as needed */
+    transition: color 0.3s ease; /* Smooth color transition on hover */
+  }
+  
+  .projects-school-links a:hover {
+    color: #0052cc; /* Blue color on hover */
+  }
+  
+  .backlog-container h2 {
+    margin-top: 0px;
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: normal; /* Normal weight for the subheading */
+    color: #000000; /* Light gray color for the subheading */
+  }
+  
+  /* Search Section */
+  .search-section {
+    margin-bottom: 20px;
+  }
+  
+  .search-bar {
+    display: flex;
+    align-items: center;
+    width: 250px;
+    gap: 10px; /* Space between input and button */
+    margin-bottom: 20px; /* Space below the search bar */
+  }
+  
+  .search-input {
+    padding: 8px 12px; /* Padding for the input */
+    border: 1px solid #ccc; /* Light gray border */
+    border-radius: 4px; /* Rounded corners */
+    font-size: 14px; /* Font size */
+    width: 200px; /* Fixed width */
+    background-color: white; /* White background */
+    outline: none; /* Remove default outline */
+  }
+  
+  .search-input:focus {
+    border-color: #0052cc; /* Blue border on focus */
+  }
+  
+  /* Sprint Info Section */
+  .sprint-info {
+    background-color: #f5f5f5; /* Light gray background */
+    padding: 20px; /* Padding inside the div */
+    border-radius: 4px; /* Rounded corners */
+    margin-bottom: 20px; /* Space below the sprint info */
+  }
+  
+  .sprint-info strong {
+    display: block; /* Make the strong element a block */
+    font-size: 15px; /* Font size for the sprint name */
+    color: #333; /* Dark gray color */
+    margin-bottom: 10px; /* Space below the sprint name */
+  }
+  
+  .sprint-content {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Reduced gap between image and text */
+  }
+  
+  .sprint-image img {
+    width: 80px; /* Adjust image size as needed */
+    height: 80px; /* Adjust image size as needed */
+    padding-left: 350px;
+  }
+  
+  .sprint-text {
+    flex: 1; /* Take up remaining space */
+  }
+  
+  .sprint-text h3 {
+    font-size: 13px; /* Font size for the heading */
+    color: #333; /* Dark gray color */
+    margin-bottom: 6px; /* Space below the heading */
+  }
+  
+  .sprint-text p {
+    font-size: 11px; /* Font size for the description */
+    color: #666; /* Light gray text */
+    margin: 0 0 20px 0; /* Space below the paragraph */
+    line-height: 1.6; /* Improve readability */
+  }
+  
+  .create-issue-button {
+    background-color: #f5f5f5;
+    color: #333;
+    border: none;
+    width: 1195px;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+  }
+  
+  .create-issue-button:hover {
+    background-color: #e6e6e6; /* Darker blue on hover */
+  }
+  
+  .plus-icon {
+    font-size: 18px; /* Size of the plus icon */
+    font-weight: bold; /* Make the plus icon bold */
+  }

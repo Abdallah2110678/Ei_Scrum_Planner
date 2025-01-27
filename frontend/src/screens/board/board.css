@@ -1,0 +1,81 @@
+.board-container {
+    padding: 30px;
+    font-family: Arial, sans-serif;
+    flex-grow: 1; /* Take up remaining space */
+    height: 100%; /* Full height of the parent container */
+    box-sizing: border-box; /* Include padding in height calculation */
+    width: calc(100% - 220px); /* Subtract sidebar width (220px) from 100% */
+    margin-left: 220px; /* Offset by sidebar width */
+    border-radius: 8px; /* Keep border radius */
+    background-color: #ffffff; /* White background */
+  }
+  
+  .projects-school-links {
+    padding-top: 40px;
+    display: flex; /* Display links in a row */
+    gap: 5px;
+  }
+  
+  .projects-school-links a {
+    text-decoration: none; /* Remove underline */
+    color: #333; /* Dark gray */
+    font-weight: 500;
+    font-size: 14px;
+    transition: color 0.3s ease; /* Smooth hover */
+  }
+  
+  .projects-school-links a:hover {
+    color: #0052cc; /* Blue hover */
+  }
+  
+  .separator {
+    color: #999; /* Light gray for separator */
+  }
+  
+  .board-container h2 {
+    margin-top: 0px;
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: normal; /* Normal weight for the subheading */
+    color: #000000; /* Light gray color for the subheading */
+  }
+  
+  /* Search Section */
+  .search-section {
+    margin-bottom: 20px;
+  }
+  
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between input and button */
+  }
+  
+  .search-input {
+    width: 250px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%; /* Responsive width */
+    max-width: 400px; /* Max width */
+    background-color: white;
+    outline: none;
+  }
+  
+  .search-input:focus {
+    border-color: #0052cc; /* Blue on focus */
+  }
+  
+  /* Responsive Styling */
+  @media (max-width: 768px) {
+    .board-container {
+      width: 100%; /* Full width on smaller screens */
+      margin-left: 0;
+    }
+  
+    .search-input {
+      max-width: 100%; /* Remove fixed width */
+    }
+  }
+  
