@@ -1,10 +1,16 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useState } from 'react';
 import Navbar from './screens/navbar/navbar.jsx';
 import Sidebar from './screens/sidebar/sidebar.jsx';
+import Backlog from './screens/backlog/Backlog';
 import './Home.css';
 
 const Home = () => {
+  const [showBacklog, setShowBacklog] = useState(false);
+
+  const toggleBacklog = () => {
+    setShowBacklog((prev) => !prev);
+  };
+
   return (
     <div className="home">
       {/* Navbar */}
@@ -13,17 +19,15 @@ const Home = () => {
       {/* Main Content */}
       <div className="home-container">
         {/* Sidebar */}
-        <Sidebar />
+        <Sidebar toggleBacklog={toggleBacklog} />
 
         {/* Home Content */}
         <div className="home-content">
-          {/* Outlet for nested routes */}
-          <Outlet />
+          {showBacklog && <Backlog />}
         </div>
       </div>
     </div>
   );
 };
-
 
 export default Home;
