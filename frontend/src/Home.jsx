@@ -3,6 +3,7 @@ import Navbar from './screens/navbar/navbar.jsx';
 import Sidebar from './screens/sidebar/sidebar.jsx';
 import Backlog from './screens/backlog/backlog';
 import Board from './screens/board/board'; 
+import Timeline from './screens/timeline/timeline'; 
 import './Home.css';
 
 const Home = () => {
@@ -26,6 +27,7 @@ const Home = () => {
         <div className="home-content">
           {activeComponent === 'backlog' && <Backlog />}
           {activeComponent === 'board' && <Board toggleComponent={toggleComponent} />}
+          {activeComponent === 'timeline' && <Timeline />}
         </div>
       </div>
     </div>

@@ -2,7 +2,8 @@ import React from 'react';
 import Home from './Home';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Backlog from '../src/screens/backlog/backlog.jsx';
-import Board from '../src/screens/board/board.jsx'; // Import the Board component
+import Board from '../src/screens/board/board.jsx'; 
+import Timeline from '../src/screens/timeline/timeline.jsx'; 
 
 const App = () => {
   return (
@@ -15,6 +16,9 @@ const App = () => {
 
           {/* Board route */}
           <Route path="board" element={<Board />} />
+
+          {/* Timeline route */}
+          <Route path="timeline" element={<Timeline />} />
         </Route>
       </Routes>
     </Router>

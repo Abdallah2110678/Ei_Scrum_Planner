@@ -7,7 +7,7 @@ const Sidebar = ({ toggleComponent }) => {
     <div className="sidebar">
       <ul className="sidebar-menu">
         <li className="sidebar-item">
-          <Link to="/timeline" className="sidebar-link">
+          <Link to="/timeline" className="sidebar-link" onClick={() => toggleComponent('timeline')}>
             <span className="sidebar-icon">📅</span>
             <span className="sidebar-text">Timeline</span>
           </Link>
