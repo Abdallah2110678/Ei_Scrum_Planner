@@ -25,7 +25,7 @@ const Home = () => {
         {/* Home Content */}
         <div className="home-content">
           {activeComponent === 'backlog' && <Backlog />}
-          {activeComponent === 'board' && <Board />}
+          {activeComponent === 'board' && <Board toggleComponent={toggleComponent} />}
         </div>
       </div>
     </div>

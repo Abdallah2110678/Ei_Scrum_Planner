@@ -1,81 +1,143 @@
+/* Board Container */
 .board-container {
-    padding: 30px;
-    font-family: Arial, sans-serif;
-    flex-grow: 1; /* Take up remaining space */
-    height: 100%; /* Full height of the parent container */
-    box-sizing: border-box; /* Include padding in height calculation */
-    width: calc(100% - 220px); /* Subtract sidebar width (220px) from 100% */
-    margin-left: 220px; /* Offset by sidebar width */
-    border-radius: 8px; /* Keep border radius */
-    background-color: #ffffff; /* White background */
+  padding: 30px;
+  font-family: Arial, sans-serif;
+  flex-grow: 1; /* Take up remaining space */
+  height: 100%; /* Full height of the parent container */
+  box-sizing: border-box; /* Include padding in height calculation */
+  width: calc(100% - 220px); /* Subtract sidebar width (220px) from 100% */
+  margin-left: 220px; /* Offset by sidebar width */
+  border-radius: 8px; /* Keep border radius */
+  background-color: #ffffff; /* White background */
+}
+
+/* Projects / School Links */
+.projects-school-links {
+  padding-top: 40px;
+  display: flex; /* Display links in a row */
+  gap: 5px;
+}
+
+.projects-school-links a {
+  text-decoration: none; /* Remove underline */
+  color: #333; /* Dark gray */
+  font-weight: 500;
+  font-size: 14px;
+  transition: color 0.3s ease; /* Smooth hover */
+}
+
+.projects-school-links a:hover {
+  color: #0052cc; /* Blue hover */
+}
+
+.separator {
+  color: #999; /* Light gray for separator */
+}
+
+.board-container h2 {
+  margin-top: 0px;
+  font-size: 20px;
+  margin-bottom: 10px;
+  font-weight: normal; /* Normal weight for the subheading */
+  color: #000000; /* Light gray color for the subheading */
+}
+
+/* Search Section */
+.search-section {
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between input and button */
+}
+
+.search-input {
+  width: 250px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%; /* Responsive width */
+  max-width: 400px; /* Max width */
+  background-color: white;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #0052cc; /* Blue on focus */
+}
+
+/* Columns Section */
+.columns-section {
+  display: flex;
+  gap: 20px; /* Space between columns */
+  margin-top: 20px;
+}
+
+.column {
+  flex: 1; /* Equal width for all columns */
+  background-color: #f4f5f7; /* Light gray background */
+  border-radius: 4px; /* Rounded corners */
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.column-header {
+  margin-bottom: 16px;
+}
+
+.column-header h3 {
+  font-size: 16px;
+  color: #333; /* Dark gray */
+  margin: 0;
+}
+
+.column-content {
+  min-height: 200px; /* Minimum height for empty columns */
+}
+
+.empty-state {
+  text-align: center;
+  padding: 20px;
+}
+
+.empty-state img {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: #666; /* Light gray */
+  margin: 8px 0;
+}
+
+.go-to-backlog {
+  color: #0052cc; /* Blue link */
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.go-to-backlog:hover {
+  text-decoration: underline; /* Underline on hover */
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+  .board-container {
+    width: 100%; /* Full width on smaller screens */
+    margin-left: 0;
   }
-  
-  .projects-school-links {
-    padding-top: 40px;
-    display: flex; /* Display links in a row */
-    gap: 5px;
+
+  .columns-section {
+    flex-direction: column; /* Stack columns vertically on small screens */
   }
-  
-  .projects-school-links a {
-    text-decoration: none; /* Remove underline */
-    color: #333; /* Dark gray */
-    font-weight: 500;
-    font-size: 14px;
-    transition: color 0.3s ease; /* Smooth hover */
-  }
-  
-  .projects-school-links a:hover {
-    color: #0052cc; /* Blue hover */
-  }
-  
-  .separator {
-    color: #999; /* Light gray for separator */
-  }
-  
-  .board-container h2 {
-    margin-top: 0px;
-    font-size: 20px;
-    margin-bottom: 10px;
-    font-weight: normal; /* Normal weight for the subheading */
-    color: #000000; /* Light gray color for the subheading */
-  }
-  
-  /* Search Section */
-  .search-section {
-    margin-bottom: 20px;
-  }
-  
-  .search-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Space between input and button */
-  }
-  
+
   .search-input {
-    width: 250px;
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    width: 100%; /* Responsive width */
-    max-width: 400px; /* Max width */
-    background-color: white;
-    outline: none;
+    max-width: 100%; /* Remove fixed width */
   }
-  
-  .search-input:focus {
-    border-color: #0052cc; /* Blue on focus */
-  }
-  
-  /* Responsive Styling */
-  @media (max-width: 768px) {
-    .board-container {
-      width: 100%; /* Full width on smaller screens */
-      margin-left: 0;
-    }
-  
-    .search-input {
-      max-width: 100%; /* Remove fixed width */
-    }
-  }
-  
+}
