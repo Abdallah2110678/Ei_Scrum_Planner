@@ -1,5 +1,5 @@
 import React from 'react';
-import './Backlog.css';
+import './backlog.css';
 
 const Backlog = () => {
   return (
