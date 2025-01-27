@@ -3,34 +3,33 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  width: 1514px;
+  width: 1535px; 
 }
 
 /* Home Container for Sidebar and Content */
 .home-container {
   display: flex;
-  flex: 1;
+  flex: 1; /* Take up remaining space */
 }
 
 /* Sidebar */
 .sidebar {
-  width: 220px;
+  width: 220px; /* Fixed width for the sidebar */
   background-color: #ffffff;
-  color: white;
   padding-top: 100px;
-  max-height: 1000px;
+  height: 100vh; /* Full viewport height */
+  box-sizing: border-box; /* Include padding in height calculation */
+  border-right: 1px solid #ffffff; /* Optional: Add a border to separate sidebar */
 }
 
 /* Home Content */
 .home-content {
-  flex: 1;
+  flex: 1; /* Take up remaining space */
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   padding: 20px;
-  text-align: center;
-  background-color: #f5f5f5;
+  background-color: #ffffff;
+  overflow-y: auto; /* Add scroll if content overflows */
 }
 
 .home-content h1 {

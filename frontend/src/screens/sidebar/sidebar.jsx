@@ -1,28 +1,28 @@
 import React from 'react';
-import './sidebar.css'; // Import the CSS file for styling
+import { Link } from 'react-router-dom';
+import './sidebar.css';
 
 const Sidebar = () => {
   return (
     <div className="sidebar">
-      
       <ul className="sidebar-menu">
         <li className="sidebar-item">
-          <a href="/timeline" className="sidebar-link">
-            <span className="sidebar-icon">📅</span> {/* Emoji or custom icon for Timeline */}
+          <Link to="/timeline" className="sidebar-link">
+            <span className="sidebar-icon">📅</span>
             <span className="sidebar-text">Timeline</span>
-          </a>
+          </Link>
         </li>
         <li className="sidebar-item">
-          <a href="/backlog" className="sidebar-link">
-            <span className="sidebar-icon">📋</span> {/* Emoji or custom icon for Backlog */}
+          <Link to="/backlog" className="sidebar-link">
+            <span className="sidebar-icon">📋</span>
             <span className="sidebar-text">Backlog</span>
-          </a>
+          </Link>
         </li>
         <li className="sidebar-item">
-          <a href="/board" className="sidebar-link">
-            <span className="sidebar-icon">📊</span> {/* Emoji or custom icon for Board */}
+          <Link to="/board" className="sidebar-link">
+            <span className="sidebar-icon">📊</span>
             <span className="sidebar-text">Board</span>
-          </a>
+          </Link>
         </li>
       </ul>
     </div>

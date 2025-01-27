@@ -1,4 +1,5 @@
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 import Navbar from './screens/navbar/navbar.jsx';
 import Sidebar from './screens/sidebar/sidebar.jsx';
 import './Home.css';
@@ -16,13 +17,13 @@ const Home = () => {
 
         {/* Home Content */}
         <div className="home-content">
-          <h1>Welcome to EI Scrum Planner</h1>
-          <p>This is the home page of the application.</p>
-          {/* Add more content here as needed */}
+          {/* Outlet for nested routes */}
+          <Outlet />
         </div>
       </div>
     </div>
   );
 };
+
 
 export default Home;
