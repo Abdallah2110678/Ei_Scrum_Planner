@@ -2,6 +2,7 @@ import React from 'react';
 import Home from './Home';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Backlog from '../src/screens/backlog/backlog.jsx';
+import Board from '../src/screens/board/board.jsx'; // Import the Board component
 
 const App = () => {
   return (
@@ -9,18 +10,11 @@ const App = () => {
       <Routes>
         {/* Home as the layout */}
         <Route path="/" element={<Home />}>
-          {/* Default route for Home */}
-          <Route
-            index
-            element={
-              <div>
-                <h1>Welcome to EI Scrum Planner</h1>
-                <p>This is the home page of the application.</p>
-              </div>
-            }
-          />
           {/* Backlog route */}
           <Route path="backlog" element={<Backlog />} />
+
+          {/* Board route */}
+          <Route path="board" element={<Board />} />
         </Route>
       </Routes>
     </Router>

@@ -45,6 +45,7 @@
   .search-bar {
     display: flex;
     align-items: center;
+    width: 250px;
     gap: 10px; /* Space between input and button */
     margin-bottom: 20px; /* Space below the search bar */
   }
@@ -108,22 +109,22 @@
   }
   
   .create-issue-button {
-    background-color: #007bff;
-    color: #fff;
+    background-color: #f5f5f5;
+    color: #333;
     border: none;
+    width: 1195px;
     padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 8px; /* Space between icon and text */
     transition: background-color 0.3s ease; /* Smooth hover effect */
   }
   
   .create-issue-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #e6e6e6; /* Darker blue on hover */
   }
   
   .plus-icon {
