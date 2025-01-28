@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
-import './registeration.css';
-
+import { useState, useEffect } from "react";
+import "./registeration.css";
+import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { register, reset } from "../../features/auth/authSlice";
+import { useNavigate } from "react-router-dom";
 const RegistrationForm = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'Developer',
-    password: '',
-    specialist: 'Frontend Developer',
+    name: "",
+    email: "",
+    role: "Developer",
+    password: "",
+    specialist: "Frontend Developer",
     rememberMe: false,
   });
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { user, isLoading, isError, isSuccess, message } = useSelector(
+    (state) => state.auth
+  );
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
@@ -18,17 +28,17 @@ const RegistrationForm = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = "Name is required";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email address is invalid';
+      newErrors.email = "Email address is invalid";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     }
 
     setErrors(newErrors);
@@ -39,7 +49,7 @@ const RegistrationForm = () => {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     });
 
     if (errors[name]) {
@@ -55,14 +65,37 @@ const RegistrationForm = () => {
     setErrors({});
 
     if (validateForm()) {
-      console.log('Form Data Submitted:', formData);
-      alert('Registration Successful!');
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        specialist: formData.specialist,
+      };
+      dispatch(register(userData));
+      console.log("Form Data Submitted:", userData);
     }
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword); // Toggle password visibility
   };
+
+  useEffect(() => {
+    if (isError) {
+      toast.error(message);
+    }
+
+    if (isSuccess) {
+      navigate("/board");
+      toast.success("email create successfully");
+      formData.name = "";
+      formData.email = "";
+      formData.password = "";
+      formData.specialist = "";
+    }
+
+    dispatch(reset());
+  }, [isError, isSuccess, dispatch]);
 
   return (
     <div className="registration-container">
@@ -96,13 +129,12 @@ const RegistrationForm = () => {
           {errors.email && <div className="error-message">{errors.email}</div>}
         </div>
 
-
         {/* Password Input with Toggle */}
         <div className="form-group password-group">
           <label htmlFor="password">Password</label>
           <div className="password-input-container">
             <input
-              type={showPassword ? 'text' : 'password'} // Toggle between text and password
+              type={showPassword ? "text" : "password"} // Toggle between text and password
               id="password"
               name="password"
               value={formData.password}
@@ -113,10 +145,12 @@ const RegistrationForm = () => {
               className="password-toggle-icon"
               onClick={togglePasswordVisibility}
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'} {/* Eye icons for show/hide */}
+              {showPassword ? "👁️" : "👁️‍🗨️"} {/* Eye icons for show/hide */}
             </span>
           </div>
-          {errors.password && <div className="error-message">{errors.password}</div>}
+          {errors.password && (
+            <div className="error-message">{errors.password}</div>
+          )}
         </div>
 
         {/* Specialist Select */}
@@ -132,7 +166,9 @@ const RegistrationForm = () => {
             <option value="Backend Developer">Backend Developer</option>
             <option value="Data Analyst">Data Analyst</option>
           </select>
-          {errors.specialist && <div className="error-message">{errors.specialist}</div>}
+          {errors.specialist && (
+            <div className="error-message">{errors.specialist}</div>
+          )}
         </div>
 
         {/* Remember Me Checkbox */}
@@ -160,11 +196,8 @@ const RegistrationForm = () => {
         <p>Or register with:</p>
         <div className="social-buttons">
           <button className="social-button">
-            <img
-              src="../src/assets/google.png"
-              alt="Google Logo"
-            />
-            <span>Google</span> 
+            <img src="../src/assets/google.png" alt="Google Logo" />
+            <span>Google</span>
           </button>
         </div>
       </div>

@@ -164,10 +164,11 @@ SIMPLE_JWT = {
 
 
 DJOSER = {
-    'LOGIN_FIELD': 'email',
-    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
-    "SEND_CONFIRMATION_EMAIL": True,
-    "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
+    'LOGIN_FIELD': 'name',  # Use a different field for login instead of email (e.g., "name")
+    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,  # Disable password change email notifications
+    "SEND_CONFIRMATION_EMAIL": False,  # Disable email confirmation
+    "PASSWORD_RESET_CONFIRM_URL": None,  # Disable password reset URL
+    "ACTIVATION_URL": None,  # Disable account activation
     'SERIALIZERS': {
         'user_create': 'users.serializers.CreateUserSerializer',
         'user': "users.serializers.CreateUserSerializer",

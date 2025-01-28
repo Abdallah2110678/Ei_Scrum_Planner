@@ -1,12 +1,15 @@
-import React from 'react';
+
 import Home from './Home';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Backlog from '../src/screens/backlog/backlog.jsx';
 import Board from '../src/screens/board/board.jsx'; 
-import Timeline from '../src/screens/timeline/timeline.jsx'; 
+import Timeline from '../src/screens/timeline/timeline.jsx';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 const App = () => {
   return (
+    <>
     <Router>
       <Routes>
         {/* Home as the layout */}
@@ -22,6 +25,8 @@ const App = () => {
         </Route>
       </Routes>
     </Router>
+    <ToastContainer />
+    </>
   );
 };
 
