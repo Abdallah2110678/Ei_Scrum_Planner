@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './navbar.css'; 
 import RegistrationForm from '../registerationForm/registeration.jsx'; // Import the RegistrationForm component
+import LoginForm from '../login/login.jsx'; // Import the LoginForm component
 
 const Navbar = () => {
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State for dropdown visibility
-  const [isRegistrationFormVisible, setIsRegistrationFormVisible] = useState(false); // State for registration form visibility
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [isRegistrationFormVisible, setIsRegistrationFormVisible] = useState(false);
+  const [isLoginFormVisible, setIsLoginFormVisible] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Toggle dropdown visibility
   const toggleDropdown = () => {
     setIsDropdownVisible(!isDropdownVisible);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -26,35 +26,35 @@ const Navbar = () => {
     };
   }, []);
 
-  // Open registration form
   const openRegistrationForm = (e) => {
-    e.preventDefault(); // Prevent default behavior of the <a> tag
+    e.preventDefault();
     setIsRegistrationFormVisible(true);
-    setIsDropdownVisible(false); // Close the dropdown when opening the form
+    setIsDropdownVisible(false);
+  };
+
+  const openLoginForm = (e) => {
+    e.preventDefault();
+    setIsLoginFormVisible(true);
+    setIsDropdownVisible(false);
   };
 
   return (
     <div>
-      {/* Navbar */}
       <nav className="navbar">
-        {/* Logo */}
         <div className="navbar-logo">
           <img src="../src/assets/emotional-intelligence.png" alt="Logo" />
         </div>
 
-        {/* Navigation Links */}
         <div className="navbar-links">
           <a href="/assigned-to-me" className="navbar-link">Assigned to Me</a>
           <a href="/projects" className="navbar-link">Projects</a>
           <a href="/dashboard" className="navbar-link">Dashboard</a>
         </div>
 
-        {/* Search Bar */}
         <div className="navbar-search">
           <input type="text" placeholder="Search" />
         </div>
 
-        {/* Profile Picture with Dropdown */}
         <div className="navbar-profile" ref={dropdownRef}>
           <img
             src="../src/assets/profile.png"
@@ -63,7 +63,6 @@ const Navbar = () => {
             onClick={toggleDropdown}
           />
 
-          {/* Dropdown Menu */}
           {isDropdownVisible && (
             <div className="dropdown-menu">
               <div className="dropdown-header">
@@ -76,6 +75,7 @@ const Navbar = () => {
                 </div>
               </div>
               <a href="/register" className="dropdown-item" onClick={openRegistrationForm}>Register</a>
+              <a href="/login" className="dropdown-item" onClick={openLoginForm}>Login</a>
               <div className="dropdown-divider"></div>
               <a href="/manage-account" className="dropdown-item">Manage account</a>
               <a href="/profile" className="dropdown-item">Profile</a>
@@ -89,7 +89,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Registration Form Overlay */}
       {isRegistrationFormVisible && (
         <div className="overlay">
           <div className="registration-modal-content">
@@ -97,9 +96,23 @@ const Navbar = () => {
               className="close-button"
               onClick={() => setIsRegistrationFormVisible(false)}
             >
-              × {/* Close icon (you can replace this with an actual icon if needed) */}
+              ×
             </button>
             <RegistrationForm />
+          </div>
+        </div>
+      )}
+
+      {isLoginFormVisible && (
+        <div className="overlay">
+          <div className="registration-modal-content">
+            <button
+              className="close-button"
+              onClick={() => setIsLoginFormVisible(false)}
+            >
+              ×
+            </button>
+            <LoginForm />
           </div>
         </div>
       )}

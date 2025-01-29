@@ -5,17 +5,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { register, reset } from "../../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 const RegistrationForm = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    role: "Developer",
-    password: "",
-    specialist: "Frontend Developer",
-    rememberMe: false,
-  });
-
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    specialist: '',
+   
+  });
 
   const { user, isLoading, isError, isSuccess, message } = useSelector(
     (state) => state.auth
@@ -26,25 +24,29 @@ const RegistrationForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
+  
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     }
-
+  
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email address is invalid";
     }
-
+  
     if (!formData.password) {
       newErrors.password = "Password is required";
     }
-
+  
+    // Add specialist validation
+    if (!formData.specialist.trim()) {
+      newErrors.specialist = 'Specialist field is required';
+    }
+  
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -73,6 +75,7 @@ const RegistrationForm = () => {
       };
       dispatch(register(userData));
       console.log("Form Data Submitted:", userData);
+      navigate('/login');
     }
   };
 
@@ -153,37 +156,18 @@ const RegistrationForm = () => {
           )}
         </div>
 
-        {/* Specialist Select */}
+        {/* Specialist Text Input */}
         <div className="form-group">
           <label htmlFor="specialist">Specialist</label>
-          <select
+          <input
+            type="text"
             id="specialist"
             name="specialist"
             value={formData.specialist}
             onChange={handleChange}
-          >
-            <option value="Frontend Developer">Frontend Developer</option>
-            <option value="Backend Developer">Backend Developer</option>
-            <option value="Data Analyst">Data Analyst</option>
-          </select>
-          {errors.specialist && (
-            <div className="error-message">{errors.specialist}</div>
-          )}
-        </div>
-
-        {/* Remember Me Checkbox */}
-        <div className="form-group remember-me">
-          <label htmlFor="rememberMe">
-            <input
-              type="checkbox"
-              id="rememberMe"
-              name="rememberMe"
-              checked={formData.rememberMe}
-              onChange={handleChange}
-            />
-            <span className="checkbox-custom"></span>
-            <span className="remember-me-text">Remember me</span>
-          </label>
+            placeholder="Enter your specialist" // Added this line
+          />
+          {errors.specialist && <div className="error-message">{errors.specialist}</div>}
         </div>
 
         <button type="submit" className="submit-button">
@@ -200,10 +184,6 @@ const RegistrationForm = () => {
             <span>Google</span>
           </button>
         </div>
-      </div>
-
-      <div className="footer-links">
-        <a href="#">Create an account</a>
       </div>
 
       <div className="atlassian-footer">
