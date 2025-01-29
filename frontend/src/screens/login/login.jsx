@@ -1,44 +1,35 @@
 import React, { useState } from 'react';
-import './registeration.css';
 import { useNavigate } from 'react-router-dom';
+import './login.css';
 
-const RegistrationForm = () => {
-  const navigate = useNavigate(); 
+const LoginForm = () => {
+    const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
-    specialist: '',
+    rememberMe: false,
   });
 
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
-  
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-  
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email address is invalid';
     }
-  
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     }
-  
-    // Add specialist validation
-    if (!formData.specialist.trim()) {
-      newErrors.specialist = 'Specialist field is required';
-    }
-  
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -60,33 +51,19 @@ const RegistrationForm = () => {
 
     if (validateForm()) {
       console.log('Form Data Submitted:', formData);
-      navigate('/login');
-      alert('Registration Successful!');
+      alert('Login Successful!');
+      navigate('/');
     }
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword); // Toggle password visibility
+    setShowPassword(!showPassword);
   };
 
   return (
     <div className="registration-container">
-      <h2>Register to Continue</h2>
+      <h2>Login to Continue</h2>
       <form onSubmit={handleSubmit}>
-        {/* Name Input */}
-        <div className="form-group">
-          <label htmlFor="name">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter your name"
-          />
-          {errors.name && <div className="error-message">{errors.name}</div>}
-        </div>
-
         {/* Email Input */}
         <div className="form-group">
           <label htmlFor="email">Email</label>
@@ -101,13 +78,12 @@ const RegistrationForm = () => {
           {errors.email && <div className="error-message">{errors.email}</div>}
         </div>
 
-
         {/* Password Input with Toggle */}
         <div className="form-group password-group">
           <label htmlFor="password">Password</label>
           <div className="password-input-container">
             <input
-              type={showPassword ? 'text' : 'password'} // Toggle between text and password
+              type={showPassword ? 'text' : 'password'}
               id="password"
               name="password"
               value={formData.password}
@@ -118,34 +94,34 @@ const RegistrationForm = () => {
               className="password-toggle-icon"
               onClick={togglePasswordVisibility}
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'} {/* Eye icons for show/hide */}
+              {showPassword ? '👁️' : '👁️‍🗨️'}
             </span>
           </div>
           {errors.password && <div className="error-message">{errors.password}</div>}
         </div>
 
-        {/* Specialist Text Input */}
-        <div className="form-group">
-          <label htmlFor="specialist">Specialist</label>
-          <input
-            type="text"
-            id="specialist"
-            name="specialist"
-            value={formData.specialist}
-            onChange={handleChange}
-            placeholder="Enter your specialist" // Added this line
-          />
-          {errors.specialist && <div className="error-message">{errors.specialist}</div>}
+        {/* Remember Me Checkbox */}
+        <div className="form-group remember-me">
+          <label htmlFor="rememberMe">
+            <input
+              type="checkbox"
+              id="rememberMe"
+              name="rememberMe"
+              checked={formData.rememberMe}
+              onChange={handleChange}
+            />
+            <span className="checkbox-custom"></span>
+            <span className="remember-me-text">Remember me</span>
+          </label>
         </div>
 
         <button type="submit" className="submit-button">
-          Register
+          Login
         </button>
       </form>
 
-      {/* Social Login and Footer sections remain the same */}
       <div className="social-login">
-        <p>Or register with:</p>
+        <p>Or login with:</p>
         <div className="social-buttons">
           <button className="social-button">
             <img
@@ -164,4 +140,4 @@ const RegistrationForm = () => {
   );
 };
 
-export default RegistrationForm;
+export default LoginForm;
