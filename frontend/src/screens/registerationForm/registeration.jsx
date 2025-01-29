@@ -19,7 +19,7 @@ const RegistrationForm = () => {
   );
 
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};

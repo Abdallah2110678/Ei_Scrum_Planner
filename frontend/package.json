@@ -7,9 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "frontend": "npm run dev",
+    "backend": "python ./../backend/manage.py runserver",
+    "start": "concurrently \"npm run frontend\" \"npm run backend\""
   },
   "dependencies": {
+    "concurrently": "^9.1.2",
     "@reduxjs/toolkit": "^2.5.1",
     "axios": "^1.7.9",
     "react": "^18.3.1",
