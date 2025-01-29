@@ -6,13 +6,12 @@ import { register, reset } from "../../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 const RegistrationForm = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     specialist: '',
-   
   });
 
   const { user, isLoading, isError, isSuccess, message } = useSelector(
@@ -24,26 +23,26 @@ const RegistrationForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
-  
+
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     }
-  
+
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email address is invalid";
     }
-  
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     }
-  
+
     // Add specialist validation
     if (!formData.specialist.trim()) {
       newErrors.specialist = 'Specialist field is required';
     }
-  
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
