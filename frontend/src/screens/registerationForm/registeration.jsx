@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./registeration.css";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { register, reset } from "../../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
-const RegistrationForm = () => {
+
+const RegistrationForm = ({ onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -38,7 +39,6 @@ const RegistrationForm = () => {
       newErrors.password = "Password is required";
     }
 
-    // Add specialist validation
     if (!formData.specialist.trim()) {
       newErrors.specialist = 'Specialist field is required';
     }
@@ -46,6 +46,7 @@ const RegistrationForm = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -79,7 +80,7 @@ const RegistrationForm = () => {
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword); // Toggle password visibility
+    setShowPassword(!showPassword);
   };
 
   useEffect(() => {
@@ -94,99 +95,98 @@ const RegistrationForm = () => {
       formData.email = "";
       formData.password = "";
       formData.specialist = "";
+      if (onClose) onClose();
     }
 
     dispatch(reset());
   }, [isError, isSuccess, dispatch]);
 
   return (
-    <div className="registration-container">
-      <h2>Register to Continue</h2>
-      <form onSubmit={handleSubmit}>
-        {/* Name Input */}
-        <div className="form-group">
-          <label htmlFor="name">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter your name"
-          />
-          {errors.name && <div className="error-message">{errors.name}</div>}
-        </div>
-
-        {/* Email Input */}
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Enter your email"
-          />
-          {errors.email && <div className="error-message">{errors.email}</div>}
-        </div>
-
-        {/* Password Input with Toggle */}
-        <div className="form-group password-group">
-          <label htmlFor="password">Password</label>
-          <div className="password-input-container">
+    <div className="modal-overlay">
+      <div className="registration-container">
+        <button className="close-button" onClick={onClose}>×</button>
+        <h2>Register to Continue</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="name">Name</label>
             <input
-              type={showPassword ? "text" : "password"} // Toggle between text and password
-              id="password"
-              name="password"
-              value={formData.password}
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
-              placeholder="Enter your password"
+              placeholder="Enter your name"
             />
-            <span
-              className="password-toggle-icon"
-              onClick={togglePasswordVisibility}
-            >
-              {showPassword ? "👁️" : "👁️‍🗨️"} {/* Eye icons for show/hide */}
-            </span>
+            {errors.name && <div className="error-message">{errors.name}</div>}
           </div>
-          {errors.password && (
-            <div className="error-message">{errors.password}</div>
-          )}
-        </div>
 
-        {/* Specialist Text Input */}
-        <div className="form-group">
-          <label htmlFor="specialist">Specialist</label>
-          <input
-            type="text"
-            id="specialist"
-            name="specialist"
-            value={formData.specialist}
-            onChange={handleChange}
-            placeholder="Enter your specialist" // Added this line
-          />
-          {errors.specialist && <div className="error-message">{errors.specialist}</div>}
-        </div>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+            />
+            {errors.email && <div className="error-message">{errors.email}</div>}
+          </div>
 
-        <button type="submit" className="submit-button">
-          Register
-        </button>
-      </form>
+          <div className="form-group password-group">
+            <label htmlFor="password">Password</label>
+            <div className="password-input-container">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+              />
+              <span
+                className="password-toggle-icon"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? "👁️" : "👁️‍🗨️"}
+              </span>
+            </div>
+            {errors.password && (
+              <div className="error-message">{errors.password}</div>
+            )}
+          </div>
 
-      {/* Social Login and Footer sections remain the same */}
-      <div className="social-login">
-        <p>Or register with:</p>
-        <div className="social-buttons">
-          <button className="social-button">
-            <img src="../src/assets/google.png" alt="Google Logo" />
-            <span>Google</span>
+          <div className="form-group">
+            <label htmlFor="specialist">Specialist</label>
+            <input
+              type="text"
+              id="specialist"
+              name="specialist"
+              value={formData.specialist}
+              onChange={handleChange}
+              placeholder="Enter your specialist"
+            />
+            {errors.specialist && <div className="error-message">{errors.specialist}</div>}
+          </div>
+
+          <button type="submit" className="submit-button">
+            Register
           </button>
-        </div>
-      </div>
+        </form>
 
-      <div className="atlassian-footer">
-        <p>One account for EI Scrum Planner and more.</p>
+        <div className="social-login">
+          <p>Or register with:</p>
+          <div className="social-buttons">
+            <button className="social-button">
+              <img src="../src/assets/google.png" alt="Google Logo" />
+              <span>Google</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="atlassian-footer">
+          <p>One account for EI Scrum Planner and more.</p>
+        </div>
       </div>
     </div>
   );

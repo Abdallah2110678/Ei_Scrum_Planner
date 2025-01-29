@@ -2,8 +2,8 @@
 .home {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  width: 1535px; 
+  min-height: 96vh;
+  width: 1515px; 
 }
 
 /* Home Container for Sidebar and Content */

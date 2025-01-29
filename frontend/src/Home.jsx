@@ -3,11 +3,13 @@ import Navbar from './screens/navbar/navbar.jsx';
 import Sidebar from './screens/sidebar/sidebar.jsx';
 import Backlog from './screens/backlog/backlog';
 import Board from './screens/board/board'; 
-import Timeline from './screens/timeline/timeline'; 
+import Timeline from './screens/timeline/timeline';
+import RegistrationForm from './screens/registerationForm/registeration.jsx';
 import './Home.css';
 
 const Home = () => {
   const [activeComponent, setActiveComponent] = useState(''); 
+  const [showRegister, setShowRegister] = useState(false);
 
   const toggleComponent = (component) => {
     setActiveComponent((prev) => (prev === component ? '' : component)); 
@@ -30,6 +32,11 @@ const Home = () => {
           {activeComponent === 'timeline' && <Timeline />}
         </div>
       </div>
+
+      {/* Registration Modal */}
+      {showRegister && (
+        <RegistrationForm onClose={() => setShowRegister(false)} />
+      )}
     </div>
   );
 };

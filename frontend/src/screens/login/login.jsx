@@ -133,6 +133,12 @@ const LoginForm = () => {
         </div>
       </div>
 
+        <div className="footer-links">
+            <button onClick={() => navigate('/register')} className="link-button">
+                Create an account
+            </button>
+        </div>
+
       <div className="atlassian-footer">
         <p>One account for EI Scrum Planner and more.</p>
       </div>

@@ -26,12 +26,6 @@ const Navbar = () => {
     };
   }, []);
 
-  const openRegistrationForm = (e) => {
-    e.preventDefault();
-    setIsRegistrationFormVisible(true);
-    setIsDropdownVisible(false);
-  };
-
   const openLoginForm = (e) => {
     e.preventDefault();
     setIsLoginFormVisible(true);
@@ -74,7 +68,7 @@ const Navbar = () => {
                   </div>
                 </div>
               </div>
-              <a href="/register" className="dropdown-item" onClick={openRegistrationForm}>Register</a>
+              
               <a href="/login" className="dropdown-item" onClick={openLoginForm}>Login</a>
               <div className="dropdown-divider"></div>
               <a href="/manage-account" className="dropdown-item">Manage account</a>
