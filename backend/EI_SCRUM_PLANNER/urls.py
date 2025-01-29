@@ -24,5 +24,6 @@ urlpatterns = [
     path('', include('emotion_detection.urls')),
     path("api/v1/auth/", include('djoser.urls')),
     path("api/v1/auth/", include('djoser.urls.jwt')),
+    path('task-estimation/', include('task_estimation.urls')),
     # path('logout/', LogoutView.as_view(), name='logout'),
 ]

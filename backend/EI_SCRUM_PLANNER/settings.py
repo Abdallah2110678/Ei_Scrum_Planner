@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    # task estimation
+    'task_estimation',
 ]
 
 MIDDLEWARE = [
@@ -145,7 +147,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-  
 }
 
 
