@@ -1,6 +1,3 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
 import { useState, useEffect } from "react";
 import "./registeration.css";
 import { toast } from "react-toastify";
@@ -17,9 +14,6 @@ const RegistrationForm = () => {
     specialist: '',
    
   });
-
-  
- 
 
   const { user, isLoading, isError, isSuccess, message } = useSelector(
     (state) => state.auth
