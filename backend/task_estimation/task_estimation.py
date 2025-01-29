@@ -69,8 +69,6 @@ def train_model():
 
     return results
 def predict_story_points(developer_experience, task_duration, task_complexity):
-    import os
-    import pickle
 
     MODEL_PATH = "best_model.pkl"
 
