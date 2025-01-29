@@ -3,8 +3,8 @@
     "concurrently": "^9.1.2"
   },
   "scripts": {
-    "frontend": "npm run dev --prefix D:/projects/gp/Ei_Scrum_Planner/frontend",
-    "backend": "python D:/projects/gp/Ei_Scrum_Planner/backend/manage.py runserver",
+    "frontend": "npm run dev --prefix ./frontend",
+    "backend": "python ./backend/manage.py runserver",
     "start": "concurrently \"npm run frontend\" \"npm run backend\""
   }
 }
