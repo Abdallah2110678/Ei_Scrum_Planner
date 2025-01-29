@@ -22,7 +22,7 @@ from users.views import  SignInView, SignUpView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('emotion_detection.urls')),
-    path('signup/', SignUpView.as_view(), name='signup'),
-    path('signin/', SignInView.as_view(), name='signin'),
+    path("api/v1/auth/", include('djoser.urls')),
+    path("api/v1/auth/", include('djoser.urls.jwt')),
     # path('logout/', LogoutView.as_view(), name='logout'),
 ]

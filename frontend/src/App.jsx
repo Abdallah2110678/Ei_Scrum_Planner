@@ -1,14 +1,17 @@
-import React from 'react';
+
 import Home from './Home';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Backlog from '../src/screens/backlog/backlog.jsx';
 import Board from '../src/screens/board/board.jsx'; 
-import Timeline from '../src/screens/timeline/timeline.jsx'; 
 import LoginForm from './screens/login/login.jsx';
 import RegistrationForm from './screens/registerationForm/registeration.jsx';
+import Timeline from '../src/screens/timeline/timeline.jsx';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 const App = () => {
   return (
+    <>
     <Router>
       <Routes>
         {/* Login and Registration routes */}
@@ -28,6 +31,8 @@ const App = () => {
         </Route>
       </Routes>
     </Router>
+    <ToastContainer />
+    </>
   );
 };
 
