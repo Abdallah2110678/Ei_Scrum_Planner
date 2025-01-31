@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import './navbar.css'; 
+import { useState, useEffect, useRef } from 'react';
+import './navbar.css';
 import RegistrationForm from '../registerationForm/registeration.jsx'; // Import the RegistrationForm component
-import LoginForm from '../login/login.jsx'; // Import the LoginForm component
+import LoginForm from '../login/login.jsx'; // Im
+import { useDispatch } from 'react-redux'
+import { logout, reset } from '../../features/auth/authSlice'
+import { toast } from 'react-toastify'
+import { NavLink } from 'react-router-dom'
 
 const Navbar = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -12,6 +16,17 @@ const Navbar = () => {
   const toggleDropdown = () => {
     setIsDropdownVisible(!isDropdownVisible);
   };
+
+
+  const dispatch = useDispatch()
+
+  
+
+    const handleLogout = () => {
+        dispatch(logout())
+        dispatch(reset())
+        toast.success('Logged out successfully')
+    }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -77,7 +92,7 @@ const Navbar = () => {
               <a href="/notifications" className="dropdown-item">Notifications <span className="new-badge">NEW</span></a>
               <a href="/theme" className="dropdown-item">Theme</a>
               <div className="dropdown-divider"></div>
-              <a href="/logout" className="dropdown-item">Log out</a>
+              <NavLink className='nav-childs' to="/" onClick={handleLogout}>Logout</NavLink>
             </div>
           )}
         </div>
