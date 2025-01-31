@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import  { useState,useEffect } from 'react';
+import { useNavigate, Link,} from 'react-router-dom';
 import './login.css';
+import { useDispatch, useSelector } from 'react-redux'
+import { login, reset, getUserInfo } from '../../features/auth/authSlice'
+import { toast } from 'react-toastify'
+
 
 const LoginForm = () => {
-    const navigate = useNavigate();
+    
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false,
   });
+
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
+
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -51,6 +61,11 @@ const LoginForm = () => {
 
     if (validateForm()) {
       console.log('Form Data Submitted:', formData);
+      const userData = {
+        email: formData.email,
+        password: formData.password,
+    };
+     dispatch(login(userData));
       alert('Login Successful!');
       navigate('/');
     }
@@ -59,6 +74,21 @@ const LoginForm = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  useEffect(() => {
+    if (isError) {
+        toast.error(message)
+    }
+
+    if (isSuccess || user) {
+      toast.success("Login Successful")
+        navigate("/dashboard")
+    }
+
+    dispatch(reset())
+    dispatch(getUserInfo())
+
+}, [isError, isSuccess, user, navigate, dispatch])
 
   return (
     <div className="registration-container">
