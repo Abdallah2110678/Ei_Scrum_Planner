@@ -1,38 +1,28 @@
-
-import Home from './Home';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Backlog from '../src/screens/backlog/backlog.jsx';
-import Board from '../src/screens/board/board.jsx'; 
-import LoginForm from './screens/login/login.jsx';
-import RegistrationForm from './screens/registerationForm/registeration.jsx';
-import Timeline from '../src/screens/timeline/timeline.jsx';
-import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./Home";
+import Backlog from "./screens/backlog/backlog";
+import Board from "./screens/board/board";
+import Timeline from "./screens/timeline/timeline";
+import LoginForm from "./screens/login/login";
+import RegistrationForm from "./screens/registerationForm/registeration.jsx";
 
 const App = () => {
   return (
-    <>
     <Router>
       <Routes>
-        {/* Login and Registration routes */}
+        {/* Home Layout that wraps other pages */}
+        <Route path="/" element={<Home />}>
+          <Route index element={<Timeline />} />
+          <Route path="backlog" element={<Backlog />} />
+          <Route path="board" element={<Board />} />
+          <Route path="/timeline" element={<Timeline />} />
+        </Route>
+
+        {/* Login and Registration */}
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegistrationForm />} />
-
-        {/* Home as the layout */}
-        <Route path="/" element={<Home />}>
-          {/* Backlog route */}
-          <Route path="backlog" element={<Backlog />} />
-
-          {/* Board route */}
-          <Route path="board" element={<Board />} />
-
-          {/* Timeline route */}
-          <Route path="timeline" element={<Timeline />} />
-        </Route>
       </Routes>
     </Router>
-    <ToastContainer />
-    </>
   );
 };
 

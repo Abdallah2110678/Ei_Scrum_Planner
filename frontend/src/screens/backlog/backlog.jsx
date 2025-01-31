@@ -3,7 +3,9 @@ import './backlog.css';
 
 const Backlog = () => {
   return (
+    
     <div className="backlog-container">
+      
       {/* Projects / School as hyperlinks */}
       <div className="projects-school-links">
         <a href="/projects" className="project-link">Projects</a>

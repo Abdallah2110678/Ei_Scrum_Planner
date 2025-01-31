@@ -40,9 +40,9 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-links">
-          <a href="/assigned-to-me" className="navbar-link">Assigned to Me</a>
-          <a href="/projects" className="navbar-link">Projects</a>
-          <a href="/dashboard" className="navbar-link">Dashboard</a>
+          <a href="/#" className="navbar-link">Assigned to Me</a>
+          <a href="/#" className="navbar-link">Projects</a>
+          <a href="/#" className="navbar-link">Dashboard</a>
         </div>
 
         <div className="navbar-search">

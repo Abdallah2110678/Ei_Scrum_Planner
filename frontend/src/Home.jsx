@@ -1,19 +1,14 @@
-import React, { useState } from 'react';
-import Navbar from './screens/navbar/navbar.jsx';
-import Sidebar from './screens/sidebar/sidebar.jsx';
-import Backlog from './screens/backlog/backlog';
-import Board from './screens/board/board'; 
-import Timeline from './screens/timeline/timeline';
-import RegistrationForm from './screens/registerationForm/registeration.jsx';
-import './Home.css';
+import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
+import Navbar from "./screens/navbar/navbar.jsx";
+import Sidebar from "./screens/sidebar/sidebar.jsx";
+import LoginForm from "./screens/login/login.jsx";
+import RegistrationForm from "./screens/registerationForm/registeration.jsx";
+import "./Home.css";
 
 const Home = () => {
-  const [activeComponent, setActiveComponent] = useState(''); 
+  const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-
-  const toggleComponent = (component) => {
-    setActiveComponent((prev) => (prev === component ? '' : component)); 
-  };
 
   return (
     <div className="home">
@@ -23,20 +18,19 @@ const Home = () => {
       {/* Main Content */}
       <div className="home-container">
         {/* Sidebar */}
-        <Sidebar toggleComponent={toggleComponent} />
+        <Sidebar />
 
-        {/* Home Content */}
+        {/* Content Rendered via React Router */}
         <div className="home-content">
-          {activeComponent === 'backlog' && <Backlog />}
-          {activeComponent === 'board' && <Board toggleComponent={toggleComponent} />}
-          {activeComponent === 'timeline' && <Timeline />}
+          <Outlet />
         </div>
       </div>
 
-      {/* Registration Modal */}
-      {showRegister && (
-        <RegistrationForm onClose={() => setShowRegister(false)} />
-      )}
+      {/* Login Modal */}
+      {showLogin && <LoginForm onClose={() => setShowLogin(false)} />}
+
+      {/* Register Modal */}
+      {showRegister && <RegistrationForm onClose={() => setShowRegister(false)} />}
     </div>
   );
 };
