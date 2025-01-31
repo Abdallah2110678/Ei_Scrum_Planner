@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
     # task estimation
     'task_estimation',
+    'sprints',
 ]
 
 MIDDLEWARE = [

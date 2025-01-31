@@ -25,5 +25,6 @@ urlpatterns = [
     path("api/v1/auth/", include('djoser.urls')),
     path("api/v1/auth/", include('djoser.urls.jwt')),
     path('task-estimation/', include('task_estimation.urls')),
+    path('api/v1/sprints/', include('sprints.urls')),
     # path('logout/', LogoutView.as_view(), name='logout'),
 ]
