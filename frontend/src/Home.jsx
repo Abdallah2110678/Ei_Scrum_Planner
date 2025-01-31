@@ -15,7 +15,7 @@ const Home = () => {
       {/* Navbar */}
       <Navbar />
 
-      {/* Main Content */}
+      {/* Main Content there is nothing here */}
       <div className="home-container">
         {/* Sidebar */}
         <Sidebar />
