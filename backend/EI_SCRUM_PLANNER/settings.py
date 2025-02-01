@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # task estimation
     'task_estimation',
     'sprints',
+    'tasks',
 ]
 
 MIDDLEWARE = [
