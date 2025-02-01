@@ -337,6 +337,7 @@
   width: 563px;
   background-color: white;
   resize: none;
+  color: #000;
 }
 
 .modal-title {
