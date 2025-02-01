@@ -30,6 +30,15 @@ const Backlog = () => {
     const updatedSprints = sprints.filter(sprint => sprint.id !== id);
     setSprints(updatedSprints); // Update the state by removing the sprint
     setOpenDropdown(null); // Close the dropdown if it's open
+
+    // Reassign IDs for remaining sprints
+    const reassignedSprints = updatedSprints.map((sprint, index) => ({
+      ...sprint,
+      id: index + 1, // Reassign ID based on index
+      sprint_name: `SCHOOL Sprint ${index + 1}` // Update sprint name
+    }));
+    
+    setSprints(reassignedSprints);
   };
 
   useEffect(() => {
