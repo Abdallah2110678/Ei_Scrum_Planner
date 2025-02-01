@@ -165,6 +165,7 @@
     display: flex;
     align-items: center;
     gap: 10px; /* Reduced gap between image and text */
+    border: 2px dashed #ccc;
   }
   
   .sprint-image img {
@@ -235,6 +236,9 @@
     text-align: center; /* Center the text */
 }
 
+.empty-backlog p{
+  font-size: 13px;
+}
 .empty-backlog-message {
     font-size: 14px; /* Font size for the message */
     color: #666; /* Light gray color for the text */
