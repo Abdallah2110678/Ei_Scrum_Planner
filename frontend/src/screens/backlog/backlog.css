@@ -213,3 +213,100 @@
     font-size: 18px; /* Size of the plus icon */
     font-weight: bold; /* Make the plus icon bold */
   }
+
+  .backlog-info {
+    background-color: #ffffff; /* Light gray background */
+    padding: 20px; /* Padding inside the div */
+    border-radius: 4px; /* Rounded corners */
+    margin-bottom: 20px; /* Space below the sprint info */
+    position: relative; /* Make it the positioning reference for absolute children */
+}
+
+.backlog-info strong {
+  display: block; /* Make the strong element a block */
+  font-size: 13px; /* Font size for the sprint name */
+  color: #333; /* Dark gray color */
+  margin-bottom: 10px; /* Space below the sprint name */
+}
+
+.empty-backlog {
+    border: 2px dashed #ccc; /* Dashed border */
+    padding: 0px; /* Padding inside the empty backlog area */
+    text-align: center; /* Center the text */
+}
+
+.empty-backlog-message {
+    font-size: 14px; /* Font size for the message */
+    color: #666; /* Light gray color for the text */
+}
+
+.create-issue-button {
+    background-color: #f5f5f5; /* Light background */
+    color: #333; /* Dark text */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.create-issue-button:hover {
+    background-color: #e6e6e6; /* Darker background on hover */
+}
+
+.create-sprint-container {
+    margin-top: 20px; /* Space above the create sprint button */
+}
+
+.create-sprint-button {
+    background-color: #0052cc; /* Blue background */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.create-sprint-button:hover {
+    background-color: #0041a3; /* Darker blue on hover */
+}
+
+.create-issue-button2 {
+  background-color: #ffffff;
+  color: #333;
+  border: none;
+  width: 1174px;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+  transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.create-issue-button2:hover {
+  background-color: #e6e6e6; /* Darker blue on hover */
+}
+
+.create-sprint-button {
+  background-color: #cecfcf;
+  color: rgb(0, 0, 0);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.create-sprint-button:hover {
+  background-color: #bebebe;
+}
