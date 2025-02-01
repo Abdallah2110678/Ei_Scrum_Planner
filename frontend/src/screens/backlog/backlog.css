@@ -92,9 +92,9 @@
     transition: background-color 0.3s ease;
 }
 
-.start-sprint-button:disabled {
+.start-sprint-button:hover {
     background-color: #ccc;
-    cursor: not-allowed;
+    cursor: pointer;
 }
 
 .sprint-actions-button {
