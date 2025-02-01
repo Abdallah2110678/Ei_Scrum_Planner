@@ -97,6 +97,9 @@ const Backlog = () => {
                 </div>
               )}
             </div>
+            <button className="create-issue-button">
+            <span className="plus-icon">+</span> Create issue
+          </button>
           </div>
         ))
       ) : (
