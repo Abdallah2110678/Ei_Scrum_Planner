@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './backlog.css';
 
 const Backlog = () => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   return (
-    
     <div className="backlog-container">
-      
       {/* Projects / School as hyperlinks */}
       <div className="projects-school-links">
         <a href="/projects" className="project-link">Projects</a>
@@ -40,16 +44,37 @@ const Backlog = () => {
                 <br />
                 Select <b>Start sprint</b> when you're ready.
               </p>
-              
             </div>
           </div>
+
+          <div className="sprint-actions">
+            <button className="start-sprint-button" disabled>
+              Start sprint
+            </button>
+
+            {/* Sprint Actions Button */}
+            <button 
+              className="sprint-actions-button" 
+              aria-haspopup="true" 
+              onClick={toggleDropdown}
+            >
+              <span className="icon-more-actions">...</span>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className="dropdown-menu">
+                <button className="dropdown-item">Edit sprint</button>
+                <button className="dropdown-item">Delete sprint</button>
+              </div>
+            )}
+          </div>
+
           <button className="create-issue-button">
-                <span className="plus-icon">+</span> Create issue
-              </button>
+            <span className="plus-icon">+</span> Create issue
+          </button>
         </div>
       </div>
-
-      
     </div>
   );
 };
