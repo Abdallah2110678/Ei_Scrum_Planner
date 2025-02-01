@@ -3,7 +3,11 @@ import axios from "axios";
 const API_URL = "http://127.0.0.1:8000/api/tasks/";
 
 
-
+const config = {
+  headers: {
+    "Content-type": "application/json",
+  },
+};
 
 // Fetch all tasks
 const fetchTasks = async () => {
@@ -13,13 +17,13 @@ const fetchTasks = async () => {
 
 // Add a new task
 const addTask = async (taskData) => {
-    const response = await axios.post(API_URL, taskData);
+    const response = await axios.post(API_URL, taskData, config);
     return response.data;
 };
 
 // Update a task
 const updateTask = async ({ id, taskData }) => {
-    const response = await axios.put(`${API_URL}${id}/`, taskData);
+    const response = await axios.patch(`${API_URL}${id}/`, taskData, config);
     return response.data;
 };
 
