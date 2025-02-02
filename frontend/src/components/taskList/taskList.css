@@ -1,0 +1,148 @@
+/* Task List Container */
+.task-list-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+}
+
+/* Individual Task Item */
+.task-item {
+    display: grid;
+    grid-template-columns: 2fr 100px 60px 50px 80px;
+    align-items: center;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    gap: 10px;
+}
+
+.task-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Task ID Styling */
+.task-id {
+    font-weight: bold;
+    color: #666;
+}
+
+/* Task Name Section */
+.task-name-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.task-name {
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.task-name:hover {
+    background-color: #ddd;
+}
+
+/* Resizable Text Area for Editing Task Name */
+.task-textarea {
+    font-size: 16px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 100%;
+    min-height: 30px;
+    resize: vertical;
+}
+
+/* Task Status Dropdown */
+.task-status {
+    padding: 5px;
+    font-size: 14px;
+    border-radius: 3px;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.task-status:hover {
+    background-color: #ddd;
+}
+
+/* Story Points Section */
+.story-points {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* Default Story Points Text */
+.story-points-text {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+/* Tooltip for Story Points (Shown on Hover) */
+.story-points-text:hover::after {
+    content: "Story Points";
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+/* Small Input for Editing Story Points */
+.story-points-input {
+    font-size: 14px;
+    width: 50px;
+    padding: 3px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    text-align: center;
+}
+
+/* User Avatar */
+.user-avatar {
+    background-color: #FF5733;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+/* Delete Button */
+.delete-task {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    transition: color 0.3s;
+    padding-left: 10px;
+}
+
+.delete-task:hover {
+    color: #333;
+}
