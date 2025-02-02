@@ -62,10 +62,53 @@ const StartSprintModal = ({ isOpen, onClose, sprintName }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onClose();
+    console.log("Form submitted"); // Log form data
+
+    const durationMapping = {
+      "1 week": 7,
+      "2 weeks": 14,
+      "3 weeks": 21,
+      "4 weeks": 28,
+      "Custom": 0
   };
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/sprints/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            sprint_name: formData.sprintName,
+            duration: durationMapping[formData.duration], // Ensure it's an integer
+            start_date: formData.startDate,
+            sprint_goal: formData.sprintGoal,
+        }),
+    });
+
+        console.log("Sending payload:", {
+          sprint_name: formData.sprintName,
+          duration: parseInt(formData.duration.split(' ')[0]),
+          start_date: formData.startDate,
+          sprint_goal: formData.sprintGoal,
+          custom_end_date: formData.customEndDate || null,
+      });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error response:', errorData); // Log error response
+            throw new Error(errorData.message || 'Failed to create sprint');
+        }
+
+        const data = await response.json();
+        console.log('Sprint created:', data); // Log created sprint
+        onClose(); // Close the modal
+    } catch (error) {
+        console.error('Error creating sprint:', error);
+        // Optionally show an error message to the user
+    }
+};
 
   return (
     <div className="modal-overlay">
