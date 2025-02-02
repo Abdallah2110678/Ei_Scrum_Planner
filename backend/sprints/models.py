@@ -11,10 +11,10 @@ class Sprint(models.Model):
     ]
 
     sprint_name = models.CharField(max_length=100)
-    duration = models.IntegerField(choices=DURATION_CHOICES, default=14)  # Default: 2 weeks
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField(blank=True, null=True)
-    sprint_goal = models.TextField(blank=True, null=True)
+    duration = models.IntegerField(choices=DURATION_CHOICES, default=14, blank=True, null=True)  # ✅ Optional Duration
+    start_date = models.DateTimeField(blank=True, null=True)  # ✅ Optional Start Date
+    end_date = models.DateTimeField(blank=True, null=True)  # ✅ Optional End Date
+    sprint_goal = models.TextField(blank=True, null=True)  # ✅ Optional Sprint Goal
 
     def save(self, *args, **kwargs):
         

@@ -5,7 +5,11 @@ from django.contrib.auth import get_user_model  # Use custom User model
 User = get_user_model()  # Get the correct User model dynamically
 
 class TaskSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())  # Allow assigning by User ID
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        allow_null=True,
+        required=False  
+    )
 
     class Meta:
         model = Task

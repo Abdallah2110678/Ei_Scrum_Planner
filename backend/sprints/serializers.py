@@ -1,12 +1,14 @@
 from rest_framework import serializers
+from tasks.serializers import TaskSerializer
 from .models import Sprint
 
 class SprintSerializer(serializers.ModelSerializer):
+    tasks = TaskSerializer(many=True, read_only=True)  # ✅ Include related tasks
     custom_end_date = serializers.DateTimeField(required=False)  # Optional field
 
     class Meta:
         model = Sprint
-        fields = ['id', 'sprint_name', 'duration', 'start_date', 'sprint_goal', 'custom_end_date']
+        fields = ['id', 'sprint_name', 'duration', 'start_date', 'sprint_goal', 'custom_end_date', 'tasks']
 
     def validate(self, attrs):
         # Custom validation for end date if duration is "Custom"

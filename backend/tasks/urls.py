@@ -11,4 +11,5 @@ urlpatterns = [
     #Get All Tasks	GET	/api/tasks/
     #Update Task	PUT	/api/tasks/1/
     #Delete Task	DELETE	/api/tasks/1/
+    #Get Task	Get api/tasks/?user=null  with none user
 ]
