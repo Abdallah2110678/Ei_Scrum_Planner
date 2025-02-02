@@ -22,7 +22,6 @@ const CreateIssueButton = () => {
     const handleKeyPress = (e) => {
         if (e.key === "Enter" && taskName.trim() !== "") {
             const taskData = {
-                user: 1,  // Replace with dynamic user ID if needed
                 user_experience: 0,
                 task_name: taskName,  // Use the updated taskName
                 task_duration: 0,

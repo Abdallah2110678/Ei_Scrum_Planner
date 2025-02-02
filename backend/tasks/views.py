@@ -19,22 +19,28 @@ class TaskViewSet(viewsets.ModelViewSet):
         queryset = Task.objects.all()
 
         # Check if user=null filtering is requested
-        if request.query_params.get("user") == "null":
-            queryset = queryset.filter(user__isnull=True)
+        if request.query_params.get("sprint") == "null":
+            queryset = queryset.filter(sprint__isnull=True)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def get_queryset(self):
-        """
-        Optionally filter tasks by sprint.
-        Example: /api/tasks/?sprint=1
-        """
-        queryset = Task.objects.all()
-        sprint_id = self.request.query_params.get("sprint")
-        if sprint_id:
-            queryset = queryset.filter(sprint_id=sprint_id)  # ✅ Filter tasks by Sprint
-        return queryset
+      """
+      Optionally filter tasks by sprint.
+      Example: 
+          - /api/tasks/?sprint=1   (Fetch tasks in Sprint 1)
+          - /api/tasks/?sprint=null (Fetch tasks with no sprint assigned)
+      """
+      queryset = Task.objects.all()
+      sprint_id = self.request.query_params.get("sprint")
+
+      if sprint_id == "null":  
+          queryset = queryset.filter(sprint__isnull=True)  # ✅ Fetch tasks with no sprint
+      elif sprint_id:  
+          queryset = queryset.filter(sprint_id=sprint_id)  # ✅ Fetch tasks by sprint ID
+
+      return queryset
     
 
     @action(detail=True, methods=['patch'])

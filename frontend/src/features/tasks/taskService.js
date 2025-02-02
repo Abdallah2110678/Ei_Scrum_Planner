@@ -11,7 +11,7 @@ const config = {
 
 // Fetch all tasks
 const fetchTasks = async () => {
-    const response = await axios.get(API_URL);
+    const response = await axios.get(`${API_URL}?sprint=null`);
     return response.data;
 };
 
