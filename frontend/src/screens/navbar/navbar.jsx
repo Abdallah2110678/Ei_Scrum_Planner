@@ -92,7 +92,7 @@ const Navbar = () => {
               <a href="/notifications" className="dropdown-item">Notifications <span className="new-badge">NEW</span></a>
               <a href="/theme" className="dropdown-item">Theme</a>
               <div className="dropdown-divider"></div>
-              <NavLink className='nav-childs' to="/" onClick={handleLogout}>Logout</NavLink>
+              <NavLink className='dropdown-item' to="/" onClick={handleLogout}>Logout</NavLink>
             </div>
           )}
         </div>

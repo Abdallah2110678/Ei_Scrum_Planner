@@ -285,9 +285,9 @@ const Backlog = () => {
               </button>
 
               {openDropdown === sprint.id && (
-                <div className="dropdown-menu">
-                  <button className="dropdown-item">Edit sprint</button>
-                  <button className="dropdown-item" onClick={() => handleDeleteSprint(sprint.id)}>Delete sprint</button>
+                <div className="dropdown-menu1">
+                  <button className="dropdown-item1">Edit sprint</button>
+                  <button className="dropdown-item1" onClick={() => handleDeleteSprint(sprint.id)}>Delete sprint</button>
                 </div>
               )}
             </div>
