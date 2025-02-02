@@ -1,0 +1,28 @@
+.create-issue-container {
+  display: flex;
+  align-items: center;
+}
+
+.create-issue-button {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.create-issue-button:hover {
+  background-color: #e0e0e0;
+}
+
+.create-issue-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  border-radius: 4px;
+  outline: none;
+}
