@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './backlog.css';
 
+import CreateIssueButton from '../../components/taskButton/createTaskButton';
+import TaskList from '../../components/taskList/taskList';
+
 const StartSprintModal = ({ isOpen, onClose, sprintName }) => {
   const [formData, setFormData] = useState({
     sprintName: sprintName,
@@ -262,9 +265,8 @@ const Backlog = () => {
                 Create sprint
               </button> 
             </div>
-            <button className="create-issue-button2">
-              <span className="plus-icon">+</span> Create issue
-            </button>
+            <TaskList />
+            <CreateIssueButton/>
           </div>
         </div>
       )}
