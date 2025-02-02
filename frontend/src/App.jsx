@@ -5,6 +5,9 @@ import Board from "./screens/board/board";
 import Timeline from "./screens/timeline/timeline";
 import LoginForm from "./screens/login/login";
 import RegistrationForm from "./screens/registerationForm/registeration.jsx";
+import IntroductionPage from "./IntroductionPage.jsx";
+
+
 
 const App = () => {
   return (
@@ -21,6 +24,9 @@ const App = () => {
         {/* Login and Registration */}
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegistrationForm />} />
+
+
+        <Route path="/IntroductionPage" element={<IntroductionPage />} />
       </Routes>
     </Router>
   );
