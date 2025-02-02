@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './backlog.css';
-
+import { useDispatch, useSelector } from "react-redux";
+import { fetchSprints, addSprint, deleteSprint } from "../../features/sprints/sprintSlice";
 import CreateIssueButton from '../../components/taskButton/createTaskButton';
 import TaskList from '../../components/taskList/taskList';
 
-const StartSprintModal = ({ isOpen, onClose, sprintName }) => {
+const StartSprintModal = ({ isOpen, onClose, sprintName ,   sprintId }) => {
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     sprintName: sprintName,
     duration: '2 weeks',
@@ -74,8 +76,8 @@ const StartSprintModal = ({ isOpen, onClose, sprintName }) => {
       "Custom": 0
   };
     try {
-      const response = await fetch('http://localhost:8000/api/v1/sprints/', {
-        method: 'POST',
+      const response = await fetch(`http://localhost:8000/api/v1/sprints/${sprintId}/`, {
+        method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
         },
@@ -104,6 +106,7 @@ const StartSprintModal = ({ isOpen, onClose, sprintName }) => {
         const data = await response.json();
         console.log('Sprint created:', data); // Log created sprint
         onClose(); // Close the modal
+        dispatch(fetchSprints()); // Refresh the sprints list
     } catch (error) {
         console.error('Error creating sprint:', error);
         // Optionally show an error message to the user
@@ -193,23 +196,21 @@ const StartSprintModal = ({ isOpen, onClose, sprintName }) => {
 };
 
 const Backlog = () => {
-  const [sprints, setSprints] = useState([]);
+  const dispatch = useDispatch();
+  const { sprints } = useSelector((state) => state.sprints);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
 
-  const fetchSprints = async () => {
-    const response = await fetch('/api/sprints/');
-    const data = await response.json();
-    setSprints(data);
-  };
+  useEffect(() => {
+    dispatch(fetchSprints());
+  }, [dispatch]);
 
   const handleCreateSprint = () => {
     const newSprintData = {
-      id: sprints.length + 1,
-      sprint_name: `SCHOOL Sprint ${sprints.length + 1}`,
+      sprint_name: `Sprint ${sprints.length + 1}`,
     };
-    setSprints([...sprints, newSprintData]);
+    dispatch(addSprint(newSprintData));
   };
 
   const toggleDropdown = (id) => {
@@ -217,22 +218,9 @@ const Backlog = () => {
   };
 
   const handleDeleteSprint = (id) => {
-    const updatedSprints = sprints.filter(sprint => sprint.id !== id);
-    setSprints(updatedSprints);
+    dispatch(deleteSprint(id));
     setOpenDropdown(null);
-
-    const reassignedSprints = updatedSprints.map((sprint, index) => ({
-      ...sprint,
-      id: index + 1,
-      sprint_name: `SCHOOL Sprint ${index + 1}`
-    }));
-    
-    setSprints(reassignedSprints);
   };
-
-  useEffect(() => {
-    fetchSprints();
-  }, []);
 
   return (
     <div className="backlog-container">
@@ -249,7 +237,7 @@ const Backlog = () => {
         </div>
       </div>
 
-      {sprints.length > 0 ? (
+      {sprints.length > 0 && (
         sprints.map((sprint) => (
           <div key={sprint.id} className="sprint-info">
             <strong>{sprint.sprint_name}</strong>
@@ -267,7 +255,7 @@ const Backlog = () => {
             </div>
 
             <div className="sprint-actions">
-              <button 
+              <button
                 className="start-sprint-button"
                 onClick={() => {
                   setSelectedSprint(sprint);
@@ -276,9 +264,9 @@ const Backlog = () => {
               >
                 Start sprint
               </button>
-              <button 
-                className="sprint-actions-button" 
-                aria-haspopup="true" 
+              <button
+                className="sprint-actions-button"
+                aria-haspopup="true"
                 onClick={() => toggleDropdown(sprint.id)}
               >
                 <span className="icon-more-actions">...</span>
@@ -287,56 +275,26 @@ const Backlog = () => {
               {openDropdown === sprint.id && (
                 <div className="dropdown-menu1">
                   <button className="dropdown-item1">Edit sprint</button>
-                  <button className="dropdown-item1" onClick={() => handleDeleteSprint(sprint.id)}>Delete sprint</button>
+                  <button className="dropdown-item1" onClick={() => handleDeleteSprint(sprint.id)}>
+                    Delete sprint
+                  </button>
                 </div>
               )}
             </div>
-            <button className="create-issue-button">
-              <span className="plus-icon">+</span> Create issue
-            </button>
           </div>
         ))
-      ) : (
-        <div className="backlog-info">
-          <strong>Backlog</strong>
-          <div className="empty-backlog-message">
-            <div className="empty-backlog">
-              <p>Your backlog is empty.</p>
-            </div>
-            <div className="sprint-actions">
-              <button className="create-sprint-button" onClick={handleCreateSprint}>
-                Create sprint
-              </button> 
-            </div>
-            <TaskList />
-            <CreateIssueButton/>
-          </div>
-        </div>
-      )}
-      
-      {sprints.length > 0 && (
-        <div className="backlog-info">
-          <strong>Backlog</strong>
-          <div className="empty-backlog-message">
-            <div className="empty-backlog">
-              <p>Your backlog is empty.</p>
-            </div>
-            <div className="sprint-actions">
-              <button className="create-sprint-button" onClick={handleCreateSprint}>
-                Create sprint
-              </button> 
-            </div>
-            <button className="create-issue-button2">
-              <span className="plus-icon">+</span> Create issue
-            </button>
-          </div>
-        </div>
       )}
 
-      <StartSprintModal 
+      {/* Task List and Create Issue */}
+      <TaskList handleCreateSprint={handleCreateSprint} />
+      <CreateIssueButton />
+
+      {/* ✅ Pass Sprint ID to StartSprintModal */}
+      <StartSprintModal
         isOpen={isStartSprintModalOpen}
         onClose={() => setIsStartSprintModalOpen(false)}
-        sprintName={selectedSprint?.sprint_name || ''}
+        sprintId={selectedSprint?.id || null}  // ✅ Send Sprint ID
+        sprintName={selectedSprint?.sprint_name || ""}
       />
     </div>
   );
