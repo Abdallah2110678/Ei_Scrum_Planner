@@ -8,7 +8,10 @@ class SprintSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sprint
-        fields = ['id', 'sprint_name', 'duration', 'start_date', 'sprint_goal', 'custom_end_date', 'tasks']
+        fields = ['id', 'sprint_name', 'duration', 'start_date', 'sprint_goal', 'custom_end_date', 'tasks', 'is_active']
+        
+    def get_is_active(self, obj):
+        return obj.is_active
 
     def validate(self, attrs):
         # Custom validation for end date if duration is "Custom"

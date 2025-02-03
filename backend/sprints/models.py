@@ -1,3 +1,4 @@
+from django.utils.timezone import now
 from django.db import models
 from datetime import timedelta
 
@@ -15,11 +16,19 @@ class Sprint(models.Model):
     start_date = models.DateTimeField(blank=True, null=True)  # ✅ Optional Start Date
     end_date = models.DateTimeField(blank=True, null=True)  # ✅ Optional End Date
     sprint_goal = models.TextField(blank=True, null=True)  # ✅ Optional Sprint Goal
+    is_active = models.BooleanField(default=False)  # ✅ New field to store sprint status
 
     def save(self, *args, **kwargs):
-        
-        if self.start_date and self.duration > 0:  # Only calculate if duration is not custom
+        # Auto-calculate end_date if duration is provided
+        if self.start_date and self.duration > 0:  
             self.end_date = self.start_date + timedelta(days=self.duration)
+        
+        # Update is_active status based on current time
+        if self.start_date and self.end_date:
+            self.is_active = self.start_date <= now() <= self.end_date
+        else:
+            self.is_active = False
+
         super().save(*args, **kwargs)
 
     def __str__(self):
