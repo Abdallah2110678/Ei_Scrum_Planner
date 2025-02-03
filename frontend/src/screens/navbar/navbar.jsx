@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import './navbar.css';
-import RegistrationForm from '../registerationForm/registeration.jsx'; // Import the RegistrationForm component
-import LoginForm from '../login/login.jsx'; // Im
-import { useDispatch } from 'react-redux'
-import { logout, reset } from '../../features/auth/authSlice'
-import { toast } from 'react-toastify'
-import { NavLink } from 'react-router-dom'
+import RegistrationForm from '../registerationForm/registeration.jsx';
+import LoginForm from '../login/login.jsx';
+import { useDispatch } from 'react-redux';
+import { logout, reset } from '../../features/auth/authSlice';
+import { toast } from 'react-toastify';
+import ProjectsDropdown from '../../components/projectdropdown/ProjectsDropdown.jsx';
+import { NavLink } from 'react-router-dom';
 
 const Navbar = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -13,20 +14,13 @@ const Navbar = () => {
   const [isLoginFormVisible, setIsLoginFormVisible] = useState(false);
   const dropdownRef = useRef(null);
 
-  const toggleDropdown = () => {
-    setIsDropdownVisible(!isDropdownVisible);
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(reset());
+    toast.success('Logged out successfully');
   };
-
-
-  const dispatch = useDispatch()
-
-  
-
-    const handleLogout = () => {
-        dispatch(logout())
-        dispatch(reset())
-        toast.success('Logged out successfully')
-    }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -56,7 +50,7 @@ const Navbar = () => {
 
         <div className="navbar-links">
           <a href="/#" className="navbar-link">Assigned to Me</a>
-          <a href="/#" className="navbar-link">Projects</a>
+          <ProjectsDropdown /> {/* Projects Dropdown Component */}
           <a href="/#" className="navbar-link">Dashboard</a>
         </div>
 
@@ -69,7 +63,7 @@ const Navbar = () => {
             src="../src/assets/profile.png"
             alt="Profile"
             className="profile-picture"
-            onClick={toggleDropdown}
+            onClick={() => setIsDropdownVisible(!isDropdownVisible)}
           />
 
           {isDropdownVisible && (
