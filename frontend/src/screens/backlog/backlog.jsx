@@ -335,7 +335,6 @@ const Backlog = () => {
 
       {/* Task List and Create Issue */}
       <TaskList handleCreateSprint={handleCreateSprint} />
-      <CreateIssueButton />
 
       {/* ✅ Pass Sprint ID to StartSprintModal */}
       <StartSprintModal

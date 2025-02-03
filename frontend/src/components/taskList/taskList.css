@@ -12,7 +12,7 @@
     grid-template-columns: 2fr 100px 60px 50px 80px;
     align-items: center;
     background-color: #fff;
-    padding: 10px;
+    padding: 4px;
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
@@ -61,6 +61,7 @@
 
 /* Task Status Dropdown */
 .task-status {
+    color: #333;
     padding: 5px;
     font-size: 14px;
     border-radius: 3px;
@@ -146,8 +147,27 @@
 .delete-task:hover {
     color: #333;
 }/* Task Dropdown Menu */
+
+.task-options-button{
+    background-color: #cfcdcd; /* Light gray background */
+  border: 1px solid #dcdcdc; /* Light border */
+  width: 32px; /* Set width */
+  height: 32px; /* Set height */
+  border-radius: 4px; /* Rounded corners */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  color: #333;
+}
+.task-options-button:hover {
+    background-color: #b6b6b6; /* Slightly darker gray on hover */
+    border-color: #c7c7c7; /* Darker border on hover */
+}
 .task-dropdown-menu {
   position: absolute;
+  margin-top: 60px;
   right: 0;
   top: 35px;
   background: white;

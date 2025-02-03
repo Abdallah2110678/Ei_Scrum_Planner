@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
 import TaskItem from "./taskItem";
+import CreateIssueButton from "../../components/taskButton/createTaskButton";
 import "./taskList.css";
 
 const TaskList = ({ handleCreateSprint }) => {
@@ -19,21 +20,24 @@ const TaskList = ({ handleCreateSprint }) => {
     <div className="sprint-info">
       <strong>Backlog</strong>
       <div className="empty-backlog-message">
-        <div className="empty-backlog">
-          {tasks.length === 0 ? (
+        {tasks.length === 0 ? (
+          <div className="empty-backlog">
             <p>Your backlog is empty.</p>
-          ) : (
-            <div className="task-list-container">
-              {tasks.map((task) => (
-                <TaskItem key={task.id} task={task} sprints={sprints} />
-              ))}
-            </div>
-          )}
-          <div className="sprint-actions">
-            <button className="create-sprint-button" onClick={handleCreateSprint}>Create sprint</button>
           </div>
+        ) : (
+          <div className="task-list-container">
+            {tasks.map((task) => (
+              <TaskItem key={task.id} task={task} sprints={sprints} />
+            ))}
+          </div>
+        )}
+        <div className="sprint-actions">
+          <button className="create-sprint-button" onClick={handleCreateSprint}>
+            Create sprint
+          </button>
         </div>
       </div>
+      <CreateIssueButton />
     </div>
   );
 };
