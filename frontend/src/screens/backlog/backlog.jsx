@@ -302,13 +302,13 @@ const Backlog = () => {
 
             <div className="sprint-actions">
               <button
-                className="start-sprint-button"
+                className={sprint.is_active ? "complete-sprint-button" : "start-sprint-button"}
                 onClick={() => {
                   setSelectedSprint(sprint);
                   setIsStartSprintModalOpen(true);
                 }}
               >
-                Start sprint
+                {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
               </button>
               <button
                 className="sprint-actions-button"

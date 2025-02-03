@@ -80,7 +80,7 @@
     gap: 8px; /* Space between buttons */
 }
 
-.start-sprint-button {
+.start-sprint-button,.complete-sprint-button {
     background-color: #0052cc;
     color: white;
     border: none;
@@ -92,7 +92,7 @@
     transition: background-color 0.3s ease;
 }
 
-.start-sprint-button:hover {
+.start-sprint-button:hover , .complete-sprint-button:hover{
     background-color: #ccc;
     cursor: pointer;
 }

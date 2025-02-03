@@ -8,28 +8,36 @@ class Sprint(models.Model):
         (14, "2 weeks"),
         (21, "3 weeks"),
         (28, "4 weeks"),
-        (0, "Custom"),  # Custom option for manual end date
+        (0, "Custom"),
     ]
 
     sprint_name = models.CharField(max_length=100)
-    duration = models.IntegerField(choices=DURATION_CHOICES, default=14, blank=True, null=True)  # ✅ Optional Duration
-    start_date = models.DateTimeField(blank=True, null=True)  # ✅ Optional Start Date
-    end_date = models.DateTimeField(blank=True, null=True)  # ✅ Optional End Date
-    sprint_goal = models.TextField(blank=True, null=True)  # ✅ Optional Sprint Goal
-    is_active = models.BooleanField(default=False)  # ✅ New field to store sprint status
+    duration = models.IntegerField(choices=DURATION_CHOICES, default=14, blank=True, null=True)
+    start_date = models.DateTimeField(blank=True, null=True)
+    end_date = models.DateTimeField(blank=True, null=True)
+    sprint_goal = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)  # ✅ New field
 
     def save(self, *args, **kwargs):
-        # Auto-calculate end_date if duration is provided
-        if self.start_date and self.duration > 0:  
-            self.end_date = self.start_date + timedelta(days=self.duration)
-        
-        # Update is_active status based on current time
-        if self.start_date and self.end_date:
-            self.is_active = self.start_date <= now() <= self.end_date
-        else:
-            self.is_active = False
+        # Only recalculate is_active if sprint is not completed
+        if not self.is_completed:
+            if self.start_date and self.duration > 0:
+                self.end_date = self.start_date + timedelta(days=self.duration)
+
+            if self.start_date and self.end_date:
+                self.is_active = self.start_date <= now() <= self.end_date
+            else:
+                self.is_active = False
 
         super().save(*args, **kwargs)
+
+    def complete_sprint(self):
+        """Mark the sprint as completed."""
+        self.is_completed = True
+        self.end_date = now()
+        self.is_active = False
+        self.save()
 
     def __str__(self):
         return self.sprint_name
