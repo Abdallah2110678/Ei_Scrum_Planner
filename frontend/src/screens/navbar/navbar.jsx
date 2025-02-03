@@ -5,7 +5,8 @@ import LoginForm from '../login/login.jsx';
 import { useDispatch } from 'react-redux';
 import { logout, reset } from '../../features/auth/authSlice';
 import { toast } from 'react-toastify';
-import ProjectsDropdown from '../../components/projectdropdown/ProjectsDropdown.jsx';
+import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
+
 import { NavLink } from 'react-router-dom';
 
 const Navbar = () => {

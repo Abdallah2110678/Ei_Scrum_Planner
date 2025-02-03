@@ -1,27 +1,46 @@
-import axios from "axios";
-
 const API_URL = "http://127.0.0.1:8000/api/projects/";
 
-// Fetch all projects
-const getProjects = async () => {
+export const getProjects = async () => {
     try {
-    const response = await axios.get(API_URL);
-    return response.data;
+        const response = await fetch(API_URL, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched projects:", data); // Debugging log
+        return data;
     } catch (error) {
-    console.error("Error fetching projects:", error);
-    throw error;
+        console.error("Error fetching projects:", error);
+        return [];
     }
 };
 
-// Create a new project
-const createProject = async (projectData) => {
+export const createProject = async (projectData) => {
     try {
-    const response = await axios.post(API_URL, projectData);
-    return response.data;
-    } catch (error) {
-    console.error("Error creating project:", error);
-    throw error;
-}
-};
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(projectData),
+        });
 
-export { getProjects, createProject };
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const newProject = await response.json();
+        console.log("Created project:", newProject);
+        return newProject;
+    } catch (error) {
+        console.error("Error creating project:", error);
+        return null;
+    }
+};

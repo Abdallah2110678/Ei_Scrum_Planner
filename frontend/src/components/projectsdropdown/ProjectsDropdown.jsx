@@ -1,22 +1,31 @@
-import { useState, useEffect, useRef } from 'react';
-import './ProjectsDropdown.css';
+import { useState, useEffect, useRef } from "react";
+import "./ProjectsDropdown.css";
+import { getProjects, createProject } from "../../features/projects/projectService";
 
 const ProjectsDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [projects, setProjects] = useState([]);
     const dropdownRef = useRef(null);
 
+    // Fetch projects on component mount
     useEffect(() => {
         const fetchProjects = async () => {
             try {
                 const projectsData = await getProjects();
-                setProjects(projectsData);
+                console.log("Fetched Projects:", projectsData); // Debugging log
+                if (Array.isArray(projectsData)) {
+                    setProjects(projectsData);
+                } else {
+                    console.error("Invalid projects data format:", projectsData);
+                }
             } catch (error) {
-                console.error('Failed to fetch projects');
+                console.error("Failed to fetch projects:", error);
             }
         };
         fetchProjects();
     }, []);
+
+    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -24,20 +33,23 @@ const ProjectsDropdown = () => {
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
     const handleCreateProject = async () => {
-        const projectName = prompt('Enter Project Name:');
+        const projectName = prompt("Enter Project Name:");
         if (!projectName) return;
 
         try {
             const newProject = await createProject({ name: projectName });
-            setProjects([...projects, newProject]);
+            if (newProject) {
+                setProjects((prevProjects) => [...prevProjects, newProject]);
+            }
         } catch (error) {
-            console.error('Failed to create project');
+            console.error("Failed to create project");
         }
     };
 
@@ -51,14 +63,14 @@ const ProjectsDropdown = () => {
                 <div className="dropdown-menu">
                     <ul>
                         {projects.length > 0 ? (
-                            projects.map((project) => (
-                                <li key={project.id}>{project.name}</li>
-                            ))
+                            projects.map((project) => <li key={project.id}>{project.name}</li>)
                         ) : (
                             <li>No projects available</li>
                         )}
                     </ul>
-                    <button className="create-project-btn" onClick={handleCreateProject}>+ Create Project</button>
+                    <button className="create-project-btn" onClick={handleCreateProject}>
+                        + Create Project
+                    </button>
                 </div>
             )}
         </div>
