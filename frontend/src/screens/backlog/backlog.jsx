@@ -302,13 +302,43 @@ const Backlog = () => {
 
             <div className="sprint-actions">
               <button
-                className="start-sprint-button"
-                onClick={() => {
-                  setSelectedSprint(sprint);
-                  setIsStartSprintModalOpen(true);
+                className={sprint.is_active ? "complete-sprint-button" : "start-sprint-button"}
+                onClick={async () => {
+                  if (sprint.is_active) {
+                    try {
+                      const response = await fetch(
+                        `http://localhost:8000/api/v1/sprints/${sprint.id}/`,
+                        {
+                          method: "PATCH",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            is_active: false,
+                            is_completed: true,
+                            end_date: new Date().toISOString(), // Set current time as end_date
+                          }),
+                        }
+                      );
+              
+                      if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error("Error response:", errorData);
+                        throw new Error(errorData.message || "Failed to complete sprint");
+                      }
+              
+                      console.log(`Sprint ${sprint.id} marked as completed.`);
+                      dispatch(fetchSprints()); // Refresh sprints after updating
+                    } catch (error) {
+                      console.error("Error completing sprint:", error);
+                    }
+                  } else {
+                    setSelectedSprint(sprint);
+                    setIsStartSprintModalOpen(true);
+                  }
                 }}
               >
-                Start sprint
+                {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
               </button>
               <button
                 className="sprint-actions-button"
