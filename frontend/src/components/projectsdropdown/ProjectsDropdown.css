@@ -1,0 +1,82 @@
+.projects-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Toggle Button */
+.dropdown-toggle {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px 15px;
+    font-weight: 500;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.dropdown-toggle:hover {
+    color: #0052cc;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0; /* Aligns the dropdown to the right */
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width: 220px;
+    border-radius: 5px;
+    z-index: 1000;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* List Container */
+.dropdown-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px; /* Limits height */
+    overflow-y: auto; /* Scroll when too many projects */
+}
+
+/* List Items */
+.dropdown-menu li {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: background 0.3s ease;
+    border-radius: 3px;
+}
+
+.dropdown-menu li:hover {
+    background: #f0f0f0;
+}
+
+/* Create Project Button */
+.create-project-btn {
+    width: 100%;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.create-project-btn:hover {
+    background: #0056b3;
+}
+
+/* Ensure dropdown does not disappear */
+.projects-dropdown:hover .dropdown-menu {
+    display: block;
+}
