@@ -17,7 +17,8 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     gap: 10px;
-}
+    width: 1132px; 
+  }
 
 .task-item:hover {
     background-color: #f8f9fa;
