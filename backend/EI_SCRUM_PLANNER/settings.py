@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'task_estimation',
     'sprints',
     'tasks',
+    'projects',
 ]
 
 MIDDLEWARE = [
