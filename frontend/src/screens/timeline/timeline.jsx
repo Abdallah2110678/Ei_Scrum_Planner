@@ -155,7 +155,7 @@ const Timeline = () => {
               />
             </svg>
           </div>
-         
+
           <div className="view-controls">
             <button
               className={selectedView === "today" ? "active" : ""}
