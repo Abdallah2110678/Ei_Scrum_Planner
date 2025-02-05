@@ -1,5 +1,7 @@
 from django.db import models
 from projects.models import Project
+from datetime import timedelta
+from django.utils.timezone import now
 class Sprint(models.Model):
     DURATION_CHOICES = [
         (7, "1 week"),
@@ -17,6 +19,26 @@ class Sprint(models.Model):
     sprint_goal = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        # Only recalculate is_active if sprint is not completed
+        if not self.is_completed:
+            if self.start_date and self.duration > 0:
+                self.end_date = self.start_date + timedelta(days=self.duration)
+            if self.start_date and self.end_date:
+                self.is_active = self.start_date <= now() <= self.end_date
+            else:
+                self.is_active = False
+        super().save(*args, **kwargs)
+        
+
+    def complete_sprint(self):
+        """Mark the sprint as completed."""
+        self.is_completed = True
+        self.end_date = now()
+        self.is_active = False
+        self.save()
+
 
     def __str__(self):
         return f"{self.sprint_name} (Project: {self.project.name})"
