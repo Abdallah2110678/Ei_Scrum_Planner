@@ -1,46 +1,47 @@
+import axios from "axios";
+
 const API_URL = "http://127.0.0.1:8000/api/projects/";
 
-export const getProjects = async () => {
-    try {
-        const response = await fetch(API_URL, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Fetched projects:", data); // Debugging log
-        return data;
-    } catch (error) {
-        console.error("Error fetching projects:", error);
-        return [];
-    }
+const config = {
+  headers: {
+    "Content-Type": "application/json",
+  },
 };
 
-export const createProject = async (projectData) => {
-    try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(projectData),
-        });
+// Fetch all projects
+const getProjects = async () => {
+  try {
+    console.log("📡 Fetching projects from API...");
+    const response = await axios.get(API_URL, config);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const newProject = await response.json();
-        console.log("Created project:", newProject);
-        return newProject;
-    } catch (error) {
-        console.error("Error creating project:", error);
-        return null;
+    if (!Array.isArray(response.data)) {
+      throw new Error("Invalid response format: Expected an array.");
     }
+
+    console.log("✅ Projects Fetched:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("🚨 Error fetching projects:", error.response?.data || error.message);
+    return []; // Prevent UI crash
+  }
 };
+
+// Create a new project
+const createNewProject = async (projectData) => {
+  try {
+    console.log("📡 Creating project:", projectData);
+    const response = await axios.post(API_URL, projectData, config);
+    console.log("✅ Project Created:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("🚨 Error creating project:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+const projectService = {
+  getProjects,
+  createNewProject, // ✅ Renamed to prevent conflicts
+};
+
+export default projectService;

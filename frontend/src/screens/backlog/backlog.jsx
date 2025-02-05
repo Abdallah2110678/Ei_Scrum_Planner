@@ -9,8 +9,9 @@ import {
 } from "../../features/sprints/sprintSlice";
 import CreateIssueButton from "../../components/taskButton/createTaskButton";
 import TaskList from "../../components/taskList/taskList";
+import projectService from "../../features/projects/projectService";
 
-const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId }) => {
+const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId,projectId }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     sprintName: sprintName,
@@ -95,6 +96,7 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId }) => {
             duration: durationMapping[formData.duration], // Ensure it's an integer
             start_date: formData.startDate,
             sprint_goal: formData.sprintGoal,
+            project_id: projectId,
           }),
         }
       );
@@ -220,6 +222,8 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId }) => {
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
@@ -229,13 +233,28 @@ const Backlog = () => {
   }, []);
 
   useEffect(() => {
+    const fetchProjects = async () => {
+      const projectList = await projectService.getProjects();
+      setProjects(projectList);
+    };
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
     dispatch(fetchSprints());
   }, [dispatch]);
 
   const handleCreateSprint = () => {
+    if (!selectedProject) {
+      alert("Please select a project first.");
+      return;
+    }
+
     const newSprintData = {
       sprint_name: `Sprint ${sprints.length + 1}`,
+      project_id: selectedProject, // Include project ID
     };
+
     dispatch(addSprint(newSprintData));
   };
 
@@ -372,6 +391,7 @@ const Backlog = () => {
         onClose={() => setIsStartSprintModalOpen(false)}
         sprintId={selectedSprint?.id || null}
         sprintName={selectedSprint?.sprint_name || ""}
+        projectId={selectedProject}
       />
     </div>
   );
