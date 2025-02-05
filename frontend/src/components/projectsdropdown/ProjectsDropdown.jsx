@@ -1,29 +1,21 @@
 import { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProjects, createNewProject } from "../../features/projects/projectSlice";
 import "./ProjectsDropdown.css";
-import { getProjects, createProject } from "../../features/projects/projectService";
 
 const ProjectsDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [projects, setProjects] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [projectName, setProjectName] = useState("");
     const dropdownRef = useRef(null);
 
-    // Fetch projects on component mount
+    const dispatch = useDispatch();
+    const { projects, isLoading, isError, message } = useSelector((state) => state.projects);
+
+    // Fetch projects on mount
     useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                const projectsData = await getProjects();
-                console.log("Fetched Projects:", projectsData); // Debugging log
-                if (Array.isArray(projectsData)) {
-                    setProjects(projectsData);
-                } else {
-                    console.error("Invalid projects data format:", projectsData);
-                }
-            } catch (error) {
-                console.error("Failed to fetch projects:", error);
-            }
-        };
-        fetchProjects();
-    }, []);
+        dispatch(fetchProjects());
+    }, [dispatch]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -39,17 +31,19 @@ const ProjectsDropdown = () => {
         };
     }, []);
 
-    const handleCreateProject = async () => {
-        const projectName = prompt("Enter Project Name:");
-        if (!projectName) return;
+    // Handle Project Creation
+    const handleCreateProject = async (e) => {
+        e.preventDefault();
+        if (!projectName.trim()) return;
 
         try {
-            const newProject = await createProject({ name: projectName });
-            if (newProject) {
-                setProjects((prevProjects) => [...prevProjects, newProject]);
-            }
+            await dispatch(createNewProject({ name: projectName })).unwrap();
+            setProjectName("");
+            setShowForm(false);
+            setIsOpen(false);
+            dispatch(fetchProjects()); // ✅ Re-fetch projects
         } catch (error) {
-            console.error("Failed to create project");
+            console.error("🚨 Failed to create project:", error);
         }
     };
 
@@ -61,16 +55,42 @@ const ProjectsDropdown = () => {
 
             {isOpen && (
                 <div className="dropdown-menu">
-                    <ul>
-                        {projects.length > 0 ? (
-                            projects.map((project) => <li key={project.id}>{project.name}</li>)
-                        ) : (
-                            <li>No projects available</li>
-                        )}
-                    </ul>
-                    <button className="create-project-btn" onClick={handleCreateProject}>
+                    {isLoading ? (
+                        <p>Loading...</p>
+                    ) : isError ? (
+                        <p className="error-message">Error: {message}</p>
+                    ) : (
+                        <ul>
+                            {projects.map((project) => (
+                                <li key={project.id}>{project.name}</li>
+                            ))}
+                        </ul>
+                    )}
+
+                    <button className="create-project-btn" onClick={() => setShowForm(true)}>
                         + Create Project
                     </button>
+                </div>
+            )}
+
+            {showForm && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>Create New Project</h2>
+                        <form onSubmit={handleCreateProject}>
+                            <input
+                                type="text"
+                                placeholder="Project Name"
+                                value={projectName}
+                                onChange={(e) => setProjectName(e.target.value)}
+                                required
+                            />
+                            <div className="modal-actions">
+                                <button type="submit" className="modal-submit">Create</button>
+                                <button type="button" className="modal-cancel" onClick={() => setShowForm(false)}>Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>

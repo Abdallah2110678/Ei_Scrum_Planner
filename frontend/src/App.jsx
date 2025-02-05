@@ -5,7 +5,7 @@ import Board from "./screens/board/board";
 import Timeline from "./screens/timeline/timeline";
 import LoginForm from "./screens/login/login";
 import RegistrationForm from "./screens/registerationForm/registeration.jsx";
-import IntroductionPage from "./IntroductionPage.jsx";
+import IntroductionPage from "./screens/Introduction/IntroductionPage.jsx";
 
 
 

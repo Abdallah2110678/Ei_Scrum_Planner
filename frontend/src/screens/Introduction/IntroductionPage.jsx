@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
 import "./IntroductionPage.css";
-import softwareImage from './assets/software.png'; 
-import marketingImage from './assets/Marketing.jpg'; 
-import itImage from './assets/IT.jpeg';
-import designImage from './assets/Design.png';
-import operationsImage from './assets/Operations.webp';  // Add the Operations image import
+import softwareImage from './../../assets/software.png'; 
+import marketingImage from './../../assets/Marketing.jpg'; 
+import itImage from './../../assets/IT.jpeg';
+import designImage from './../../assets/Design.png';
+import operationsImage from './../../assets/Operations.webp';  // Add the Operations image import
 
 const IntroductionPage = () => {
   const navigate = useNavigate();
