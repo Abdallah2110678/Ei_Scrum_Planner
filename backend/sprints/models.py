@@ -1,7 +1,5 @@
-from django.utils.timezone import now
 from django.db import models
-from datetime import timedelta
-
+from projects.models import Project
 class Sprint(models.Model):
     DURATION_CHOICES = [
         (7, "1 week"),
@@ -12,32 +10,13 @@ class Sprint(models.Model):
     ]
 
     sprint_name = models.CharField(max_length=100)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="sprints")
     duration = models.IntegerField(choices=DURATION_CHOICES, default=14, blank=True, null=True)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
     sprint_goal = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=False)
-    is_completed = models.BooleanField(default=False)  # ✅ New field
-
-    def save(self, *args, **kwargs):
-        # Only recalculate is_active if sprint is not completed
-        if not self.is_completed:
-            if self.start_date and self.duration > 0:
-                self.end_date = self.start_date + timedelta(days=self.duration)
-
-            if self.start_date and self.end_date:
-                self.is_active = self.start_date <= now() <= self.end_date
-            else:
-                self.is_active = False
-
-        super().save(*args, **kwargs)
-
-    def complete_sprint(self):
-        """Mark the sprint as completed."""
-        self.is_completed = True
-        self.end_date = now()
-        self.is_active = False
-        self.save()
+    is_completed = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.sprint_name
+        return f"{self.sprint_name} (Project: {self.project.name})"
