@@ -1,70 +1,208 @@
-/* Board Container */
-.board-container {
-    padding: 30px;
-    font-family: Arial, sans-serif;
-    flex-grow: 1; /* Take up remaining space */
-    height: 100%; /* Full height of the parent container */
-    box-sizing: border-box; /* Include padding in height calculation */
-    width: calc(100% - 220px); /* Subtract sidebar width (220px) from 100% */
-    margin-left: 220px; /* Offset by sidebar width */
-    border-radius: 8px; /* Keep border radius */
-    background-color: #ffffff; /* White background */
-  }
-  
-  /* Projects / School Links */
-  .projects-school-links {
-    padding-top: 40px;
-    display: flex; /* Display links in a row */
-    gap: 5px;
-  }
-  
-  .projects-school-links a {
-    text-decoration: none; /* Remove underline */
-    color: #333; /* Dark gray */
-    font-weight: 500;
-    font-size: 14px;
-    transition: color 0.3s ease; /* Smooth hover */
-  }
-  
-  .projects-school-links a:hover {
-    color: #0052cc; /* Blue hover */
-  }
-  
-  .separator {
-    color: #999; /* Light gray for separator */
-  }
-  
-  .board-container h2 {
-    margin-top: 0px;
-    font-size: 20px;
-    margin-bottom: 10px;
-    font-weight: normal; /* Normal weight for the subheading */
-    color: #000000; /* Light gray color for the subheading */
-  }
-  
-  /* Search Section */
-  .search-section {
-    margin-bottom: 20px;
-  }
-  
-  .search-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Space between input and button */
-  }
-  
-  .search-input {
-    width: 250px;
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    width: 100%; /* Responsive width */
-    max-width: 400px; /* Max width */
-    background-color: white;
-    outline: none;
-  }
-  
-  .search-input:focus {
-    border-color: #0052cc; /* Blue on focus */
-  }
+/* Base Styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Container for Timeline */
+.timeline-container {
+  min-height: 100vh;
+  background-color: #ffffff;
+  margin-left: 250px;
+}
+
+/* Header (Breadcrumb & Title) */
+.timeline-header {
+  padding: 5rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.breadcrumb span:not(:last-child) {
+  margin-right: 0.5rem;
+}
+
+.timeline-header h1 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+/* Main Content */
+.main-content {
+  padding: 1.5rem;
+}
+
+/* Control Bar */
+.control-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Search Input & Icon */
+.search-container {
+  position: relative;
+}
+
+.search-input {
+  padding: 0.5rem 1rem 0.5rem 2rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  width: 16rem;
+  font-size: 0.875rem;
+}
+
+.search-container svg {
+  width: 1rem;
+  height: 1rem;
+  position: absolute;
+  left: 0.5rem;
+  top: 0.75rem;
+  color: #9ca3af;
+}
+
+/* View Controls */
+.view-controls {
+  display: flex;
+  background-color: #000000;
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+}
+
+.view-controls button {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  margin-right: 0.25rem;
+}
+
+.view-controls button.active,
+.view-controls button:hover {
+  background-color: #343434;
+  box-shadow: 0 1px 2px rgba(137, 136, 136, 0.1);
+}
+
+/* Timeline Grid */
+.timeline-grid {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Timeline Headers */
+.timeline-headers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.timeline-headers > div {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  border-right: 1px solid #e5e7eb;
+}
+
+.timeline-headers > div:last-child {
+  border-right: none;
+}
+
+/* Sprint Section */
+.sprint-section header {
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.sprint {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sprint:last-child {
+  border-bottom: none;
+}
+
+.sprint .sprint-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sprint-timeline {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.timeline-bar {
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  text-align: center;
+  font-size: 0.75rem;
+  grid-row: 1;
+}
+
+.create-sprint {
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.create-sprint button {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2563eb;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.create-sprint button:hover {
+  text-decoration: underline;
+}
+
+.sprint-form {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sprint-form input,
+.sprint-form select,
+.sprint-form textarea {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.sprint-form textarea {
+  resize: vertical;
+}
+
