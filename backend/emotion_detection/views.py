@@ -1,9 +1,8 @@
 from django.http import JsonResponse
-from .emotion_detection import detect_emotions  # Import the function from your script
+from .emotion_detection import detect_emotions
 
-def detect_emotions_view(request):  # Rename the function
+def emotion_detection_view(request):
     if request.method == 'GET':
-        result = detect_emotions(request)  # Call the emotion detection function
+        result = detect_emotions(request)
         return JsonResponse(result)
-    else:
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)

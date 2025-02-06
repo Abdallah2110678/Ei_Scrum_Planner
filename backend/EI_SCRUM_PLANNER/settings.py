@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'sprints',
     'tasks',
     'projects',
+    'emotion_detection',
 ]
 
 MIDDLEWARE = [

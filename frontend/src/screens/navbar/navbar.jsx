@@ -3,24 +3,48 @@ import './navbar.css';
 import RegistrationForm from '../registerationForm/registeration.jsx';
 import LoginForm from '../login/login.jsx';
 import { useDispatch } from 'react-redux';
-import { logout, reset } from '../../features/auth/authSlice';
+import { logout, reset, setLoading } from '../../features/auth/authSlice';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
-
 import { NavLink } from 'react-router-dom';
 
 const Navbar = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isRegistrationFormVisible, setIsRegistrationFormVisible] = useState(false);
   const [isLoginFormVisible, setIsLoginFormVisible] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = useRef(null);
-
   const dispatch = useDispatch();
 
-  const handleLogout = () => {
-    dispatch(logout());
-    dispatch(reset());
-    toast.success('Logged out successfully');
+  // Function for emotion detection and logout
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    dispatch(setLoading(true)); // Set global loading state
+    try {
+      // Emotion Detection Request
+      const response = await axios.get('http://localhost:8000/emotion_detection/');
+      
+      if (response.data.emotion) {
+        toast.info(`Detected emotion before logout: ${response.data.emotion}`);
+      } else {
+        toast.warn('No emotion detected.');
+      }
+
+      // Add a small delay to ensure the emotion detection toast is visible
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Logout after emotion detection
+      await dispatch(logout());
+      dispatch(reset());
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.error('Error detecting emotion:', error);
+      toast.error('Failed to detect emotion.');
+    } finally {
+      setIsLoggingOut(false);
+      dispatch(setLoading(false)); // Reset global loading state
+    }
   };
 
   useEffect(() => {
@@ -78,16 +102,28 @@ const Navbar = () => {
                   </div>
                 </div>
               </div>
-              
-              
-              
+
               <a href="/manage-account" className="dropdown-item">Manage account</a>
               <a href="/profile" className="dropdown-item">Profile</a>
               <a href="/personal-settings" className="dropdown-item">Personal settings</a>
               <a href="/notifications" className="dropdown-item">Notifications <span className="new-badge">NEW</span></a>
               <a href="/theme" className="dropdown-item">Theme</a>
               <div className="dropdown-divider"></div>
-              <NavLink className='dropdown-item' to="/" onClick={handleLogout}>Logout</NavLink>
+              <NavLink 
+                className="dropdown-item" 
+                to="/" 
+                onClick={handleLogout}
+                style={{ pointerEvents: isLoggingOut ? 'none' : 'auto' }}
+              >
+                {isLoggingOut ? (
+                  <div className="logout-loading">
+                    <span className="loading-spinner"></span>
+                    Logging out...
+                  </div>
+                ) : (
+                  'Logout'
+                )}
+              </NavLink>
             </div>
           )}
         </div>

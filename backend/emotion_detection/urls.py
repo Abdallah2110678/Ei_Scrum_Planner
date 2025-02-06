@@ -1,6 +1,6 @@
 from django.urls import path
-from . import views
+from .views import emotion_detection_view
 
 urlpatterns = [
-    path('detect-emotions/', views.detect_emotions_view, name='detect_emotions'),
+    path('emotion_detection/', emotion_detection_view, name='emotion_detection'),
 ]

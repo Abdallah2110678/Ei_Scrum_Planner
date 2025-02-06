@@ -81,6 +81,9 @@ export const authSlice = createSlice({
       state.isSuccess = false;
       state.message = false;
     },
+    setLoading: (state, action) => {
+      state.isLoading = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -122,6 +125,6 @@ export const authSlice = createSlice({
   },
 });
 
-export const { reset } = authSlice.actions;
+export const { reset, setLoading } = authSlice.actions;
 
 export default authSlice.reducer;
