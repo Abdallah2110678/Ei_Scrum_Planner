@@ -79,8 +79,8 @@ const Navbar = () => {
                 </div>
               </div>
               
-              <a href="/login" className="dropdown-item" onClick={openLoginForm}>Login</a>
-              <div className="dropdown-divider"></div>
+              
+              
               <a href="/manage-account" className="dropdown-item">Manage account</a>
               <a href="/profile" className="dropdown-item">Profile</a>
               <a href="/personal-settings" className="dropdown-item">Personal settings</a>

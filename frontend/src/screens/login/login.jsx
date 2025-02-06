@@ -66,8 +66,6 @@ const LoginForm = () => {
         password: formData.password,
     };
      dispatch(login(userData));
-      alert('Login Successful!');
-      navigate('/');
     }
   };
 
@@ -81,8 +79,8 @@ const LoginForm = () => {
     }
 
     if (isSuccess || user) {
-      toast.success("Login Successful")
-        navigate("/dashboard")
+      
+      navigate('/eiscrum');
     }
 
     dispatch(reset())

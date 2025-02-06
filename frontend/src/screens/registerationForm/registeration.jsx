@@ -89,8 +89,8 @@ const RegistrationForm = ({ onClose }) => {
     }
 
     if (isSuccess) {
-      navigate("/board");
-      toast.success("email create successfully");
+      navigate("/login");
+      //toast.success("email create successfully");
       formData.name = "";
       formData.email = "";
       formData.password = "";
