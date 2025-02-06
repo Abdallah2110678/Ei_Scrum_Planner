@@ -63,20 +63,14 @@ const LoginForm = () => {
         const loginResult = await dispatch(login(userData)).unwrap();
         
         if (loginResult) {
-          try {
-            // Only attempt emotion detection after successful login
-            const response = await axios.get('http://localhost:8000/emotion_detection/');
-            
-            if (response.data.emotion) {
-              toast.success(`Detected emotion: ${response.data.emotion}`);
-            } else {
-              toast.info('No emotion detected');
-            }
-          } catch (emotionError) {
-            console.error('Error detecting emotion:', emotionError);
-            toast.warning('Emotion detection unavailable');
-          }
-          
+          // First emotion detection after successful login
+          detectEmotion();
+
+          // Schedule second emotion detection 2 hours later
+          setTimeout(() => {
+            detectEmotion();
+          }, 2 * 60 * 60 * 1000); // 2 hours in milliseconds
+
           // Navigate only after all operations are complete
           navigate('/eiscrum');
         }
@@ -84,6 +78,24 @@ const LoginForm = () => {
         console.error('Login failed:', loginError);
         toast.error('Login failed. Please check your credentials.');
       }
+    }
+  };
+
+  const detectEmotion = async (type = 'LOGIN') => {
+    try {
+      const response = await axios.get(`http://localhost:8000/emotion_detection/?type=${type}`);
+      
+      if (response.data.emotion) {
+        toast.success(`Detected emotion: ${response.data.emotion}`);
+        if (response.data.daily_average) {
+          toast.info(`Daily average emotion: ${response.data.daily_average}`);
+        }
+      } else {
+        toast.info('No emotion detected');
+      }
+    } catch (emotionError) {
+      console.error('Error detecting emotion:', emotionError);
+      toast.warning('Emotion detection unavailable');
     }
   };
 
