@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { format, addDays, parseISO, differenceInDays } from "date-fns";
+import { format, addDays, parseISO, differenceInDays, startOfDay, endOfDay, isAfter, isBefore, startOfMonth, endOfMonth, addMonths, getDaysInMonth, addHours, startOfYear, endOfYear, addQuarters, startOfQuarter, endOfQuarter } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSprints, addSprint } from "../../features/sprints/sprintSlice";
 import "./Timeline.css";
+import { FaSearch } from 'react-icons/fa';
 
 const Timeline = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-  const [selectedView, setSelectedView] = useState("weeks"); // "weeks" view for timeline chart
+  const [selectedView, setSelectedView] = useState("months");
   const [currentDate] = useState(new Date());
   const [showSprintForm, setShowSprintForm] = useState(false);
   const [sprintFormData, setSprintFormData] = useState({
@@ -26,32 +27,36 @@ const Timeline = () => {
   const generateTimelineHeaders = () => {
     const headers = [];
     switch (selectedView) {
-      case "today":
-        headers.push(format(currentDate, "eee, MMM do"));
-        break;
       case "weeks":
         for (let i = 0; i < 7; i++) {
           const day = addDays(currentDate, i);
-          headers.push(format(day, "EEE dd"));
+          headers.push({
+            label: format(day, "EEE dd"),
+            days: 1
+          });
         }
         break;
       case "months":
-        for (let i = 0; i < 3; i++) {
-          const monthDate = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth() + i
-          );
-          headers.push(format(monthDate, "MMM 'yy").toUpperCase());
+        for (let i = 0; i < 12; i++) {
+          const monthDate = addMonths(startOfMonth(currentDate), i);
+          headers.push({
+            label: format(monthDate, "MMMM yyyy"),
+            days: getDaysInMonth(monthDate)
+          });
         }
         break;
       case "quarters":
-        const currentMonth = currentDate.getMonth();
-        let currentQuarter = Math.floor(currentMonth / 3) + 1;
-        for (let i = 0; i < 3; i++) {
-          let quarter = currentQuarter + i;
-          let year = currentDate.getFullYear() + Math.floor((quarter - 1) / 4);
-          quarter = ((quarter - 1) % 4) + 1;
-          headers.push(`Q${quarter} ${year}`);
+        // Show 4 quarters of the current year
+        const startYear = startOfYear(currentDate);
+        for (let i = 0; i < 4; i++) {
+          const quarterStart = addMonths(startYear, i * 3);
+          const quarterEnd = endOfMonth(addMonths(quarterStart, 2));
+          headers.push({
+            label: `Q${i + 1} ${format(quarterStart, "yyyy")}`,
+            days: differenceInDays(quarterEnd, quarterStart) + 1,
+            start: quarterStart,
+            end: quarterEnd
+          });
         }
         break;
       default:
@@ -62,35 +67,128 @@ const Timeline = () => {
 
   const timelineHeaders = generateTimelineHeaders();
 
-  // Render a timeline bar for a sprint (only in "weeks" view)
-  const renderSprintTimelineBar = (sprint) => {
-    if (selectedView !== "weeks" || !sprint.start_date || !sprint.end_date)
+  // Add this helper function to calculate bar position and width
+  const calculateGanttBar = (sprint) => {
+    if (!sprint.start_date || !sprint.end_date) return null;
+
+    try {
+      const sprintStart = parseISO(sprint.start_date);
+      const sprintEnd = parseISO(sprint.end_date);
+      let viewStart, viewEnd, totalDays;
+
+      switch (selectedView) {
+        case "weeks":
+          viewStart = startOfDay(currentDate);
+          viewEnd = endOfDay(addDays(currentDate, 6));
+          totalDays = 7;
+          break;
+        case "months":
+          viewStart = startOfMonth(currentDate);
+          viewEnd = endOfMonth(addMonths(currentDate, 11));
+          totalDays = differenceInDays(viewEnd, viewStart) + 1;
+          break;
+        case "quarters":
+          viewStart = startOfYear(currentDate);
+          viewEnd = endOfYear(currentDate);
+          totalDays = differenceInDays(viewEnd, viewStart) + 1;
+          break;
+        default:
+          return null;
+      }
+
+      // Check if sprint is within view range
+      if (isAfter(sprintStart, viewEnd) || isBefore(sprintEnd, viewStart)) {
+        return null;
+      }
+
+      const leftDays = Math.max(0, differenceInDays(sprintStart, viewStart));
+      const durationDays = Math.min(
+        differenceInDays(sprintEnd, sprintStart) + 1,
+        differenceInDays(viewEnd, sprintStart) + 1
+      );
+
+      return {
+        left: `${(leftDays / totalDays) * 100}%`,
+        width: `${(durationDays / totalDays) * 100}%`,
+      };
+    } catch (error) {
+      console.error("Error calculating sprint position:", error);
       return null;
-
-    const sprintStart = parseISO(sprint.start_date);
-    const sprintEnd = parseISO(sprint.end_date);
-    let offset = differenceInDays(sprintStart, currentDate) + 1;
-    let duration = differenceInDays(sprintEnd, sprintStart) + 1;
-
-    // Bound the timeline bar within the 7-day view
-    if (offset < 1) {
-      duration = duration + offset - 1;
-      offset = 1;
     }
-    if (offset > 7) return null;
-    if (offset + duration - 1 > 7) {
-      duration = 7 - offset + 1;
-    }
+  };
+
+  // Replace the existing sprints table with this new Gantt chart table
+  const renderGanttChart = () => {
+    const timelineHeaders = generateTimelineHeaders();
+    const totalDays = timelineHeaders.reduce((sum, header) => sum + header.days, 0);
 
     return (
-      <div
-        className="timeline-bar"
-        style={{
-          gridColumnStart: offset,
-          gridColumnEnd: offset + duration,
-        }}
-      >
-        {sprint.sprint_name}
+      <div className="gantt-chart-container">
+        <table className={`gantt-table ${selectedView}`}>
+          <thead>
+            <tr>
+              <th className="fixed-column">Sprint Name</th>
+              {timelineHeaders.map((header, index) => (
+                <th 
+                  key={index}
+                  style={{ 
+                    width: `${(header.days / totalDays) * 100}%`,
+                    minWidth: selectedView === 'quarters' ? '250px' : '120px'
+                  }}
+                >
+                  {header.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sprints && sprints.length > 0 ? (
+              sprints.map((sprint) => {
+                const barPosition = calculateGanttBar(sprint);
+                return (
+                  <tr key={sprint.id}>
+                    <td className="fixed-column sprint-name">
+                      {sprint.sprint_name}
+                    </td>
+                    <td colSpan={timelineHeaders.length} className="gantt-chart-cell">
+                      <div className="gantt-grid">
+                        {timelineHeaders.map((header, index) => (
+                          <div 
+                            key={index} 
+                            className="gantt-grid-line"
+                            style={{ 
+                              width: `${(header.days / totalDays) * 100}%`
+                            }}
+                          />
+                        ))}
+                      </div>
+                      {barPosition && (
+                        <div
+                          className="gantt-bar"
+                          style={barPosition}
+                          title={`${sprint.sprint_name}
+Start: ${format(parseISO(sprint.start_date), 'MMM dd, yyyy')}
+End: ${format(parseISO(sprint.end_date), 'MMM dd, yyyy')}
+${sprint.sprint_goal ? `\nGoal: ${sprint.sprint_goal}` : ''}`}
+                        >
+                          <span className="sprint-bar-label">
+                            {sprint.sprint_name}
+                          </span>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={timelineHeaders.length + 1} className="no-sprints">
+                  No sprints found. Create a sprint to get started.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     );
   };
@@ -118,8 +216,22 @@ const Timeline = () => {
     setShowSprintForm(false);
   };
 
+  // Add this CSS class for the sprint bar label
+  const additionalStyles = `
+    <style>
+      .sprint-bar-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        display: block;
+      }
+    </style>
+  `;
+
   return (
     <div className="timeline-container">
+      {additionalStyles}
       {/* Navigation Breadcrumb & Title */}
       <div className="timeline-header">
         <div className="breadcrumb">
@@ -135,34 +247,15 @@ const Timeline = () => {
         {/* Control Bar */}
         <div className="control-bar">
           <div className="search-container">
+            <FaSearch className="search-icon" />
             <input
               type="text"
-              placeholder="Search timeline"
               className="search-input"
+              placeholder="Search sprints..."
             />
-            <svg
-              className="icon"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
           </div>
 
           <div className="view-controls">
-            <button
-              className={selectedView === "today" ? "active" : ""}
-              onClick={() => setSelectedView("today")}
-            >
-              Today
-            </button>
             <button
               className={selectedView === "weeks" ? "active" : ""}
               onClick={() => setSelectedView("weeks")}
@@ -186,36 +279,10 @@ const Timeline = () => {
 
         {/* Timeline Grid */}
         <div className="timeline-grid">
-          {/* Timeline Headers */}
-          <div className="timeline-headers">
-            {timelineHeaders.map((header, index) => (
-              <div key={index}>{header}</div>
-            ))}
-          </div>
-
-          {/* Sprints Table */}
+          {/* Sprint Section */}
           <div className="sprint-section">
             <header>Sprints</header>
-            <table className="sprint-table">
-              <thead>
-                <tr>
-                  <th>Sprint Name</th>
-                  <th>Timeline Chart</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sprints.map((sprint) => (
-                  <tr key={sprint.id}>
-                    <td>{sprint.sprint_name}</td>
-                    <td>
-                      <div className="sprint-timeline">
-                        {renderSprintTimelineBar(sprint)}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {renderGanttChart()}
 
             {/* Create Sprint Section */}
             <div className="create-sprint">

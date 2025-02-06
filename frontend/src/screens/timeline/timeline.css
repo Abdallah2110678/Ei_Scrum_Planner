@@ -13,15 +13,16 @@ body {
 
 /* Header (Breadcrumb & Title) */
 .timeline-header {
-  padding: 5rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 2rem 1.5rem;
+  background-color: #ffffff;
+  border-bottom: 2px solid #e4e6eb;
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
   font-size: 0.875rem;
-  color: #4b5563;
+  color: #65676b;
 }
 
 .breadcrumb span:not(:last-child) {
@@ -30,8 +31,9 @@ body {
 
 .timeline-header h1 {
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
   margin-top: 0.5rem;
+  color: #1a1a1a;
 }
 
 /* Main Content */
@@ -44,61 +46,88 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
 
-/* Search Input & Icon */
+/* Search Container */
 .search-container {
   position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #6b7280;
+  font-size: 14px;
+  pointer-events: none;
 }
 
 .search-input {
-  padding: 0.5rem 1rem 0.5rem 2rem;
+  padding: 8px 12px 8px 36px;
   border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  width: 16rem;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #111827;
+  width: 240px;
   font-size: 0.875rem;
+  transition: all 0.2s ease;
 }
 
-.search-container svg {
-  width: 1rem;
-  height: 1rem;
-  position: absolute;
-  left: 0.5rem;
-  top: 0.75rem;
+.search-input:focus {
+  outline: none;
+  border-color: #0052cc;
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.1);
+}
+
+.search-input::placeholder {
   color: #9ca3af;
 }
 
 /* View Controls */
 .view-controls {
   display: flex;
-  background-color: #fffbfb;
-  border-radius: 0.375rem;
-  padding: 0.25rem;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
 }
 
 .view-controls button {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 8px 16px;
   border: none;
   background: none;
-  border-radius: 0.375rem;
+  border-radius: 6px;
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  margin-right: 0.25rem;
+  transition: all 0.2s ease;
 }
 
-.view-controls button.active,
-.view-controls button:hover {
-  background-color: #bdbdbd;
-  box-shadow: 0 1px 2px rgba(137, 136, 136, 0.1);
+.view-controls button.active {
+  background-color: #0052cc;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.2);
+}
+
+.view-controls button:hover:not(.active) {
+  background-color: #e5e7eb;
+  color: #111827;
 }
 
 /* Timeline Grid */
 .timeline-grid {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
+  border: 1px solid #e4e6eb;
+  border-radius: 8px;
   background-color: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -106,7 +135,7 @@ body {
 .timeline-headers {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e4e6eb;
 }
 
 .timeline-headers > div {
@@ -115,7 +144,7 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   color: #4b5563;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid #e4e6eb;
 }
 
 .timeline-headers > div:last-child {
@@ -125,11 +154,11 @@ body {
 /* Sprint Section */
 .sprint-section header {
   padding: 1rem;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
+  background-color: #f3f4f6;
+  border-bottom: 2px solid #d1d5db;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
 }
 
 .sprint {
@@ -149,41 +178,153 @@ body {
   gap: 0.75rem;
 }
 
-.sprint-timeline {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  align-items: center;
-  padding: 0.5rem 0;
+/* Gantt Chart Styles */
+.gantt-chart-container {
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
 
-.timeline-bar {
-  background-color: #2563eb;
-  color: #ffffff;
-  padding: 0.25rem;
-  border-radius: 0.375rem;
+.gantt-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 1200px;
+}
+
+.gantt-table th {
+  background: #f3f4f6;
+  border-bottom: 2px solid #d1d5db;
+  font-weight: 600;
+  color: #111827;
+  padding: 16px;
   text-align: center;
-  font-size: 0.75rem;
-  grid-row: 1;
+}
+
+.fixed-column {
+  position: sticky;
+  left: 0;
+  background: #ffffff !important;
+  z-index: 2;
+  width: 200px;
+  min-width: 200px;
+  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.05);
+}
+
+.gantt-table td {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.gantt-chart-cell {
+  position: relative;
+  height: 60px;
+  padding: 0 !important;
+  background-color: #f9fafb;
+}
+
+.gantt-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+}
+
+.gantt-grid-line {
+  border-right: 1px dashed #d1d5db;
+  height: 100%;
+}
+
+.gantt-bar {
+  position: absolute;
+  height: 32px;
+  top: 14px;
+  background: linear-gradient(to right, #0052cc, #2684ff);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.gantt-bar:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(to right, #0047b3, #1f75f2);
+  box-shadow: 0 4px 8px rgba(0, 82, 204, 0.3);
+}
+
+.sprint-bar-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.sprint-name {
+  font-weight: 500;
+  color: #111827;
+  background-color: #ffffff;
+  padding: 16px;
+}
+
+.no-sprints {
+  text-align: center;
+  padding: 32px;
+  color: #6b7280;
+  font-style: italic;
+  background-color: #ffffff;
+}
+
+/* Additional styles for better visibility */
+.gantt-table thead th {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.gantt-table th:first-child {
+  text-align: left;
+}
+
+/* Remove old sprint timeline styles that we won't need anymore */
+.sprint-timeline,
+.timeline-bar {
+  display: none;
 }
 
 .create-sprint {
   padding: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #e4e6eb;
   text-align: left;
+  background-color: #ffffff;
 }
 
 .create-sprint button {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #2563eb;
+  color: #1877f2;
   background: none;
   border: none;
   cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
 }
 
 .create-sprint button:hover {
-  text-decoration: underline;
+  background-color: #e7f3ff;
 }
 
 .sprint-form {
@@ -191,18 +332,126 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
 }
 
 .sprint-form input,
 .sprint-form select,
 .sprint-form textarea {
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
+  padding: 0.625rem;
+  border: 1px solid #091121;
   border-radius: 0.375rem;
   font-size: 0.875rem;
+  background-color: #3963a3;
+  color: #1a1a1a;
 }
 
-.sprint-form textarea {
-  resize: vertical;
+.sprint-form input:focus,
+.sprint-form select:focus,
+.sprint-form textarea:focus {
+  outline: none;
+  border-color: #1877f2;
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
 }
+
+/* Search Container */
+.search-container .icon {
+  color: #65676b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .view-controls {
+    flex-wrap: wrap;
+  }
+  
+  .view-controls button {
+    flex: 1;
+    min-width: 80px;
+  }
+  
+  .gantt-chart-container {
+    margin: 0 -1rem;
+    border-radius: 0;
+  }
+}
+
+/* View-specific styles */
+.gantt-table.weeks th {
+  min-width: 100px;
+}
+
+.gantt-table.months th {
+  min-width: 120px;
+}
+
+.gantt-table.quarters th {
+  min-width: 250px;
+  font-size: 1rem;
+  background-color: #f3f4f6;
+  color: #111827;
+  border-bottom: 2px solid #d1d5db;
+}
+
+.gantt-table.quarters .gantt-bar {
+  height: 40px;
+  top: 10px;
+  font-size: 1rem;
+  background: linear-gradient(to right, #0052cc, #2684ff);
+}
+
+.gantt-table.quarters .gantt-grid-line {
+  border-right: 2px dashed #d1d5db;
+}
+
+/* Remove today-specific styles */
+.today-indicator,
+.gantt-table.today {
+  display: none;
+}
+
+/* Enhance quarter view specific styles */
+.quarters .gantt-chart-cell {
+  height: 60px;
+}
+
+.quarters .sprint-name {
+  font-size: 1rem;
+  padding: 16px;
+}
+
+/* Additional helper classes */
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sticky-left {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #ffffff;
+}
+
+/* Timeline scale indicators */
+.scale-indicator {
+  position: absolute;
+  bottom: -20px;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Color Scheme Summary:
+- Primary Blue: #0052cc (Atlassian blue)
+- Secondary Blue: #2684ff
+- Dark Text: #111827
+- Light Text: #6b7280
+- Borders: #d1d5db
+- Background: #ffffff
+- Grid Lines: #d1d5db
+- Hover States: #0047b3
+*/
 
