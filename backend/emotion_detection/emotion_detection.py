@@ -2,6 +2,8 @@ from fer import FER
 import cv2
 from collections import Counter
 import time
+from .models import DailyEmotion
+from django.utils import timezone
 
 def detect_emotions(request): # Accept the 'request' parameter
     # Initialize the FER detector and video capture
@@ -42,10 +44,33 @@ def detect_emotions(request): # Accept the 'request' parameter
         # Count the occurrences of each emotion
         emotion_counter = Counter(detected_emotions)
         most_common_emotion, count = emotion_counter.most_common(1)[0]
+        
+        # Get today's emotion record or create a new one
+        today = timezone.now().date()
+        daily_emotion, created = DailyEmotion.objects.get_or_create(
+            date=today,
+            defaults={
+                'first_emotion': '',
+                'second_emotion': '',
+                'third_emotion': ''
+            }
+        )
+
+        # Update emotions based on which slots are empty
+        if not daily_emotion.first_emotion:
+            daily_emotion.first_emotion = most_common_emotion
+        elif not daily_emotion.second_emotion:
+            daily_emotion.second_emotion = most_common_emotion
+        elif not daily_emotion.third_emotion:
+            daily_emotion.third_emotion = most_common_emotion
+
+        daily_emotion.save()  # This will trigger the calculate_average_emotion method
+
         return {
             'emotion': most_common_emotion,
             'count': count,
-            'duration': duration
+            'duration': duration,
+            'daily_average': daily_emotion.average_emotion
         }
     else:
         return {'error': 'No emotions detected.'}

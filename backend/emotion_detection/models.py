@@ -1,6 +1,5 @@
 from django.db import models
-
-# Create your models here.
+from django.conf import settings
 
 class DailyEmotion(models.Model):
     date = models.DateField(auto_now_add=True)
@@ -10,11 +9,14 @@ class DailyEmotion(models.Model):
     average_emotion = models.CharField(max_length=50)
 
     def calculate_average_emotion(self):
-        # Logic to calculate the average emotion
         emotions = [self.first_emotion, self.second_emotion, self.third_emotion]
-        # Example logic: return the most common emotion
-        self.average_emotion = max(set(emotions), key=emotions.count)
-        self.save()
+        # Filter out empty emotions
+        valid_emotions = [e for e in emotions if e]
+        if valid_emotions:
+            # Return the most common emotion
+            self.average_emotion = max(set(valid_emotions), key=valid_emotions.count)
+        else:
+            self.average_emotion = ''
 
     def save(self, *args, **kwargs):
         self.calculate_average_emotion()
