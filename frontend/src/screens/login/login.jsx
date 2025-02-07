@@ -1,27 +1,23 @@
-import  { useState,useEffect } from 'react';
-import { useNavigate, Link,} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, reset } from '../../features/auth/authSlice';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 import './login.css';
-import { useDispatch, useSelector } from 'react-redux'
-import { login, reset, getUserInfo } from '../../features/auth/authSlice'
-import { toast } from 'react-toastify'
-
 
 const LoginForm = () => {
-    
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false,
   });
-
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-
-  const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
-
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth);
 
   const validateForm = () => {
     const newErrors = {};
@@ -29,7 +25,7 @@ const LoginForm = () => {
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email address is invalid';
+      newErrors.email = 'Invalid email address';
     }
 
     if (!formData.password) {
@@ -41,11 +37,8 @@ const LoginForm = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value,
-    });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
 
     if (errors[name]) {
       setErrors((prevErrors) => {
@@ -55,19 +48,54 @@ const LoginForm = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
 
     if (validateForm()) {
-      console.log('Form Data Submitted:', formData);
       const userData = {
         email: formData.email,
         password: formData.password,
-    };
-     dispatch(login(userData));
-      alert('Login Successful!');
-      navigate('/');
+      };
+
+      try {
+        // First attempt login
+        const loginResult = await dispatch(login(userData)).unwrap();
+        
+        if (loginResult) {
+          // First emotion detection after successful login
+          detectEmotion();
+
+          // Schedule second emotion detection 2 hours later
+          setTimeout(() => {
+            detectEmotion();
+          },  2 * 60 * 60 * 1000); // 2 hours in milliseconds
+
+          // Navigate only after all operations are complete
+          navigate('/eiscrum');
+        }
+      } catch (loginError) {
+        console.error('Login failed:', loginError);
+        toast.error('Login failed. Please check your credentials.');
+      }
+    }
+  };
+
+  const detectEmotion = async (type = 'LOGIN') => {
+    try {
+      const response = await axios.get(`http://localhost:8000/emotion_detection/?type=${type}`);
+      
+      if (response.data.emotion) {
+        toast.success(`Detected emotion: ${response.data.emotion}`);
+        if (response.data.daily_average) {
+          toast.info(`Daily average emotion: ${response.data.daily_average}`);
+        }
+      } else {
+        toast.info('No emotion detected');
+      }
+    } catch (emotionError) {
+      console.error('Error detecting emotion:', emotionError);
+      toast.warning('Emotion detection unavailable');
     }
   };
 
@@ -77,18 +105,15 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (isError) {
-        toast.error(message)
+      toast.error(message);
     }
 
     if (isSuccess || user) {
-      toast.success("Login Successful")
-        navigate("/dashboard")
+      navigate('/eiscrum');
     }
 
-    dispatch(reset())
-    dispatch(getUserInfo())
-
-}, [isError, isSuccess, user, navigate, dispatch])
+    dispatch(reset());
+  }, [isError, isSuccess, user, message, navigate, dispatch]);
 
   return (
     <div className="registration-container">
@@ -120,18 +145,15 @@ const LoginForm = () => {
               onChange={handleChange}
               placeholder="Enter your password"
             />
-            <span
-              className="password-toggle-icon"
-              onClick={togglePasswordVisibility}
-            >
+            <span className="password-toggle-icon" onClick={togglePasswordVisibility}>
               {showPassword ? '👁️' : '👁️‍🗨️'}
             </span>
           </div>
           {errors.password && <div className="error-message">{errors.password}</div>}
         </div>
 
-        {/* Remember Me Checkbox */}
-        <div className="form-group remember-me">
+         {/* Remember Me Checkbox */}
+         <div className="form-group remember-me">
           <label htmlFor="rememberMe">
             <input
               type="checkbox"
@@ -154,20 +176,17 @@ const LoginForm = () => {
         <p>Or login with:</p>
         <div className="social-buttons">
           <button className="social-button">
-            <img
-              src="../src/assets/google.png"
-              alt="Google Logo"
-            />
-            <span>Google</span> 
+            <img src="../src/assets/google.png" alt="Google Logo" />
+            <span>Google</span>
           </button>
         </div>
       </div>
 
-        <div className="footer-links">
-            <button onClick={() => navigate('/register')} className="link-button">
-                Create an account
-            </button>
-        </div>
+      <div className="footer-links">
+        <button onClick={() => navigate('/register')} className="link-button">
+          Create an account
+        </button>
+      </div>
 
       <div className="atlassian-footer">
         <p>One account for EI Scrum Planner and more.</p>
