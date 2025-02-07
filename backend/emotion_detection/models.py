@@ -2,6 +2,13 @@ from django.db import models
 from django.conf import settings
 
 class DailyEmotion(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='daily_emotions'
+    )
     date = models.DateField(auto_now_add=True)
     first_emotion = models.CharField(max_length=50)
     second_emotion = models.CharField(max_length=50)
@@ -23,4 +30,5 @@ class DailyEmotion(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Emotions on {self.date}: {self.average_emotion}"
+        username = self.user.name if self.user else 'Anonymous'
+        return f"Emotions for {username} on {self.date}: {self.average_emotion}"

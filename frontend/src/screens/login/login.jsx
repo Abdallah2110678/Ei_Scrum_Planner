@@ -69,7 +69,7 @@ const LoginForm = () => {
           // Schedule second emotion detection 2 hours later
           setTimeout(() => {
             detectEmotion();
-          },  60 * 1000); // 2 hours in milliseconds
+          },  2 * 60 * 60 * 1000); // 2 hours in milliseconds
 
           // Navigate only after all operations are complete
           navigate('/eiscrum');
