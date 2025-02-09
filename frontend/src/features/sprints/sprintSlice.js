@@ -63,13 +63,22 @@ const sprintSlice = createSlice({
       })
 
       // Add Sprint
+      .addCase(addSprint.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+        state.message = null;
+      })
       .addCase(addSprint.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isError = false;
         state.sprints.push(action.payload);
       })
       .addCase(addSprint.rejected, (state, action) => {
+        state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
       })
+      
 
       // Update Sprint
       .addCase(updateSprint.fulfilled, (state, action) => {

@@ -11,7 +11,7 @@ import CreateIssueButton from "../../components/taskButton/createTaskButton";
 import TaskList from "../../components/taskList/taskList";
 import projectService from "../../features/projects/projectService";
 
-const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId,projectId }) => {
+const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     sprintName: sprintName,
@@ -74,57 +74,64 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId,projectId }) =
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted"); // Log form data
+    console.log("Form submitted", formData);
+
+    if (!formData.sprintName || !formData.startDate || !projectId) {
+      alert("Sprint Name, Start Date, and Project are required!");
+      return;
+    }
 
     const durationMapping = {
       "1 week": 7,
       "2 weeks": 14,
       "3 weeks": 21,
       "4 weeks": 28,
-      Custom: 0,
+      "custom": 0,
     };
+
+    console.log("🚀 Sprint Request Payload:", {
+      sprint_name: formData.sprintName,
+      duration: durationMapping[formData.duration] || 14,
+      start_date: formData.startDate,
+      sprint_goal: formData.sprintGoal,
+      project: parseInt(projectId, 10),  // ✅ FIXED: Sending correct field name
+    });
+
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/sprints/${sprintId}/`,
+        sprintId ?
+          `http://localhost:8000/api/v1/sprints/${sprintId}/` :
+          `http://localhost:8000/api/v1/sprints/`,
         {
-          method: "PATCH",
+          method: sprintId ? "PATCH" : "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             sprint_name: formData.sprintName,
-            duration: durationMapping[formData.duration], // Ensure it's an integer
+            duration: durationMapping[formData.duration] || 14,
             start_date: formData.startDate,
             sprint_goal: formData.sprintGoal,
-            project_id: projectId,
+            project: parseInt(projectId, 10),  // ✅ FIXED (Line 140)
           }),
         }
       );
 
-      console.log("Sending payload:", {
-        sprint_name: formData.sprintName,
-        duration: parseInt(formData.duration.split(" ")[0]),
-        start_date: formData.startDate,
-        sprint_goal: formData.sprintGoal,
-        custom_end_date: formData.customEndDate || null,
-      });
+      const data = await response.json();
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error response:", errorData); // Log error response
-        throw new Error(errorData.message || "Failed to create sprint");
+        console.error("❌ Backend Error Response:", data);
+        throw new Error(data.message || "Failed to create/update sprint");
       }
 
-      const data = await response.json();
-      console.log("Sprint created:", data); // Log created sprint
-      onClose(); // Close the modal
-      dispatch(fetchSprints()); // Refresh the sprints list
+      console.log("✅ Sprint created/updated:", data);
+      onClose();
+      dispatch(fetchSprints());
     } catch (error) {
-      console.error("Error creating sprint:", error);
-      // Optionally show an error message to the user
+      console.error("❌ Error Creating Sprint:", error);
+      alert("Error creating sprint: " + error.message);
     }
   };
-
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -223,7 +230,7 @@ const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
@@ -243,20 +250,33 @@ const Backlog = () => {
   useEffect(() => {
     dispatch(fetchSprints());
   }, [dispatch]);
-
-  const handleCreateSprint = () => {
-    if (!selectedProject) {
+  const handleCreateSprint = async () => {
+    if (!selectedProjectId) {
       alert("Please select a project first.");
       return;
     }
 
     const newSprintData = {
       sprint_name: `Sprint ${sprints.length + 1}`,
-      project_id: selectedProject, // Include project ID
+      project: parseInt(selectedProjectId, 10),  // ✅ Convert to integer
+      is_active: false,
+      is_completed: false
     };
 
-    dispatch(addSprint(newSprintData));
+    console.log("🚀 Creating Sprint with Data:", newSprintData);  // ✅ Debugging
+
+    try {
+      await dispatch(addSprint(newSprintData)).unwrap();
+      dispatch(fetchSprints()); // Refresh sprints
+
+    } catch (error) {
+      console.error("❌ Failed to create sprint:", error);
+      alert("Failed to create sprint. Please try again.");
+    }
   };
+
+
+
 
   const toggleDropdown = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -333,19 +353,22 @@ const Backlog = () => {
                             "Content-Type": "application/json",
                           },
                           body: JSON.stringify({
+                            sprint_name: sprint.sprint_name,  // ✅ Use sprint instead of formData
+                            duration: sprint.duration,  // ✅ Use sprint's actual duration
+                            start_date: sprint.start_date,  // ✅ Use sprint's start date
+                            sprint_goal: sprint.sprint_goal,  // ✅ Use sprint's goal
+                            project: parseInt(sprint.project, 10),  // ✅ Ensure correct project ID key
+                            is_completed: true,  // ✅ Mark as completed
                             is_active: false,
-                            is_completed: true,
-                            end_date: new Date().toISOString(), // Set current time as end_date
+                            end_date: new Date().toISOString()  // ✅ Set end date
                           }),
                         }
                       );
-              
                       if (!response.ok) {
                         const errorData = await response.json();
                         console.error("Error response:", errorData);
                         throw new Error(errorData.message || "Failed to complete sprint");
                       }
-              
                       console.log(`Sprint ${sprint.id} marked as completed.`);
                       dispatch(fetchSprints()); // Refresh sprints after updating
                     } catch (error) {
@@ -356,6 +379,7 @@ const Backlog = () => {
                     setIsStartSprintModalOpen(true);
                   }
                 }}
+
               >
                 {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
               </button>
@@ -382,8 +406,21 @@ const Backlog = () => {
           </div>
         ))}
 
+      <div className="project-selection">
+        <label>Select Project:</label>
+        <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)}>
+          <option value="">-- Select a Project --</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Task List and Create Issue */}
       <TaskList handleCreateSprint={handleCreateSprint} />
+
 
       {/* ✅ Pass Sprint ID to StartSprintModal */}
       <StartSprintModal
@@ -391,7 +428,8 @@ const Backlog = () => {
         onClose={() => setIsStartSprintModalOpen(false)}
         sprintId={selectedSprint?.id || null}
         sprintName={selectedSprint?.sprint_name || ""}
-        projectId={selectedProject}
+        projectId={selectedProjectId} // Pass the selected project ID
+
       />
     </div>
   );

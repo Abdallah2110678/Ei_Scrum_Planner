@@ -17,21 +17,18 @@ const fetchSprints = async () => {
 // Add a new sprint
 const addSprint = async (sprintData) => {
   try {
-    console.log("📡 Sending Sprint Data:", sprintData);  // Debugging
-
-    if (!sprintData.project) {
-      throw new Error("❌ Sprint creation failed: Project ID is missing!");
-    }
-
-    const response = await axios.post(API_URL, sprintData, config);
-    console.log("✅ Sprint Created Successfully:", response.data);
+    const response = await axios.post(API_URL, {
+      sprint_name: sprintData.sprint_name,
+      project: sprintData.project,  // ✅ FIXED: Use "project" instead of "project_id"
+      is_active: false,
+      is_completed: false,
+      tasks: []
+    }, config);
     return response.data;
   } catch (error) {
-    console.error("🚨 Error Creating Sprint:", error.response?.data || error.message);
-    throw error;
+    throw new Error(error.response?.data?.message || "Failed to create sprint");
   }
 };
-
 
 
 // Update a sprint
