@@ -8,7 +8,7 @@ from task_estimation.models import Task
 def train_model_view(request):
     if request.method == "GET":
         try:
-            train_model()  # Call the function; results are printed in the console
+            train_model()
             return JsonResponse({"message": "Model trained successfully!"}, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
@@ -38,16 +38,11 @@ def insert_task_view(request):
 def predict_task_view(request):
     if request.method == "POST":
         try:
-            # Parse JSON body
             data = json.loads(request.body)
             developer_experience = int(data["developer_experience"])
             task_duration = float(data["task_duration"])
             task_complexity = int(data["task_complexity"])
-
-            # Predict story points
             predicted_story_points = predict_story_points(developer_experience, task_duration, task_complexity)
-
-            # Return the response
             return JsonResponse({
                 "predicted_story_points": predicted_story_points,
                 "message": "Prediction successful!"
