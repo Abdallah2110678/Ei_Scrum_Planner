@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import './navbar.css';
 import RegistrationForm from '../registerationForm/registeration.jsx';
 import LoginForm from '../login/login.jsx';
-import { useDispatch } from 'react-redux';
-import { logout, reset, setLoading } from '../../features/auth/authSlice';
+import { useDispatch,useSelector } from 'react-redux';
+import { getUserInfo, logout, reset, setLoading } from '../../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
@@ -16,6 +16,7 @@ const Navbar = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
+  const {userInfo} = useSelector((state) => state.auth);
 
   // Function for emotion detection and logout
   const handleLogout = async () => {
@@ -48,6 +49,8 @@ const Navbar = () => {
   };
 
   useEffect(() => {
+    dispatch(getUserInfo());
+    console.log(userInfo);
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownVisible(false);
@@ -58,6 +61,7 @@ const Navbar = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+    
   }, []);
 
   const openLoginForm = (e) => {
@@ -97,8 +101,9 @@ const Navbar = () => {
                 <div className="profile-info">
                   <div className="profile-initials">AH</div>
                   <div className="profile-details">
-                    <div className="profile-name">Ahmed Ahmed Ayman Mahmoud Hamdy</div>
-                    <div className="profile-email">ahmed2107685@miuegypt.edu.eg</div>
+                    <div className="profile-name">{userInfo.name}</div>
+                    <div className="profile-email">{userInfo.email}</div>
+                    <div className="profile-email">{userInfo.specialist}</div>
                   </div>
                 </div>
               </div>
