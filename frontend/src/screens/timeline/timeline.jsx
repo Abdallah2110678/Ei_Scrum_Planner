@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { format, addDays, addMonths, parseISO, differenceInDays, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSprints, addSprint } from "../../features/sprints/sprintSlice";
+import { fetchSprints, updateSprint } from "../../features/sprints/sprintSlice";
 import "./Timeline.css";
-import { FaSearch, FaPlus, FaTasks } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaTasks, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { fetchTasks, updateTask } from '../../features/tasks/taskSlice';
 
 const Timeline = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
   const [selectedView, setSelectedView] = useState("months");
   const [currentDate] = useState(new Date());
-  const [showSprintForm, setShowSprintForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sprintFormData, setSprintFormData] = useState({
-    sprint_name: "",
-    start_date: "",
-    duration: 14,
-    sprint_goal: "",
-  });
   const [expandedSprint, setExpandedSprint] = useState(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [taskFormData, setTaskFormData] = useState({
@@ -28,9 +23,35 @@ const Timeline = () => {
     status: "TO DO",
     user_experience: 1
   });
+  const [editingSprint, setEditingSprint] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    sprint_name: "",
+    start_date: "",
+    duration: 14,
+    sprint_goal: ""
+  });
+  const [tasks, setTasks] = useState({});
 
   useEffect(() => {
     dispatch(fetchSprints());
+    // Fetch tasks for each sprint
+    sprints.forEach(sprint => {
+      dispatch(fetchTasks({ sprint: sprint.id }))
+        .then(response => {
+          setTasks(prev => ({
+            ...prev,
+            [sprint.id]: response.payload
+          }));
+        });
+    });
+    // Also fetch unassigned tasks
+    dispatch(fetchTasks({ sprint: 'null' }))
+      .then(response => {
+        setTasks(prev => ({
+          ...prev,
+          unassigned: response.payload
+        }));
+      });
   }, [dispatch]);
 
   const generateTimelineHeaders = () => {
@@ -149,6 +170,86 @@ const Timeline = () => {
     }
   };
 
+  const handleEditClick = (sprint) => {
+    setEditingSprint(sprint.id);
+    setEditFormData({
+      sprint_name: sprint.sprint_name,
+      start_date: format(parseISO(sprint.start_date), 'yyyy-MM-dd'),
+      duration: sprint.duration,
+      sprint_goal: sprint.sprint_goal || ""
+    });
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSaveEdit = async (sprintId) => {
+    try {
+      await dispatch(updateSprint({ id: sprintId, ...editFormData })).unwrap();
+      setEditingSprint(null);
+      setEditFormData({
+        sprint_name: "",
+        start_date: "",
+        duration: 14,
+        sprint_goal: ""
+      });
+    } catch (error) {
+      console.error('Failed to update sprint:', error);
+    }
+  };
+
+  const renderSprintBar = (sprint) => {
+    if (editingSprint === sprint.id) {
+      return (
+        <div className="sprint-edit-form">
+          <input
+            type="text"
+            name="sprint_name"
+            value={editFormData.sprint_name}
+            onChange={handleEditFormChange}
+            className="sprint-edit-input"
+          />
+          <input
+            type="date"
+            name="start_date"
+            value={editFormData.start_date}
+            onChange={handleEditFormChange}
+            className="sprint-edit-input"
+          />
+          <select
+            name="duration"
+            value={editFormData.duration}
+            onChange={handleEditFormChange}
+            className="sprint-edit-select"
+          >
+            <option value={7}>1 Week</option>
+            <option value={14}>2 Weeks</option>
+            <option value={21}>3 Weeks</option>
+          </select>
+          <div className="sprint-edit-actions">
+            <FaSave onClick={() => handleSaveEdit(sprint.id)} className="edit-icon" />
+            <FaTimes onClick={() => setEditingSprint(null)} className="edit-icon" />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="sprint-bar">
+        <span>{sprint.sprint_name}</span>
+        <FaEdit 
+          onClick={() => handleEditClick(sprint)} 
+          className="edit-icon"
+        />
+      </div>
+    );
+  };
+
   const renderGanttChart = () => {
     const timelineHeaders = generateTimelineHeaders();
     const totalDays = timelineHeaders.reduce((sum, header) => sum + header.days, 0);
@@ -192,7 +293,7 @@ const Timeline = () => {
                     <tr>
                       <td className="fixed-column sprint-name">
                         <div className="sprint-name-container">
-                          {sprint.sprint_name}
+                          {renderSprintBar(sprint)}
                           <button 
                             className="add-task-button"
                             onClick={() => setShowTaskForm(true)}
@@ -321,103 +422,144 @@ const Timeline = () => {
     );
   };
 
-  const handleSprintFormChange = (e) => {
-    const { name, value } = e.target;
-    setSprintFormData((prev) => ({ ...prev, [name]: value }));
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
+    
+    if (!destination) return;
+    
+    const sourceSprintId = source.droppableId;
+    const destSprintId = destination.droppableId;
+    
+    if (sourceSprintId === destSprintId) {
+      // Reorder within same sprint
+      const sprintTasks = Array.from(tasks[sourceSprintId]);
+      const [removed] = sprintTasks.splice(source.index, 1);
+      sprintTasks.splice(destination.index, 0, removed);
+      
+      setTasks({
+        ...tasks,
+        [sourceSprintId]: sprintTasks
+      });
+    } else {
+      // Move to different sprint
+      const sourceTasks = Array.from(tasks[sourceSprintId]);
+      const destTasks = Array.from(tasks[destSprintId] || []);
+      const [movedTask] = sourceTasks.splice(source.index, 1);
+      destTasks.splice(destination.index, 0, movedTask);
+      
+      // Update task's sprint assignment
+      const newSprintId = destSprintId === 'unassigned' ? null : destSprintId;
+      await dispatch(updateTask({
+        id: draggableId,
+        sprint: newSprintId
+      }));
+      
+      setTasks({
+        ...tasks,
+        [sourceSprintId]: sourceTasks,
+        [destSprintId]: destTasks
+      });
+    }
   };
 
-  const handleCreateSprint = () => {
-    if (!sprintFormData.sprint_name || !sprintFormData.start_date) return;
-    dispatch(addSprint(sprintFormData));
-    setSprintFormData({ sprint_name: "", start_date: "", duration: 14, sprint_goal: "" });
-    setShowSprintForm(false);
+  const renderTaskList = (sprintId) => {
+    const sprintTasks = tasks[sprintId] || [];
+    
+    return (
+      <Droppable droppableId={String(sprintId)}>
+        {(provided) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="task-list"
+          >
+            {sprintTasks.map((task, index) => (
+              <Draggable
+                key={task.id}
+                draggableId={String(task.id)}
+                index={index}
+              >
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className={`task-item ${snapshot.isDragging ? 'dragging' : ''}`}
+                  >
+                    <div className="task-content">
+                      <span className="task-name">{task.task_name}</span>
+                      <span className={`task-status ${task.status.toLowerCase().replace(' ', '-')}`}>
+                        {task.status}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    );
   };
 
   return (
-    <div className="timeline-container">
-      <div className="projects-school-links">
-        <a href="/projects" className="projects-link">
-          Projects
-        </a>
-        <span className="separator"> / </span>
-        <a href="/school" className="school-link">
-          School
-        </a>
-      </div>
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="timeline-container">
+        <div className="projects-school-links">
+          <a href="/projects" className="projects-link">
+            Projects
+          </a>
+          <span className="separator"> / </span>
+          <a href="/school" className="school-link">
+            School
+          </a>
+        </div>
 
-      <div className="timeline-content">
-        <div className="timeline-header-section">
-          <h2>Timeline</h2>
-          <div className="search-section">
-            <div className="search-bar">
-              <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="search-input"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        <div className="timeline-content">
+          <div className="timeline-header-section">
+            <h2>Timeline</h2>
+            <div className="search-section">
+              <div className="search-bar">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="search-input"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="timeline-header">
-          <div className="view-controls">
-            <button 
-              className={selectedView === "weeks" ? "active" : ""} 
-              onClick={() => setSelectedView("weeks")}
-            >
-              Weeks
-            </button>
-            <button 
-              className={selectedView === "months" ? "active" : ""} 
-              onClick={() => setSelectedView("months")}
-            >
-              Months
-            </button>
-            <button 
-              className={selectedView === "quarters" ? "active" : ""} 
-              onClick={() => setSelectedView("quarters")}
-            >
-              Quarters
-            </button>
-          </div>
-        </div>
-
-        <div className="timeline-grid">{renderGanttChart()}</div>
-
-        <div className="create-sprint">
-          <button onClick={() => setShowSprintForm(!showSprintForm)}>+ Create Sprint</button>
-          {showSprintForm && (
-            <div className="sprint-form">
-              <input 
-                type="text" 
-                name="sprint_name" 
-                placeholder="Sprint Name" 
-                onChange={handleSprintFormChange} 
-              />
-              <input 
-                type="date" 
-                name="start_date" 
-                onChange={handleSprintFormChange} 
-              />
-              <select name="duration" onChange={handleSprintFormChange}>
-                <option value={7}>1 Week</option>
-                <option value={14}>2 Weeks</option>
-                <option value={21}>3 Weeks</option>
-              </select>
-              <textarea 
-                name="sprint_goal" 
-                placeholder="Sprint Goal (optional)" 
-                onChange={handleSprintFormChange}
-              ></textarea>
-              <button onClick={handleCreateSprint}>Create Sprint</button>
+          <div className="timeline-header">
+            <div className="view-controls">
+              <button 
+                className={selectedView === "weeks" ? "active" : ""} 
+                onClick={() => setSelectedView("weeks")}
+              >
+                Weeks
+              </button>
+              <button 
+                className={selectedView === "months" ? "active" : ""} 
+                onClick={() => setSelectedView("months")}
+              >
+                Months
+              </button>
+              <button 
+                className={selectedView === "quarters" ? "active" : ""} 
+                onClick={() => setSelectedView("quarters")}
+              >
+                Quarters
+              </button>
             </div>
-          )}
+          </div>
+
+          <div className="timeline-grid">{renderGanttChart()}</div>
         </div>
       </div>
-    </div>
+    </DragDropContext>
   );
 };
 
