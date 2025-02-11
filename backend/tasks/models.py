@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-
 from sprints.models import Sprint
 
 class Task(models.Model):
@@ -10,14 +9,18 @@ class Task(models.Model):
         ("DONE", "Done"),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True,blank=True)  # Assign task to a User
-    sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)  # ✅ Sprint relation
-    user_experience = models.IntegerField()  # Experience in years
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)
     task_name = models.CharField(max_length=255)
-    task_duration = models.FloatField()  # Duration in days
-    task_complexity = models.IntegerField()  # Complexity (1-5)
-    story_points = models.FloatField()  # Target variable
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="TO DO")  # New status field
+    task_duration = models.FloatField()
+    task_complexity = models.IntegerField()
+    story_points = models.FloatField()
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="TO DO")
+
+    @property
+    def user_experience(self):
+        """Fetch experience from the User model."""
+        return self.user.experience if self.user else None
 
     def __str__(self):
         return self.task_name

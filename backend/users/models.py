@@ -3,11 +3,11 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from .managers import CustomUserManager
 
-
 class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(_("Name"), max_length=100)  # Combined name field
     specialist = models.CharField(_("Specialist"), max_length=100)  # Free-text input
     email = models.EmailField(_("Email Address"), max_length=254, unique=True)
+    experience = models.IntegerField(_("Experience"), default=0)  # New field for experience in years
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["name", "specialist"]

@@ -10,21 +10,33 @@ from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.neural_network import MLPRegressor
 from xgboost import XGBRegressor
-
+from task_estimation.models import Estimation, Task
+from users.models import User
 MODEL_PATH = "best_model.pkl"
 BEST_ALGO_PATH = "best_model_algo.txt"
-
 def train_model():
     from task_estimation.models import Task
-    tasks = Task.objects.all().values(
-        "developer_experience", "task_duration", "task_complexity", "story_points"
+    
+    # Fetch tasks and related user experience
+    tasks = Task.objects.select_related("user").values(
+        "user__experience", "task_duration", "task_complexity", "story_points"
     )
     df = pd.DataFrame(tasks)
+
     if df.empty:
         raise ValueError("No data available for training.")
+
+    # Rename columns for consistency
+    df.rename(columns={"user__experience": "developer_experience"}, inplace=True)
+
+    # Prepare features and target
     X = df[["developer_experience", "task_duration", "task_complexity"]]
     y = df["story_points"]
+
+    # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Define multiple algorithms to compare
     algorithms = {
         "RandomForest": RandomForestRegressor(random_state=42),
         "LinearRegression": LinearRegression(),
@@ -34,46 +46,78 @@ def train_model():
         "GradientBoosting": GradientBoostingRegressor(random_state=42),
         "XGBoost": XGBRegressor(objective="reg:squarederror", random_state=42),
         "ExtraTrees": ExtraTreesRegressor(random_state=42),
-        "MLPRegressor": MLPRegressor(hidden_layer_sizes=(100,), max_iter=1000, random_state=42) 
+        "MLPRegressor": MLPRegressor(hidden_layer_sizes=(100,), max_iter=1000, random_state=42)
     }
+
+    # Evaluate each algorithm
     best_model = None
     best_mae = float("inf")
     best_algo = None
     results = {}
+
     print("\nAlgorithm Performance:")
     print("-" * 40)
+
     for name, model in algorithms.items():
         model.fit(X_train, y_train)
         predictions = model.predict(X_test)
         mae = mean_absolute_error(y_test, predictions)
         results[name] = mae
+
+        # Print MAE for each algorithm
         print(f"{name}: MAE = {mae:.4f}")
+
+        # Store the best model based on lowest MAE
         if mae < best_mae:
             best_mae = mae
             best_model = model
             best_algo = name
+
     print("\nBest Model Selected:")
     print(f"{best_algo} with MAE = {best_mae:.4f}")
+
+    # Save the best model and algorithm name to a file
     with open(MODEL_PATH, "wb") as f:
         pickle.dump(best_model, f)
+
     with open(BEST_ALGO_PATH, "w") as f:
         f.write(best_algo)
+
     return results
 
-def predict_story_points(developer_experience, task_duration, task_complexity):
+
+
+def predict_story_points(developer_experience, task_duration, task_complexity, user_id, task_id):
+    train_model()  # Ensure model is trained before making predictions
+    
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError("Trained model not found. Please train the model first.")
+
     if not os.path.exists(BEST_ALGO_PATH):
         raise FileNotFoundError("Algorithm information not found. Please train the model first.")
+
+    # Load the best model
     with open(MODEL_PATH, "rb") as f:
         model = pickle.load(f)
+
+    # Load the best algorithm name
     with open(BEST_ALGO_PATH, "r") as f:
         best_algo = f.read()
+
+    # Create a DataFrame for the input features
     feature_names = ["developer_experience", "task_duration", "task_complexity"]
     features = pd.DataFrame([[developer_experience, task_duration, task_complexity]], columns=feature_names)
-    predicted_story_points = model.predict(features)
-    print(f"Prediction done using {best_algo} algorithm.")
-    return predicted_story_points[0]
 
+    # Predict story points
+    predicted_story_points = model.predict(features)[0]
 
+    # Save the result in the Estimation model
+    user = User.objects.get(id=user_id)
+    task = Task.objects.get(id=task_id)
+    estimation, created = Estimation.objects.get_or_create(user=user, task=task)
+    estimation.estimation_result = predicted_story_points
+    estimation.save()
 
+    print(f"Prediction done using {best_algo} algorithm. Saved estimation result: {predicted_story_points}")
+
+    return predicted_story_points
