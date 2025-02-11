@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { updateTask, deleteTask, fetchTasks } from "../../features/tasks/taskSlice";
+import { updateTask, deleteTask, fetchTasks, predictStoryPoints } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
 
 const TaskItem = ({ task, sprints }) => {
@@ -8,6 +8,7 @@ const TaskItem = ({ task, sprints }) => {
 
   const [editTaskId, setEditTaskId] = useState(null);
   const [editStoryId, setEditStoryId] = useState(null);
+  const [loadingEstimate, setLoadingEstimate] = useState(false);
   const [editTaskName, setEditTaskName] = useState(task.task_name);
   const [editStoryPoints, setEditStoryPoints] = useState(task.story_points);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -28,13 +29,13 @@ const TaskItem = ({ task, sprints }) => {
   const handleSaveTaskName = () => {
     if (editTaskName.trim() !== "") {
       dispatch(updateTask({ id: task.id, taskData: { task_name: editTaskName } }))
-      .unwrap()
-    .then(() => {
-      dispatch(fetchSprints());
-      dispatch(fetchTasks());
-  
-    })
-    .catch((error) => console.error("Error updating task:", error));
+        .unwrap()
+        .then(() => {
+          dispatch(fetchSprints());
+          dispatch(fetchTasks());
+
+        })
+        .catch((error) => console.error("Error updating task:", error));
     }
     setEditTaskId(null);
   };
@@ -51,50 +52,77 @@ const TaskItem = ({ task, sprints }) => {
       correctedValue = 0;
     }
     dispatch(updateTask({ id: task.id, taskData: { story_points: correctedValue } }))
-    .unwrap()
-    .then(() => {
-      dispatch(fetchSprints());
-      dispatch(fetchTasks());
-  
-    })
-    .catch((error) => console.error("Error updating task:", error));
+      .unwrap()
+      .then(() => {
+        dispatch(fetchSprints());
+        dispatch(fetchTasks());
+
+      })
+      .catch((error) => console.error("Error updating task:", error));
     setEditStoryId(null);
   };
 
   // Handle Task Status Change
   const handleStatusChange = (newStatus) => {
     dispatch(updateTask({ id: task.id, taskData: { status: newStatus } }))
-    .unwrap()
-    .then(() => {
-      dispatch(fetchSprints());
-      dispatch(fetchTasks());
-  
-    })
-    .catch((error) => console.error("Error updating task:", error));
+      .unwrap()
+      .then(() => {
+        dispatch(fetchSprints());
+        dispatch(fetchTasks());
+
+      })
+      .catch((error) => console.error("Error updating task:", error));
   };
 
   // Handle Task Deletion
   const handleDeleteTask = () => {
     dispatch(deleteTask(task.id))
-    .unwrap()
-    .then(() => {
-      dispatch(fetchSprints());
-      dispatch(fetchTasks());
-  
-    })
-    .catch((error) => console.error("Error updating task:", error));
+      .unwrap()
+      .then(() => {
+        dispatch(fetchSprints());
+        dispatch(fetchTasks());
+
+      })
+      .catch((error) => console.error("Error updating task:", error));
+  };
+  const handleEstimateStoryPoints = async () => {
+    try {
+      setLoadingEstimate(true);
+
+      const response = await dispatch(
+        predictStoryPoints({
+          task_id: task.id,
+          taskData: {
+            task_id: task.id,
+            user_id: 1,
+            task_duration: task.task_duration,
+            task_complexity: task.task_complexity,
+          },
+        })
+      ).unwrap();
+
+      if (response?.estimatedPoints !== undefined) {
+        setEditStoryPoints(response.estimatedPoints); // Update state to reflect changes immediately
+      }
+
+      dispatch(fetchTasks()); // Refresh tasks after updating state
+    } catch (error) {
+      console.error("Error estimating story points:", error);
+    } finally {
+      setLoadingEstimate(false);
+    }
   };
 
   // Handle Assigning a Task to a Sprint
   const handleMoveToSprint = (sprintId) => {
     dispatch(updateTask({ id: task.id, taskData: { sprint: sprintId } }))
-    .unwrap()
-    .then(() => {
-      dispatch(fetchSprints());
-      dispatch(fetchTasks());
-  
-    })
-    .catch((error) => console.error("Error updating task:", error));
+      .unwrap()
+      .then(() => {
+        dispatch(fetchSprints());
+        dispatch(fetchTasks());
+
+      })
+      .catch((error) => console.error("Error updating task:", error));
     setMoveDropdownOpen(false);
     setDropdownOpen(false);
 
@@ -141,7 +169,6 @@ const TaskItem = ({ task, sprints }) => {
         <option value="IN PROGRESS">IN PROGRESS</option>
         <option value="DONE">DONE</option>
       </select>
-
       {/* Story Points (Editable) */}
       <div className="story-points">
         {editStoryId === task.id ? (
@@ -157,11 +184,19 @@ const TaskItem = ({ task, sprints }) => {
           />
         ) : (
           <span className="story-points-text" onClick={handleEditStoryPoints}>
-            {task.story_points}
+            {editStoryPoints}
           </span>
         )}
-      </div>
 
+        {/* 🔥 "Estimate" Button */}
+        <button
+          className="estimate-button"
+          onClick={handleEstimateStoryPoints}
+          disabled={loadingEstimate}
+        >
+          {loadingEstimate ? "Estimating..." : "Estimate"}
+        </button>
+      </div>
       {/* User Avatar */}
       <div className="user-avatar">{task.user_initials || "ZM"}</div>
 
@@ -177,33 +212,33 @@ const TaskItem = ({ task, sprints }) => {
             Move to
             {moveDropdownOpen && (
               <div className="move-to-dropdown">
-              {/* Show "Remove from Sprint" if task is already assigned to a sprint */}
-              {task.sprint && (
-                <button
-                  className="dropdown-item remove-sprint"
-                  onClick={() => handleMoveToSprint(null)} // ✅ Set sprint to null (remove task from sprint)
-                >
-                  Remove from Sprint
-                </button>
-              )}
-            
-              {/* Display only sprints the task is NOT already in */}
-              {sprints.length > 0 ? (
-                sprints
-                  .filter((sprint) => sprint.id !== task.sprint) // ✅ Exclude current sprint
-                  .map((sprint) => (
-                    <button
-                      key={sprint.id}
-                      className="dropdown-item"
-                      onClick={() => handleMoveToSprint(sprint.id)} // ✅ Move task to selected sprint
-                    >
-                      {sprint.sprint_name}
-                    </button>
-                  ))
-              ) : (
-                <div className="no-sprints">No sprints available</div>
-              )}
-            </div>
+                {/* Show "Remove from Sprint" if task is already assigned to a sprint */}
+                {task.sprint && (
+                  <button
+                    className="dropdown-item remove-sprint"
+                    onClick={() => handleMoveToSprint(null)}
+                  >
+                    Remove from Sprint
+                  </button>
+                )}
+
+                {/* Display only sprints the task is NOT already in */}
+                {sprints.length > 0 ? (
+                  sprints
+                    .filter((sprint) => sprint.id !== task.sprint)
+                    .map((sprint) => (
+                      <button
+                        key={sprint.id}
+                        className="dropdown-item"
+                        onClick={() => handleMoveToSprint(sprint.id)}
+                      >
+                        {sprint.sprint_name}
+                      </button>
+                    ))
+                ) : (
+                  <div className="no-sprints">No sprints available</div>
+                )}
+              </div>
             )}
           </div>
         </div>
