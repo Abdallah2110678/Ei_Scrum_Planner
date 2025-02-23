@@ -11,7 +11,7 @@ import {useSelector} from 'react-redux';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
-  return user ? children : <Navigate to="/" />;
+  return user ? children : <Navigate to="/login" />;
 };
 
 // Public Route Wrapper (Only for Unauthenticated Users)
