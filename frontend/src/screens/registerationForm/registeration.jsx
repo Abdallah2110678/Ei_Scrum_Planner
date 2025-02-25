@@ -9,10 +9,10 @@ const RegistrationForm = ({ onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    specialist: '',
+    name: "",
+    email: "",
+    password: "",
+    specialist: "",
   });
 
   const { user, isLoading, isError, isSuccess, message } = useSelector(
@@ -40,7 +40,7 @@ const RegistrationForm = ({ onClose }) => {
     }
 
     if (!formData.specialist.trim()) {
-      newErrors.specialist = 'Specialist field is required';
+      newErrors.specialist = "Specialist field is required";
     }
 
     setErrors(newErrors);
@@ -75,7 +75,6 @@ const RegistrationForm = ({ onClose }) => {
       };
       dispatch(register(userData));
       console.log("Form Data Submitted:", userData);
-      navigate('/login');
     }
   };
 
@@ -85,26 +84,28 @@ const RegistrationForm = ({ onClose }) => {
 
   useEffect(() => {
     if (isError) {
+      console.log(message);
+      console.log(isError);
       toast.error(message);
     }
 
     if (isSuccess) {
-      navigate("/login");
       //toast.success("email create successfully");
       formData.name = "";
       formData.email = "";
       formData.password = "";
       formData.specialist = "";
-      if (onClose) onClose();
+      // if (onClose) onClose();
+      navigate("/login");
     }
-
-    dispatch(reset());
   }, [isError, isSuccess, dispatch]);
 
   return (
     <div className="modal-overlay">
       <div className="registration-container">
-        <button className="close-button" onClick={onClose}>×</button>
+        <button className="close-button" onClick={onClose}>
+          ×
+        </button>
         <h2>Register to Continue</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -130,7 +131,9 @@ const RegistrationForm = ({ onClose }) => {
               onChange={handleChange}
               placeholder="Enter your email"
             />
-            {errors.email && <div className="error-message">{errors.email}</div>}
+            {errors.email && (
+              <div className="error-message">{errors.email}</div>
+            )}
           </div>
 
           <div className="form-group password-group">
@@ -166,11 +169,18 @@ const RegistrationForm = ({ onClose }) => {
               onChange={handleChange}
               placeholder="Enter your specialist"
             />
-            {errors.specialist && <div className="error-message">{errors.specialist}</div>}
+            {errors.specialist && (
+              <div className="error-message">{errors.specialist}</div>
+            )}
+          </div>
+          <div>
+            {isError && message && (
+              <div style={{ color: "red", marginTop: "10px" }}>{message}</div>
+            )}
           </div>
 
-          <button type="submit" className="submit-button">
-            Register
+          <button type="submit" className="submit-button" disabled={isLoading}>
+            {isLoading ? "Registering..." : "Register"}
           </button>
         </form>
 

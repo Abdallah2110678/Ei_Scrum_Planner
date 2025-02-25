@@ -16,16 +16,30 @@ export const register = createAsyncThunk(
   "auth/register",
   async (userData, thunkAPI) => {
     try {
-      return await authService.register(userData);
+      const response = await authService.register(userData);
+      return response;
     } catch (error) {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
-      console.log(message);
-      return thunkAPI.rejectWithValue(message);
+      let errorMessage = "Registration failed due to an unknown error";
+      
+      if (error.response) {
+        if (error.response.data && typeof error.response.data === "object") {
+          errorMessage = Object.entries(error.response.data)
+            .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+            .join("; ");
+        } else {
+          errorMessage = error.response.data?.detail || 
+                        error.response.data?.message || 
+                        error.response.statusText || 
+                        "Server error occurred";
+        }
+      } else if (error.request) {
+        errorMessage = "Network error: Unable to connect to the server";
+      } else {
+        errorMessage = error.message || error.toString();
+      }
+
+      console.error("Registration Error:", errorMessage);
+      return thunkAPI.rejectWithValue(errorMessage);
     }
   }
 );
@@ -44,7 +58,7 @@ export const login = createAsyncThunk(
           return thunkAPI.rejectWithValue(message)
       }
   }
-)
+);
 
 export const logout = createAsyncThunk(
   "auth/logout",
@@ -93,14 +107,14 @@ export const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.user = action.payload;
+        // state.user = action.payload;
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.isError = true;
+
         state.message = action.payload;
-        state.user = null;
       }) .addCase(login.pending, (state) => {
         state.isLoading = true
     })
