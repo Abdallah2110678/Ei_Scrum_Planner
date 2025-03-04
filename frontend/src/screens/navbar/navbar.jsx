@@ -3,7 +3,7 @@ import './navbar.css';
 import RegistrationForm from '../registerationForm/registeration.jsx';
 import LoginForm from '../login/login.jsx';
 import { useDispatch,useSelector } from 'react-redux';
-import { getUserInfo, logout, reset, setLoading } from '../../features/auth/authSlice';
+import {  logout, reset, setLoading } from '../../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
@@ -49,8 +49,6 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    dispatch(getUserInfo());
-    console.log(userInfo);
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownVisible(false);

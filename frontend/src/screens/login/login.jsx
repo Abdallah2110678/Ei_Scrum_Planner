@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, reset } from '../../features/auth/authSlice';
+import { login, reset, getUserInfo } from '../../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import './login.css';
@@ -17,7 +17,7 @@ const LoginForm = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth);
+  const { isLoading, isError } = useSelector((state) => state.auth);
 
   const validateForm = () => {
     const newErrors = {};
@@ -70,7 +70,8 @@ const LoginForm = () => {
           setTimeout(() => {
             detectEmotion();
           },  2 * 60 * 60 * 1000); // 2 hours in milliseconds
-
+          dispatch(reset());
+          dispatch(getUserInfo());
           // Navigate only after all operations are complete
           navigate('/eiscrum');
         }
@@ -103,19 +104,6 @@ const LoginForm = () => {
     setShowPassword(!showPassword);
   };
 
-  useEffect(() => {
-    dispatch(reset());
-  }, []);
-
-  useEffect(() => {
-    if (isError) {
-      toast.error(message);
-    }
-
-    if (isSuccess || user) {
-      navigate('/eiscrum');
-    }
-  }, [isError, isSuccess, user, message, navigate, dispatch]);
 
   return (
     <div className="registration-container">
@@ -170,8 +158,8 @@ const LoginForm = () => {
         </div>
         {isError && <div className="error-message"> Email or Password are incorrect </div>}
 
-        <button type="submit" className="submit-button">
-          Login
+        <button type="submit" className="submit-button" disabled={isLoading}>
+            {isLoading ? "Loading..." : "Login"}
         </button>
       </form>
 
