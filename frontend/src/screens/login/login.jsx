@@ -104,6 +104,10 @@ const LoginForm = () => {
   };
 
   useEffect(() => {
+    dispatch(reset());
+  }, []);
+
+  useEffect(() => {
     if (isError) {
       toast.error(message);
     }
@@ -111,8 +115,6 @@ const LoginForm = () => {
     if (isSuccess || user) {
       navigate('/eiscrum');
     }
-
-    dispatch(reset());
   }, [isError, isSuccess, user, message, navigate, dispatch]);
 
   return (
@@ -166,6 +168,7 @@ const LoginForm = () => {
             <span className="remember-me-text">Remember me</span>
           </label>
         </div>
+        {isError && <div className="error-message"> Email or Password are incorrect </div>}
 
         <button type="submit" className="submit-button">
           Login
