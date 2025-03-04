@@ -3,21 +3,20 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProjects, createNewProject } from "../../features/projects/projectSlice";
 import "./ProjectsDropdown.css";
 
-const ProjectsDropdown = () => {
+const ProjectsDropdown = ({ onSelectProject }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [projectName, setProjectName] = useState("");
+    const [selectedProject, setSelectedProject] = useState(null);
     const dropdownRef = useRef(null);
 
     const dispatch = useDispatch();
     const { projects, isLoading, isError, message } = useSelector((state) => state.projects);
 
-    // Fetch projects on mount
     useEffect(() => {
         dispatch(fetchProjects());
     }, [dispatch]);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -31,17 +30,23 @@ const ProjectsDropdown = () => {
         };
     }, []);
 
-    // Handle Project Creation
+    const handleProjectSelect = (project) => {
+        setSelectedProject(project);
+        setIsOpen(false);
+        onSelectProject(project.id);  // Pass selected project ID to parent
+    };
+
     const handleCreateProject = async (e) => {
         e.preventDefault();
         if (!projectName.trim()) return;
 
         try {
-            await dispatch(createNewProject({ name: projectName })).unwrap();
+            const newProject = await dispatch(createNewProject({ name: projectName })).unwrap();
             setProjectName("");
             setShowForm(false);
             setIsOpen(false);
-            dispatch(fetchProjects()); // ✅ Re-fetch projects
+            dispatch(fetchProjects());  // ✅ Re-fetch projects
+            handleProjectSelect(newProject);  // Select the newly created project
         } catch (error) {
             console.error("🚨 Failed to create project:", error);
         }
@@ -50,7 +55,7 @@ const ProjectsDropdown = () => {
     return (
         <div className="projects-dropdown" ref={dropdownRef}>
             <button className="dropdown-toggle" onClick={() => setIsOpen(!isOpen)}>
-                Projects ▼
+                {selectedProject ? selectedProject.name : "Select a Project"} ▼
             </button>
 
             {isOpen && (
@@ -62,7 +67,9 @@ const ProjectsDropdown = () => {
                     ) : (
                         <ul>
                             {projects.map((project) => (
-                                <li key={project.id}>{project.name}</li>
+                                <li key={project.id} onClick={() => handleProjectSelect(project)}>
+                                    {project.name}
+                                </li>
                             ))}
                         </ul>
                     )}
