@@ -1,43 +1,41 @@
-/* src/screens/Backlog.css */
 .backlog-container {
     padding: 30px;
     font-family: Arial, sans-serif;
-    flex-grow: 1; /* Take up remaining space */
-    height: 100%; /* Full height of the parent container */
-    box-sizing: border-box; /* Include padding in height calculation */
-    width: calc(100% - 220px); /* Subtract sidebar width (220px) from 100% */
-    margin-left: 220px; /* Offset by sidebar width */
-    border-radius: 8px; /* Keep border radius */
-    background-color: #ffffff; /* Keep background color */
+    flex-grow: 1; 
+    height: 100%; 
+    box-sizing: border-box; 
+    width: calc(100% - 220px); 
+    margin-left: 220px; 
+    border-radius: 8px; 
+    background-color: #ffffff; 
   }
   
   .projects-school-links {
-    padding-top: 40px; /* Space above the links */
-    display: flex; /* Display links in a row */
+    padding-top: 40px; 
+    display: flex; 
     gap: 5px;
   }
   
   .projects-school-links a {
-    text-decoration: none; /* Remove underline from links */
-    color: #333; /* Dark gray color for links */
-    font-weight: 500; /* Medium font weight */
-    font-size: 14px; /* Adjust font size as needed */
-    transition: color 0.3s ease; /* Smooth color transition on hover */
+    text-decoration: none; 
+    color: #333; 
+    font-weight: 500; 
+    font-size: 14px; 
+    transition: color 0.3s ease; 
   }
   
   .projects-school-links a:hover {
-    color: #0052cc; /* Blue color on hover */
+    color: #0052cc; 
   }
   
   .backlog-container h2 {
     margin-top: 0px;
     font-size: 20px;
     margin-bottom: 10px;
-    font-weight: normal; /* Normal weight for the subheading */
-    color: #000000; /* Light gray color for the subheading */
+    font-weight: normal; 
+    color: #000000; 
   }
   
-  /* Search Section */
   .search-section {
     margin-bottom: 20px;
   }
@@ -46,30 +44,30 @@
     display: flex;
     align-items: center;
     width: 250px;
-    gap: 10px; /* Space between input and button */
-    margin-bottom: 20px; /* Space below the search bar */
+    gap: 10px; 
+    margin-bottom: 20px; 
   }
   
   .search-input {
-    padding: 8px 12px; /* Padding for the input */
-    border: 1px solid #ccc; /* Light gray border */
-    border-radius: 4px; /* Rounded corners */
-    font-size: 14px; /* Font size */
-    width: 200px; /* Fixed width */
-    background-color: white; /* White background */
-    outline: none; /* Remove default outline */
+    padding: 8px 12px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 14px;
+    width: 200px;
+    background-color: white; 
+    outline: none; 
   }
   
   .search-input:focus {
-    border-color: #0052cc; /* Blue border on focus */
+    border-color: #0052cc;
   }
   
   .sprint-info {
-    background-color: #f5f5f5; /* Light gray background */
-    padding: 20px; /* Padding inside the div */
-    border-radius: 4px; /* Rounded corners */
-    margin-bottom: 20px; /* Space below the sprint info */
-    position: relative; /* Make it the positioning reference for absolute children */
+    background-color: #f5f5f5; 
+    padding: 20px; 
+    border-radius: 4px; 
+    margin-bottom: 20px; 
+    position: relative; 
 }
 
 .sprint-actions {
@@ -77,7 +75,7 @@
     top: 10px;
     right: 10px;
     display: flex;
-    gap: 8px; /* Space between buttons */
+    gap: 8px; 
 }
 
 .start-sprint-button,.complete-sprint-button {
@@ -98,11 +96,11 @@
 }
 
 .sprint-actions-button {
-  background-color: #cfcdcd; /* Light gray background */
-  border: 1px solid #dcdcdc; /* Light border */
-  width: 32px; /* Set width */
-  height: 32px; /* Set height */
-  border-radius: 4px; /* Rounded corners */
+  background-color: #cfcdcd; 
+  border: 1px solid #dcdcdc; 
+  width: 32px; 
+  height: 32px; 
+  border-radius: 4px; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -111,21 +109,20 @@
 }
 
 .sprint-actions-button:hover {
-  background-color: #b6b6b6; /* Slightly darker gray on hover */
-  border-color: #c7c7c7; /* Darker border on hover */
+  background-color: #b6b6b6; 
+  border-color: #c7c7c7; 
 }
 
 .sprint-actions-button:focus {
   outline: none;
-  border-color: #0052cc; /* Blue border on focus */
+  border-color: #0052cc; 
 }
 
 .icon-more-actions {
   font-size: 16px;
-  color: #666; /* Dark gray icon */
+  color: #666; 
 }
 
-/* Dropdown Menu */
 .dropdown-menu1 {
   position: absolute;
   background: white;
@@ -156,40 +153,40 @@
 
   
   .sprint-info strong {
-    display: block; /* Make the strong element a block */
-    font-size: 15px; /* Font size for the sprint name */
-    color: #333; /* Dark gray color */
-    margin-bottom: 10px; /* Space below the sprint name */
+    display: block; 
+    font-size: 15px; 
+    color: #333; 
+    margin-bottom: 10px; 
   }
   
   .sprint-content {
     display: flex;
     align-items: center;
-    gap: 10px; /* Reduced gap between image and text */
+    gap: 10px; 
     border: 2px dashed #ccc;
   }
   
   .sprint-image img {
-    width: 80px; /* Adjust image size as needed */
-    height: 80px; /* Adjust image size as needed */
+    width: 80px; 
+    height: 80px; 
     padding-left: 350px;
   }
   
   .sprint-text {
-    flex: 1; /* Take up remaining space */
+    flex: 1; 
   }
   
   .sprint-text h3 {
-    font-size: 13px; /* Font size for the heading */
-    color: #333; /* Dark gray color */
-    margin-bottom: 6px; /* Space below the heading */
+    font-size: 13px; 
+    color: #333; 
+    margin-bottom: 6px; 
   }
   
   .sprint-text p {
-    font-size: 11px; /* Font size for the description */
-    color: #666; /* Light gray text */
-    margin: 0 0 20px 0; /* Space below the paragraph */
-    line-height: 1.6; /* Improve readability */
+    font-size: 11px; 
+    color: #666; 
+    margin: 0 0 20px 0; 
+    line-height: 1.6; 
   }
   
   .create-issue-button {
@@ -203,51 +200,51 @@
     font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 8px; /* Space between icon and text */
-    transition: background-color 0.3s ease; /* Smooth hover effect */
+    gap: 8px; 
+    transition: background-color 0.3s ease; 
   }
   
   .create-issue-button:hover {
-    background-color: #e6e6e6; /* Darker blue on hover */
+    background-color: #e6e6e6; 
   }
   
   .plus-icon {
-    font-size: 18px; /* Size of the plus icon */
-    font-weight: bold; /* Make the plus icon bold */
+    font-size: 18px; 
+    font-weight: bold; 
   }
 
   .backlog-info {
-    background-color: #ffffff; /* Light gray background */
-    padding: 20px; /* Padding inside the div */
-    border-radius: 4px; /* Rounded corners */
-    margin-bottom: 20px; /* Space below the sprint info */
-    position: relative; /* Make it the positioning reference for absolute children */
+    background-color: #ffffff; 
+    padding: 20px; 
+    border-radius: 4px; 
+    margin-bottom: 20px; 
+    position: relative; 
 }
 
 .backlog-info strong {
-  display: block; /* Make the strong element a block */
-  font-size: 13px; /* Font size for the sprint name */
-  color: #333; /* Dark gray color */
-  margin-bottom: 10px; /* Space below the sprint name */
+  display: block; 
+  font-size: 13px; 
+  color: #333;
+  margin-bottom: 10px; 
 }
 
 .empty-backlog {
-    border: 2px dashed #ccc; /* Dashed border */
-    padding: 0px; /* Padding inside the empty backlog area */
-    text-align: center; /* Center the text */
+    border: 2px dashed #ccc; 
+    padding: 0px; 
+    text-align: center; 
 }
 
 .empty-backlog p{
   font-size: 13px;
 }
 .empty-backlog-message {
-    font-size: 14px; /* Font size for the message */
-    color: #666; /* Light gray color for the text */
+    font-size: 14px; 
+    color: #666; 
 }
 
 .create-issue-button {
-    background-color: #f5f5f5; /* Light background */
-    color: #333; /* Dark text */
+    background-color: #f5f5f5; 
+    color: #333; 
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
@@ -255,21 +252,21 @@
     font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 8px; /* Space between icon and text */
-    transition: background-color 0.3s ease; /* Smooth hover effect */
+    gap: 8px; 
+    transition: background-color 0.3s ease; 
 }
 
 .create-issue-button:hover {
-    background-color: #e6e6e6; /* Darker background on hover */
+    background-color: #e6e6e6; 
 }
 
 .create-sprint-container {
-    margin-top: 20px; /* Space above the create sprint button */
+    margin-top: 20px; 
 }
 
 .create-sprint-button {
-    background-color: #0052cc; /* Blue background */
-    color: white; /* White text */
+    background-color: #0052cc;
+    color: white;
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
@@ -278,7 +275,7 @@
 }
 
 .create-sprint-button:hover {
-    background-color: #0041a3; /* Darker blue on hover */
+    background-color: #0041a3; 
 }
 
 .create-issue-button2 {
@@ -292,12 +289,12 @@
   font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 8px; /* Space between icon and text */
-  transition: background-color 0.3s ease; /* Smooth hover effect */
+  gap: 8px; 
+  transition: background-color 0.3s ease; 
 }
 
 .create-issue-button2:hover {
-  background-color: #e6e6e6; /* Darker blue on hover */
+  background-color: #e6e6e6;
 }
 
 .create-sprint-button {
