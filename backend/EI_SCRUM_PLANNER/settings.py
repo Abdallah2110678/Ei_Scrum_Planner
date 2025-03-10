@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'tasks',
     'projects',
     'emotion_detection',
+    'project_users'
+
 ]
 
 MIDDLEWARE = [

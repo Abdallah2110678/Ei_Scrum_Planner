@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 
 from users.views import  SignInView, SignUpView
+from django.contrib import admin
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,7 +30,8 @@ urlpatterns = [
     path('task-estimation/', include('task_estimation.urls')),
     path('api/v1/sprints/', include('sprints.urls')),
     path('api/', include('projects.urls')),
-
+    path('', include('project_users.urls')),
 
     # path('logout/', LogoutView.as_view(), name='logout'),
 ]
+
