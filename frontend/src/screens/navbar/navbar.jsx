@@ -8,12 +8,14 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
 import { NavLink } from 'react-router-dom';
+import AddUserModal from '../../components/addUserModal';
 
 const Navbar = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isRegistrationFormVisible, setIsRegistrationFormVisible] = useState(false);
   const [isLoginFormVisible, setIsLoginFormVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false); // State for Add User Modal
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
   const {userInfo} = useSelector((state) => state.auth);
@@ -79,6 +81,11 @@ const Navbar = () => {
           <a href="/#" className="navbar-link">Assigned to Me</a>
           <ProjectsDropdown /> {/* Projects Dropdown Component */}
           <a href="/#" className="navbar-link">Dashboard</a>
+          <button
+            className="navbar-link bg-transparent border-none text-white hover:text-gray-300"
+            onClick={() => setIsAddUserModalVisible(true)}
+          >Add User
+          </button>
         </div>
 
         <div className="navbar-search">
@@ -132,6 +139,8 @@ const Navbar = () => {
         </div>
       </nav>
 
+{/* Add User Modal (Only show when isAddUserModalVisible is true) */}
+{isAddUserModalVisible && <AddUserModal onClose={() => setIsAddUserModalVisible(false)} />}
       {isRegistrationFormVisible && (
         <div className="overlay">
           <div className="registration-modal-content">
