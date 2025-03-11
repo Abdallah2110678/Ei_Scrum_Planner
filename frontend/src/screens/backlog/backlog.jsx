@@ -7,7 +7,6 @@ import {
   addSprint,
   deleteSprint,
 } from "../../features/sprints/sprintSlice";
-import CreateIssueButton from "../../components/taskButton/createTaskButton";
 import TaskList from "../../components/taskList/taskList";
 import projectService from "../../features/projects/projectService";
 import ProjectsDropdown from "./../../components/projectsdropdown/ProjectsDropdown";
@@ -60,6 +59,8 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) 
       case "custom":
         // Keep the current end date when switching to custom
         return setFormData({ ...formData, duration });
+      default:
+        endDate = new Date(startDate.setDate(startDate.getDate() + 14));
     }
 
     if (duration !== "custom") {
@@ -75,7 +76,6 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted", formData);
 
     if (!formData.sprintName || !formData.startDate || !projectId) {
       alert("Sprint Name, Start Date, and Project are required!");
@@ -89,14 +89,6 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) 
       "4 weeks": 28,
       "custom": 0,
     };
-
-    console.log("🚀 Sprint Request Payload:", {
-      sprint_name: formData.sprintName,
-      duration: durationMapping[formData.duration] || 14,
-      start_date: formData.startDate,
-      sprint_goal: formData.sprintGoal,
-      project: parseInt(projectId, 10),  // ✅ FIXED: Sending correct field name
-    });
 
     try {
       const response = await fetch(
@@ -113,7 +105,7 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) 
             duration: durationMapping[formData.duration] || 14,
             start_date: formData.startDate,
             sprint_goal: formData.sprintGoal,
-            project: parseInt(projectId, 10),  // ✅ FIXED (Line 140)
+            project: parseInt(projectId, 10),
           }),
         }
       );
@@ -133,12 +125,12 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) 
       alert("Error creating sprint: " + error.message);
     }
   };
+
   return (
     <div className="modal-overlay">
       <div className="modal-content">
         <h2 className="modal-title">Start Sprint</h2>
         <p>
-          {" "}
           <b>1</b> issue will be included in this sprint.
         </p>
         <p>Required fields are marked with an asterisk *</p>
@@ -230,26 +222,26 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) 
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-  const [selectedProjectId, setSelectedProjectId] = useState(null);  // ✅ Store selected project
+  const selectedProjectId = useSelector((state) => state.projects.selectedProjectId);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
 
+  // Fetch sprints when component mounts or when selectedProjectId changes
   useEffect(() => {
-    dispatch(fetchSprints());
-  }, []);
+    if (selectedProjectId) {
+      dispatch(fetchSprints());
+    }
+  }, [dispatch, selectedProjectId]);
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      const projectList = await projectService.getProjects();
-      setProjects(projectList);
-    };
-    fetchProjects();
-  }, []);
 
-  useEffect(() => {
-    dispatch(fetchSprints());
-  }, [dispatch]);
+  const handleProjectSelect = (projectId) => {
+    // Make sure we're working with an integer project ID
+    const numericProjectId = parseInt(projectId, 10);
+    console.log("Selected Project ID:", numericProjectId);
+    setSelectedProjectId(numericProjectId);
+  };
+
   const handleCreateSprint = async () => {
     if (!selectedProjectId) {
       alert("Please select a project first.");
@@ -257,30 +249,36 @@ const Backlog = () => {
     }
 
     const newSprintData = {
-      sprint_name: `Sprint ${sprints.length + 1}`,
-      project: parseInt(selectedProjectId, 10),  // ✅ Convert to integer
+      sprint_name: `Sprint ${sprints.filter(s => s.project === selectedProjectId).length + 1}`,
+      project: selectedProjectId,
       is_active: false,
       is_completed: false
     };
 
-    console.log("🚀 Creating Sprint with Data:", newSprintData);  // ✅ Debugging
-
     try {
       await dispatch(addSprint(newSprintData)).unwrap();
       dispatch(fetchSprints()); // Refresh sprints
-
     } catch (error) {
       console.error("❌ Failed to create sprint:", error);
       alert("Failed to create sprint. Please try again.");
     }
   };
+
   const toggleDropdown = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
 
   const handleDeleteSprint = (id) => {
-    dispatch(deleteSprint(id));
-    setOpenDropdown(null);
+    if (window.confirm("Are you sure you want to delete this sprint?")) {
+      dispatch(deleteSprint(id));
+      setOpenDropdown(null);
+    }
+  };
+
+  // Helper function to get filtered sprints for current project
+  const getFilteredSprints = () => {
+    if (!selectedProjectId) return [];
+    return sprints.filter(sprint => sprint.project === selectedProjectId);
   };
 
   return (
@@ -292,117 +290,126 @@ const Backlog = () => {
       </div>
 
       <h2>Backlog</h2>
+
       <div className="search-section">
         <div className="search-bar">
           <input type="text" placeholder="Search" className="search-input" />
         </div>
       </div>
 
-      {/* ✅ Show message if no project is selected */}
+      {/* Show message if no project is selected */}
       {!selectedProjectId ? (
-        <p className="no-project-message">Please select a project from the navbar.</p>
+        <p className="no-project-message">Please select a project from the dropdown above.</p>
       ) : (
         <>
-          {/* ✅ Show only sprints for the selected project */}
-          {sprints.length > 0 ? (
-            sprints
-              .filter((sprint) => sprint.project === selectedProjectId)
-              .map((sprint) => (
-                <div key={sprint.id} className="sprint-info">
-                  <strong>{sprint.sprint_name}</strong>
-                  <div className="sprint-content">
-                    {sprint.tasks.length === 0 ? (
-                      <>
-                        <div className="sprint-image">
-                          <img
-                            src="https://jira-frontend-bifrost.prod-east.frontend.public.atl-paas.net/assets/sprint-planning.32ed1a38.svg"
-                            alt="Sprint Planning"
-                          />
-                        </div>
-                        <div className="sprint-text">
-                          <h3>Plan your sprint</h3>
-                          <p>
-                            Drag issues from the <b>Backlog</b> section, or create new
-                            issues, to plan the work for this sprint.
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="task-list-container">
-                        {sprint.tasks.map((task) => (
-                          <div key={task.id} className="task-item">
-                            <TaskItem key={task.id} task={task} sprints={sprints} />
-                          </div>
-                        ))}
+          {/* Display sprints for selected project */}
+          {getFilteredSprints().length > 0 ? (
+            getFilteredSprints().map((sprint) => (
+              <div key={sprint.id} className="sprint-info">
+                <strong>{sprint.sprint_name}</strong>
+                <div className="sprint-content">
+                  {!sprint.tasks || sprint.tasks.length === 0 ? (
+                    <>
+                      <div className="sprint-image">
+                        <img
+                          src="https://jira-frontend-bifrost.prod-east.frontend.public.atl-paas.net/assets/sprint-planning.32ed1a38.svg"
+                          alt="Sprint Planning"
+                        />
                       </div>
-                    )}
-                  </div>
+                      <div className="sprint-text">
+                        <h3>Plan your sprint</h3>
+                        <p>
+                          Drag issues from the <b>Backlog</b> section, or create new
+                          issues, to plan the work for this sprint.
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="task-list-container">
+                      {sprint.tasks.map((task) => (
+                        <div key={task.id} className="task-item">
+                          <TaskItem key={task.id} task={task} sprints={sprints} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                  <div className="sprint-actions">
-                    <button
-                      className={sprint.is_active ? "complete-sprint-button" : "start-sprint-button"}
-                      onClick={async () => {
-                        if (sprint.is_active) {
-                          try {
-                            const response = await fetch(
-                              `http://localhost:8000/api/v1/sprints/${sprint.id}/`,
-                              {
-                                method: "PATCH",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  sprint_name: sprint.sprint_name,
-                                  duration: sprint.duration,
-                                  start_date: sprint.start_date,
-                                  sprint_goal: sprint.sprint_goal,
-                                  project: parseInt(sprint.project, 10),
-                                  is_completed: true,
-                                  is_active: false,
-                                  end_date: new Date().toISOString()
-                                }),
-                              }
-                            );
-                            if (!response.ok) {
-                              const errorData = await response.json();
-                              console.error("Error response:", errorData);
-                              throw new Error(errorData.message || "Failed to complete sprint");
+                <div className="sprint-actions">
+                  <button
+                    className={sprint.is_active ? "complete-sprint-button" : "start-sprint-button"}
+                    onClick={async () => {
+                      if (sprint.is_active) {
+                        try {
+                          const response = await fetch(
+                            `http://localhost:8000/api/v1/sprints/${sprint.id}/`,
+                            {
+                              method: "PATCH",
+                              headers: {
+                                "Content-Type": "application/json",
+                              },
+                              body: JSON.stringify({
+                                sprint_name: sprint.sprint_name,
+                                duration: sprint.duration,
+                                start_date: sprint.start_date,
+                                sprint_goal: sprint.sprint_goal,
+                                project: sprint.project,
+                                is_completed: true,
+                                is_active: false,
+                                end_date: new Date().toISOString()
+                              }),
                             }
-                            console.log(`Sprint ${sprint.id} marked as completed.`);
-                            dispatch(fetchSprints());
-                          } catch (error) {
-                            console.error("Error completing sprint:", error);
+                          );
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error("Error response:", errorData);
+                            throw new Error(errorData.message || "Failed to complete sprint");
                           }
-                        } else {
+                          console.log(`Sprint ${sprint.id} marked as completed.`);
+                          dispatch(fetchSprints());
+                        } catch (error) {
+                          console.error("Error completing sprint:", error);
+                          alert("Failed to complete sprint: " + error.message);
+                        }
+                      } else {
+                        setSelectedSprint(sprint);
+                        setIsStartSprintModalOpen(true);
+                      }
+                    }}
+                  >
+                    {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
+                  </button>
+                  <button
+                    className="sprint-actions-button"
+                    aria-haspopup="true"
+                    onClick={() => toggleDropdown(sprint.id)}
+                  >
+                    <span className="icon-more-actions">...</span>
+                  </button>
+
+                  {openDropdown === sprint.id && (
+                    <div className="dropdown-menu1">
+                      <button
+                        className="dropdown-item1"
+                        onClick={() => {
                           setSelectedSprint(sprint);
                           setIsStartSprintModalOpen(true);
-                        }
-                      }}
-                    >
-                      {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
-                    </button>
-                    <button
-                      className="sprint-actions-button"
-                      aria-haspopup="true"
-                      onClick={() => toggleDropdown(sprint.id)}
-                    >
-                      <span className="icon-more-actions">...</span>
-                    </button>
-
-                    {openDropdown === sprint.id && (
-                      <div className="dropdown-menu1">
-                        <button className="dropdown-item1">Edit sprint</button>
-                        <button
-                          className="dropdown-item1"
-                          onClick={() => handleDeleteSprint(sprint.id)}
-                        >
-                          Delete sprint
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        Edit sprint
+                      </button>
+                      <button
+                        className="dropdown-item1"
+                        onClick={() => handleDeleteSprint(sprint.id)}
+                      >
+                        Delete sprint
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))
+              </div>
+            ))
           ) : (
             <p className="no-sprints-message">No sprints available for this project.</p>
           )}
@@ -410,15 +417,21 @@ const Backlog = () => {
       )}
 
       {/* Task List and Create Issue */}
-      <TaskList handleCreateSprint={handleCreateSprint} />
+      <TaskList
+        handleCreateSprint={handleCreateSprint}
+        projectId={selectedProjectId}
+      />
 
-      {/* ✅ Pass Sprint ID to StartSprintModal */}
+      {/* Pass Sprint ID to StartSprintModal */}
       <StartSprintModal
         isOpen={isStartSprintModalOpen}
-        onClose={() => setIsStartSprintModalOpen(false)}
+        onClose={() => {
+          setIsStartSprintModalOpen(false);
+          setSelectedSprint(null);
+        }}
         sprintId={selectedSprint?.id || null}
         sprintName={selectedSprint?.sprint_name || ""}
-        projectId={selectedProjectId} 
+        projectId={selectedProjectId}
       />
     </div>
   );

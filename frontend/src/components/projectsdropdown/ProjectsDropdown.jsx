@@ -1,17 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProjects, createNewProject } from "../../features/projects/projectSlice";
+import { fetchProjects, createNewProject, setSelectedProjectId } from "../../features/projects/projectSlice";
 import "./ProjectsDropdown.css";
 
-const ProjectsDropdown = ({ onSelectProject }) => {
+const ProjectsDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [projectName, setProjectName] = useState("");
-    const [selectedProject, setSelectedProject] = useState(null);
     const dropdownRef = useRef(null);
 
     const dispatch = useDispatch();
-    const { projects, isLoading, isError, message } = useSelector((state) => state.projects);
+    const { projects, isLoading, isError, message, selectedProjectId } = useSelector((state) => state.projects);
 
     useEffect(() => {
         dispatch(fetchProjects());
@@ -31,10 +30,10 @@ const ProjectsDropdown = ({ onSelectProject }) => {
     }, []);
 
     const handleProjectSelect = (project) => {
-        setSelectedProject(project);
+        dispatch(setSelectedProjectId(project.id)); // ✅ Save in Redux + localStorage
         setIsOpen(false);
-        onSelectProject(project.id);  // Pass selected project ID to parent
     };
+    
 
     const handleCreateProject = async (e) => {
         e.preventDefault();
@@ -45,8 +44,8 @@ const ProjectsDropdown = ({ onSelectProject }) => {
             setProjectName("");
             setShowForm(false);
             setIsOpen(false);
-            dispatch(fetchProjects());  // ✅ Re-fetch projects
-            handleProjectSelect(newProject);  // Select the newly created project
+            dispatch(fetchProjects());  
+            handleProjectSelect(newProject);  
         } catch (error) {
             console.error("🚨 Failed to create project:", error);
         }
@@ -55,16 +54,12 @@ const ProjectsDropdown = ({ onSelectProject }) => {
     return (
         <div className="projects-dropdown" ref={dropdownRef}>
             <button className="dropdown-toggle" onClick={() => setIsOpen(!isOpen)}>
-                {selectedProject ? selectedProject.name : "Select a Project"} ▼
+                {selectedProjectId ? projects.find(p => p.id === selectedProjectId)?.name : "Select a Project"} ▼
             </button>
 
             {isOpen && (
                 <div className="dropdown-menu">
-                    {isLoading ? (
-                        <p>Loading...</p>
-                    ) : isError ? (
-                        <p className="error-message">Error: {message}</p>
-                    ) : (
+                    {isLoading ? <p>Loading...</p> : isError ? <p className="error-message">Error: {message}</p> : (
                         <ul>
                             {projects.map((project) => (
                                 <li key={project.id} onClick={() => handleProjectSelect(project)}>
@@ -74,9 +69,7 @@ const ProjectsDropdown = ({ onSelectProject }) => {
                         </ul>
                     )}
 
-                    <button className="create-project-btn" onClick={() => setShowForm(true)}>
-                        + Create Project
-                    </button>
+                    <button className="create-project-btn" onClick={() => setShowForm(true)}>+ Create Project</button>
                 </div>
             )}
 
