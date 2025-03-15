@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from sprints.models import Sprint
+from projects.models import Project
 
 class Task(models.Model):
     STATUS_CHOICES = [
@@ -15,6 +16,7 @@ class Task(models.Model):
     task_duration = models.FloatField()
     task_complexity = models.IntegerField()
     story_points = models.FloatField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="TO DO")
 
     @property

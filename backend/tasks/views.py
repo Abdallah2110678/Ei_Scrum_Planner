@@ -26,22 +26,27 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def get_queryset(self):
-      """
-      Optionally filter tasks by sprint.
-      Example: 
-          - /api/tasks/?sprint=1   (Fetch tasks in Sprint 1)
-          - /api/tasks/?sprint=null (Fetch tasks with no sprint assigned)
-      """
-      queryset = Task.objects.all()
-      sprint_id = self.request.query_params.get("sprint")
+        """
+        Fetch tasks optionally filtered by sprint or project.
+        Example: 
+            - /api/tasks/?sprint=1   (Fetch tasks in Sprint 1)
+            - /api/tasks/?sprint=null (Fetch tasks with no sprint assigned)
+            - /api/tasks/?project_id=2 (Fetch tasks for Project ID 2)
+        """
+        queryset = Task.objects.all()
+        sprint_id = self.request.query_params.get("sprint")
+        project_id = self.request.query_params.get("project_id")  # ✅ Fetch project_id from request
 
-      if sprint_id == "null":  
-          queryset = queryset.filter(sprint__isnull=True)  # ✅ Fetch tasks with no sprint
-      elif sprint_id:  
-          queryset = queryset.filter(sprint_id=sprint_id)  # ✅ Fetch tasks by sprint ID
+        if project_id:
+            queryset = queryset.filter(project_id=project_id)  # ✅ Filter by project ID
 
-      return queryset
-    
+        if sprint_id == "null":
+            queryset = queryset.filter(sprint__isnull=True)  # ✅ Fetch tasks with no sprint
+        elif sprint_id:
+            queryset = queryset.filter(sprint_id=sprint_id)  # ✅ Fetch tasks by sprint ID
+
+        return queryset
+
 
     @action(detail=True, methods=['patch'])
     def assign_sprint(self, request, pk=None):
@@ -67,3 +72,11 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.sprint = None
         task.save()
         return Response(TaskSerializer(task).data, status=status.HTTP_200_OK)
+
+    def list(self, request, *args, **kwargs):
+        """
+        Fetch all tasks, but allow filtering by project_id.
+        """
+        queryset = self.get_queryset()  # ✅ Apply filtering from get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

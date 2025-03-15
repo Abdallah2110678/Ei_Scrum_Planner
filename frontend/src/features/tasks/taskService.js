@@ -9,9 +9,19 @@ const config = {
 };
 
 // Fetch all tasks
-const fetchTasks = async () => {
-  const response = await axios.get(`${API_URL}?sprint=null`);
-  return response.data;
+const fetchTasks = async (selectedProjectId) => {
+  if (!selectedProjectId) {
+    console.log("❌ No project selected, returning empty tasks.");
+    return [];
+  }
+
+  const url = `${API_URL}?project_id=${selectedProjectId}`;
+  console.log(
+    `🔍 Fetching tasks for project ID: ${selectedProjectId} from URL: ${url}`
+  );
+
+  const response = await axios.get(url);
+  return response.data; // ✅ Return only tasks related to selected project
 };
 
 // Add a new task
@@ -36,8 +46,6 @@ const predictStoryPoints = async (taskData) => {
     throw error;
   }
 };
-
-
 
 // Update a task
 const updateTask = async ({ id, taskData }) => {

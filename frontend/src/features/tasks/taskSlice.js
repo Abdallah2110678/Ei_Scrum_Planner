@@ -19,28 +19,46 @@ export const predictStoryPoints = createAsyncThunk(
   }
 );
 
-
-
 // Fetch Tasks
 export const fetchTasks = createAsyncThunk(
   "tasks/fetchTasks",
-  async (_, thunkAPI) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
-      return await taskService.fetchTasks();
+      const { projects } = getState();
+      const selectedProjectId = projects.selectedProjectId;  // ✅ Get selected project ID
+
+      if (!selectedProjectId) {
+        console.log("❌ No project selected. Returning empty list.");
+        return [];
+      }
+
+      console.log(`✅ Fetching tasks for project ID: ${selectedProjectId}`);
+      
+      return await taskService.fetchTasks(selectedProjectId);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message || "Failed to fetch tasks");
+      console.error("❌ Error fetching tasks:", error);
+      return rejectWithValue(error.message || "Failed to fetch tasks");
     }
   }
 );
-
 // Add Task
 export const addTask = createAsyncThunk(
   "tasks/addTask",
-  async (taskData, thunkAPI) => {
+  async (taskData, { getState, rejectWithValue }) => {
     try {
-      return await taskService.addTask(taskData);
+      const { projects } = getState();
+      const selectedProjectId = projects.selectedProjectId;
+
+      if (!selectedProjectId) {
+        return rejectWithValue("No project selected");
+      }
+
+      return await taskService.addTask({
+        ...taskData,
+        project: selectedProjectId, // Ensuring the correct project ID
+      });
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message || "Failed to add task");
+      return rejectWithValue(error.message || "Failed to add task");
     }
   }
 );
@@ -80,7 +98,11 @@ const initialState = {
 const taskSlice = createSlice({
   name: "tasks",
   initialState,
-  reducers: {},
+  reducers: {
+    clearTasks(state) {
+      state.tasks = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Fetch Tasks
@@ -89,7 +111,8 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.tasks = action.payload;
+        state.tasks = action.payload; // ✅ Store only the relevant tasks
+        console.log("Updated Redux Tasks State:", state.tasks);
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.isLoading = false;
@@ -150,4 +173,6 @@ const taskSlice = createSlice({
   },
 });
 
+
+export const { clearTasks } = taskSlice.actions;
 export default taskSlice.reducer;

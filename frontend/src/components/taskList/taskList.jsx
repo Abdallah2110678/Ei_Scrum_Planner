@@ -1,20 +1,25 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTasks } from "../../features/tasks/taskSlice";
+import { fetchTasks, clearTasks } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
-import TaskItem from "./taskItem";
-import CreateIssueButton from "../../components/taskButton/createTaskButton";
-import "./taskList.css";
+import TaskItem from "./TaskItem";
+import CreateIssueButton from "../../components/taskButton/CreateTaskButton";
+import "./TaskList.css";
 
 const TaskList = ({ handleCreateSprint }) => {
   const dispatch = useDispatch();
   const { tasks } = useSelector((state) => state.tasks);
   const { sprints } = useSelector((state) => state.sprints);
+  const { selectedProjectId } = useSelector((state) => state.projects);
 
   useEffect(() => {
-    dispatch(fetchTasks());
-    dispatch(fetchSprints());
-  }, [dispatch]);
+    if (selectedProjectId) {
+      console.log("🔄 Switching projects, clearing tasks first...");
+      dispatch(clearTasks());  // ✅ Clear previous project’s tasks
+      dispatch(fetchTasks(selectedProjectId));  // ✅ Fetch tasks for new project
+      dispatch(fetchSprints());
+    }
+  }, [dispatch, selectedProjectId]);
 
   return (
     <div className="sprint-info">
@@ -22,7 +27,7 @@ const TaskList = ({ handleCreateSprint }) => {
       <div className="empty-backlog-message">
         {tasks.length === 0 ? (
           <div className="empty-backlog">
-            <p>Your backlog is empty.</p>
+            <p>No tasks found for this project.</p>
           </div>
         ) : (
           <div className="task-list-container">
@@ -33,7 +38,7 @@ const TaskList = ({ handleCreateSprint }) => {
         )}
         <div className="sprint-actions">
           <button className="create-sprint-button" onClick={handleCreateSprint}>
-            Create sprint
+            Create Sprint
           </button>
         </div>
       </div>
