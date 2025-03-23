@@ -63,13 +63,17 @@ const LoginForm = () => {
         const loginResult = await dispatch(login(userData)).unwrap();
         
         if (loginResult) {
-          // First emotion detection after successful login
-          detectEmotion();
+          // Wait a moment for the token to be stored in localStorage
+          setTimeout(async () => {
+            // First emotion detection after successful login
+            await detectEmotion('LOGIN');
 
-          // Schedule second emotion detection 2 hours later
-          setTimeout(() => {
-            detectEmotion();
-          },  2 * 60 * 60 * 1000); // 2 hours in milliseconds
+            // Schedule second emotion detection 2 hours later
+            setTimeout(() => {
+              detectEmotion('FOLLOWUP');
+            }, 2 * 60 * 60 * 1000); // 2 hours in milliseconds
+          }, 500);
+          
           dispatch(reset());
           dispatch(getUserInfo());
           // Navigate only after all operations are complete
@@ -84,12 +88,36 @@ const LoginForm = () => {
 
   const detectEmotion = async (type = 'LOGIN') => {
     try {
-      const response = await axios.get(`http://localhost:8000/emotion_detection/?type=${type}`);
+      // Get the user token from localStorage
+      const user = JSON.parse(localStorage.getItem('user'));
+      
+      if (!user || !user.access) {
+        console.warn('No authentication token available for emotion detection');
+        return;
+      }
+      
+      // Set up headers with authentication token
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${user.access}`,
+        },
+        params: {
+          type: type,
+          timestamp: new Date().getTime() // Add timestamp to ensure unique requests
+        }
+      };
+      
+      const response = await axios.get(`http://localhost:8000/emotion_detection/`, config);
       
       if (response.data.emotion) {
         toast.success(`Detected emotion: ${response.data.emotion}`);
         if (response.data.daily_average) {
           toast.info(`Daily average emotion: ${response.data.daily_average}`);
+        }
+        
+        // If user information is included in the response, display a personalized message
+        if (response.data.user && response.data.user.name) {
+          toast.info(`Emotion recorded for: ${response.data.user.name}`);
         }
       } else {
         toast.info('No emotion detected');

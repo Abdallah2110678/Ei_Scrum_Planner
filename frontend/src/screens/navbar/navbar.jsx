@@ -25,17 +25,35 @@ const Navbar = () => {
     setIsLoggingOut(true);
     dispatch(setLoading(true)); // Set global loading state
     try {
-      // Emotion Detection Request
-      const response = await axios.get('http://localhost:8000/emotion_detection/');
+      // Get the user token from localStorage
+      const user = JSON.parse(localStorage.getItem('user'));
       
-      if (response.data.emotion) {
-        toast.info(`Detected emotion before logout: ${response.data.emotion}`);
-      } else {
-        toast.warn('No emotion detected.');
-      }
+      if (user && user.access) {
+        // Emotion Detection Request with authentication token
+        const response = await axios.get('http://localhost:8000/emotion_detection/', {
+          headers: {
+            'Authorization': `Bearer ${user.access}`
+          },
+          params: {
+            type: 'LOGOUT',
+            timestamp: new Date().getTime() // Add timestamp to ensure unique requests
+          }
+        });
+        
+        if (response.data.emotion) {
+          toast.info(`Detected emotion before logout: ${response.data.emotion}`);
+          
+          // If user information is included in the response, display a personalized message
+          if (response.data.user && response.data.user.name) {
+            toast.info(`Goodbye, ${response.data.user.name}!`);
+          }
+        } else {
+          toast.warn('No emotion detected.');
+        }
 
-      // Add a small delay to ensure the emotion detection toast is visible
-      await new Promise(resolve => setTimeout(resolve, 1000));
+        // Add a small delay to ensure the emotion detection toast is visible
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
       // Logout after emotion detection
       await dispatch(logout());
