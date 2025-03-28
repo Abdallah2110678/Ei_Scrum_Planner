@@ -20,6 +20,11 @@ class SprintViewSet(viewsets.ModelViewSet):
     """
     queryset = Sprint.objects.all()
     serializer_class = SprintSerializer
+    def get_queryset(self):
+        project_id = self.request.query_params.get('project')
+        if project_id:
+            return Sprint.objects.filter(project_id=project_id)
+        return Sprint.objects.all()
 
     @action(detail=True, methods=['post'])
     def complete_sprint(self, request, pk=None):

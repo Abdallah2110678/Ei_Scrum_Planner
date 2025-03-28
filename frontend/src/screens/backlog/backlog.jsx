@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./backlog.css";
 import { useDispatch, useSelector } from "react-redux";
-import TaskItem from "../../components/taskList/taskItem";
+import TaskItem from "../../components/taskList/TaskItem";
 import {
   fetchSprints,
   addSprint,
@@ -328,7 +328,8 @@ const Backlog = () => {
                     <div className="task-list-container">
                       {sprint.tasks.map((task) => (
                         <div key={task.id} className="task-item">
-                          <TaskItem key={task.id} task={task} sprints={sprints} />
+                          <TaskItem key={task.id} task={task} sprints={sprints} selectedProjectId={selectedProjectId} />
+
                         </div>
                       ))}
                     </div>

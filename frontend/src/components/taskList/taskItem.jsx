@@ -3,7 +3,8 @@ import { useDispatch } from "react-redux";
 import { updateTask, deleteTask, fetchTasks, predictStoryPoints } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
 
-const TaskItem = ({ task, sprints }) => {
+const TaskItem = ({ task, sprints, selectedProjectId }) => {
+
   const dispatch = useDispatch();
 
   const [editTaskId, setEditTaskId] = useState(null);
@@ -225,7 +226,10 @@ const TaskItem = ({ task, sprints }) => {
                 {/* Display only sprints the task is NOT already in */}
                 {sprints.length > 0 ? (
                   sprints
-                    .filter((sprint) => sprint.id !== task.sprint)
+                    .filter(
+                      (sprint) =>
+                        Number(sprint.project) === Number(selectedProjectId) &&
+                        sprint.id !== task.sprint)
                     .map((sprint) => (
                       <button
                         key={sprint.id}

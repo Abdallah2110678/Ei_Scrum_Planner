@@ -32,7 +32,7 @@ const TaskList = ({ handleCreateSprint }) => {
         ) : (
           <div className="task-list-container">
             {tasks.map((task) => (
-              <TaskItem key={task.id} task={task} sprints={sprints} />
+              <TaskItem key={task.id} task={task} sprints={sprints} selectedProjectId={selectedProjectId} />
             ))}
           </div>
         )}

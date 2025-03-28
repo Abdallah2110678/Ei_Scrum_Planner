@@ -28,11 +28,8 @@ export const fetchTasks = createAsyncThunk(
       const selectedProjectId = projects.selectedProjectId;  // ✅ Get selected project ID
 
       if (!selectedProjectId) {
-        console.log("❌ No project selected. Returning empty list.");
         return [];
       }
-
-      console.log(`✅ Fetching tasks for project ID: ${selectedProjectId}`);
       
       return await taskService.fetchTasks(selectedProjectId);
     } catch (error) {
@@ -111,8 +108,7 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.tasks = action.payload; // ✅ Store only the relevant tasks
-        console.log("Updated Redux Tasks State:", state.tasks);
+        state.tasks = action.payload;
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.isLoading = false;
