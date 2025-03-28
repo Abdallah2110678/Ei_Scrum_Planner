@@ -15,23 +15,26 @@ const TaskList = ({ handleCreateSprint }) => {
   useEffect(() => {
     if (selectedProjectId) {
       console.log("🔄 Switching projects, clearing tasks first...");
-      dispatch(clearTasks());  // ✅ Clear previous project’s tasks
+      dispatch(clearTasks());  // ✅ Clear previous project's tasks
       dispatch(fetchTasks(selectedProjectId));  // ✅ Fetch tasks for new project
       dispatch(fetchSprints());
     }
   }, [dispatch, selectedProjectId]);
 
+  // Filter tasks to only show those not assigned to a sprint (backlog tasks)
+  const backlogTasks = tasks.filter(task => !task.sprint);
+
   return (
     <div className="sprint-info">
       <strong>Backlog</strong>
       <div className="empty-backlog-message">
-        {tasks.length === 0 ? (
+        {backlogTasks.length === 0 ? (
           <div className="empty-backlog">
-            <p>No tasks found for this project.</p>
+            <p>No tasks found in the backlog. All tasks have been assigned to sprints or no tasks exist for this project.</p>
           </div>
         ) : (
           <div className="task-list-container">
-            {tasks.map((task) => (
+            {backlogTasks.map((task) => (
               <TaskItem key={task.id} task={task} sprints={sprints} selectedProjectId={selectedProjectId} />
             ))}
           </div>

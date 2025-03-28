@@ -278,7 +278,7 @@ const Backlog = () => {
   // Helper function to get filtered sprints for current project
   const getFilteredSprints = () => {
     if (!selectedProjectId) return [];
-    return sprints.filter(sprint => sprint.project === selectedProjectId);
+    return sprints.filter(sprint => sprint.project === selectedProjectId && !sprint.is_completed);
   };
 
   return (

@@ -84,7 +84,7 @@ const LoginForm = () => {
             } catch (error) {
               console.error('Error after login:', error);
             }
-          }, 10000); // Increased delay to ensure token is properly stored
+          }, 1000); // Increased delay to ensure token is properly stored
         }
       } catch (loginError) {
         console.error('Login failed:', loginError);

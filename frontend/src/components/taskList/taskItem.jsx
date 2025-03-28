@@ -116,19 +116,56 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
 
   // Handle Assigning a Task to a Sprint
   const handleMoveToSprint = (sprintId) => {
-    dispatch(updateTask({ id: task.id, taskData: { sprint: sprintId } }))
-      .unwrap()
-      .then(() => {
-        dispatch(fetchSprints());
-        dispatch(fetchTasks());
-
-      })
-      .catch((error) => console.error("Error updating task:", error));
+    // If moving to a sprint (not removing from sprint)
+    if (sprintId) {
+      dispatch(updateTask({ 
+        id: task.id, 
+        taskData: { 
+          sprint: sprintId,
+          // Set additional fields as needed when moving to a sprint
+          // For example, you might want to set a default status
+          status: task.status || "TO DO" 
+        } 
+      }))
+        .unwrap()
+        .then(() => {
+          // Show success message
+          const sprintName = sprints.find(s => s.id === sprintId)?.sprint_name || "selected sprint";
+          alert(`Task "${task.task_name}" has been moved to ${sprintName}`);
+          
+          // Refresh data
+          dispatch(fetchSprints());
+          dispatch(fetchTasks(selectedProjectId));
+        })
+        .catch((error) => {
+          console.error("Error moving task to sprint:", error);
+          alert("Failed to move task to sprint. Please try again.");
+        });
+    } else {
+      // Removing from sprint (moving back to backlog)
+      dispatch(updateTask({ 
+        id: task.id, 
+        taskData: { 
+          sprint: null 
+        } 
+      }))
+        .unwrap()
+        .then(() => {
+          alert(`Task "${task.task_name}" has been moved to Backlog`);
+          
+          // Refresh data
+          dispatch(fetchSprints());
+          dispatch(fetchTasks(selectedProjectId));
+        })
+        .catch((error) => {
+          console.error("Error removing task from sprint:", error);
+          alert("Failed to move task to Backlog. Please try again.");
+        });
+    }
+    
+    // Close dropdowns
     setMoveDropdownOpen(false);
     setDropdownOpen(false);
-
-    dispatch(fetchSprints());
-    dispatch(fetchTasks());
   };
 
   // Close dropdown when clicking outside
@@ -189,7 +226,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
           </span>
         )}
 
-        {/* 🔥 "Estimate" Button */}
+        {/* "Estimate" Button */}
         <button
           className="estimate-button"
           onClick={handleEstimateStoryPoints}
