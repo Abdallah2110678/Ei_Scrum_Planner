@@ -5,17 +5,23 @@ import time
 from .models import DailyEmotion
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 def detect_emotions(request):
     # Get user from request if authenticated
-    user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+    user = request.user if hasattr(request, 'user') and request.user.is_authenticated and not request.user.is_anonymous else None
     
     # Get request type (LOGIN, LOGOUT, FOLLOWUP)
     request_type = request.GET.get('type', 'DEFAULT')
+    logger.info(f"Detecting emotions for request type: {request_type}, user authenticated: {user is not None}")
     
     detector = FER()
     video_capture = cv2.VideoCapture(0)
     if not video_capture.isOpened():
+        logger.error("Could not open video capture device")
         return {'error': 'Could not open video.'}
     detected_emotions = []
     start_time = time.time()
@@ -23,6 +29,7 @@ def detect_emotions(request):
     while True:
         ret, frame = video_capture.read()
         if not ret:
+            logger.error("Could not read frame from video capture device")
             return {'error': 'Could not read frame.'}
         emotions = detector.detect_emotions(frame)
         for emotion_data in emotions:
@@ -44,45 +51,51 @@ def detect_emotions(request):
         daily_emotion = None
         
         if user:
+            logger.info(f"User authenticated, associating emotion with user: {user.email}")
             # Get or create daily emotion for this user
-            daily_emotion, created = DailyEmotion.objects.get_or_create(
-                date=today,
-                user=user,
-                defaults={
-                    'first_emotion': '',
-                    'second_emotion': '',
-                    'third_emotion': ''
-                }
-            )
-            
-            # Update the appropriate emotion field based on request type
-            if request_type == 'LOGIN' or (created and not daily_emotion.first_emotion):
-                # For login or first detection of the day
-                if not daily_emotion.first_emotion:
-                    daily_emotion.first_emotion = most_common_emotion
+            try:
+                daily_emotion, created = DailyEmotion.objects.get_or_create(
+                    date=today,
+                    user=user,
+                    defaults={
+                        'first_emotion': '',
+                        'second_emotion': '',
+                        'third_emotion': ''
+                    }
+                )
+                
+                # Update the appropriate emotion field based on request type
+                if request_type == 'LOGIN' or (created and not daily_emotion.first_emotion):
+                    # For login or first detection of the day
+                    if not daily_emotion.first_emotion:
+                        daily_emotion.first_emotion = most_common_emotion
+                        daily_emotion.save()
+                elif request_type == 'LOGOUT':
+                    # For logout, update the third emotion if empty, otherwise update second
+                    if not daily_emotion.third_emotion:
+                        daily_emotion.third_emotion = most_common_emotion
+                        daily_emotion.save()
+                    elif not daily_emotion.second_emotion:
+                        daily_emotion.second_emotion = most_common_emotion
+                        daily_emotion.save()
+                elif request_type == 'FOLLOWUP':
+                    # For followup (scheduled detection), update second emotion if empty
+                    if not daily_emotion.second_emotion:
+                        daily_emotion.second_emotion = most_common_emotion
+                        daily_emotion.save()
+                else:
+                    # Default behavior - fill in the first empty slot
+                    if not daily_emotion.first_emotion:
+                        daily_emotion.first_emotion = most_common_emotion
+                    elif not daily_emotion.second_emotion:
+                        daily_emotion.second_emotion = most_common_emotion
+                    elif not daily_emotion.third_emotion:
+                        daily_emotion.third_emotion = most_common_emotion
                     daily_emotion.save()
-            elif request_type == 'LOGOUT':
-                # For logout, update the third emotion if empty, otherwise update second
-                if not daily_emotion.third_emotion:
-                    daily_emotion.third_emotion = most_common_emotion
-                    daily_emotion.save()
-                elif not daily_emotion.second_emotion:
-                    daily_emotion.second_emotion = most_common_emotion
-                    daily_emotion.save()
-            elif request_type == 'FOLLOWUP':
-                # For followup (scheduled detection), update second emotion if empty
-                if not daily_emotion.second_emotion:
-                    daily_emotion.second_emotion = most_common_emotion
-                    daily_emotion.save()
-            else:
-                # Default behavior - fill in the first empty slot
-                if not daily_emotion.first_emotion:
-                    daily_emotion.first_emotion = most_common_emotion
-                elif not daily_emotion.second_emotion:
-                    daily_emotion.second_emotion = most_common_emotion
-                elif not daily_emotion.third_emotion:
-                    daily_emotion.third_emotion = most_common_emotion
-                daily_emotion.save()
+            except Exception as e:
+                logger.error(f"Error saving emotion for user {user.email}: {str(e)}")
+        else:
+            logger.info("No authenticated user, emotion will not be associated with any user")
         
         response = {
             'emotion': most_common_emotion,
@@ -105,4 +118,5 @@ def detect_emotions(request):
             
         return response
     else:
+        logger.warning("No emotions detected in the video stream")
         return {'error': 'No emotions detected.'}

@@ -17,7 +17,7 @@ const LoginForm = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, isError } = useSelector((state) => state.auth);
+  const { isLoading, isError, user, userInfo } = useSelector((state) => state.auth);
 
   const validateForm = () => {
     const newErrors = {};
@@ -63,21 +63,28 @@ const LoginForm = () => {
         const loginResult = await dispatch(login(userData)).unwrap();
         
         if (loginResult) {
+          dispatch(reset());
+          
           // Wait a moment for the token to be stored in localStorage
           setTimeout(async () => {
-            // First emotion detection after successful login
-            await detectEmotion('LOGIN');
-
-            // Schedule second emotion detection 2 hours later
-            setTimeout(() => {
-              detectEmotion('FOLLOWUP');
-            }, 2 * 60 * 60 * 1000); // 2 hours in milliseconds
-          }, 500);
-          
-          dispatch(reset());
-          dispatch(getUserInfo());
-          // Navigate only after all operations are complete
-          navigate('/eiscrum');
+            try {
+              // Get user info first
+              await dispatch(getUserInfo()).unwrap();
+              
+              // Then perform emotion detection
+              detectEmotion('LOGIN');
+              
+              // Schedule second emotion detection 2 hours later
+              setTimeout(() => {
+                detectEmotion('FOLLOWUP');
+              }, 2 * 60 * 60 * 1000); // 2 hours in milliseconds
+              
+              // Navigate to dashboard
+              navigate('/eiscrum');
+            } catch (error) {
+              console.error('Error after login:', error);
+            }
+          }, 10000); // Increased delay to ensure token is properly stored
         }
       } catch (loginError) {
         console.error('Login failed:', loginError);
@@ -86,12 +93,13 @@ const LoginForm = () => {
     }
   };
 
-  const detectEmotion = async (type = 'LOGIN') => {
+  const detectEmotion = async (type = 'LOGIN', retryCount = 0) => {
     try {
-      // Get the user token from localStorage
-      const user = JSON.parse(localStorage.getItem('user'));
+      // Get the token directly from localStorage to ensure it's the most up-to-date
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      const authToken = storedUser?.access;
       
-      if (!user || !user.access) {
+      if (!authToken) {
         console.warn('No authentication token available for emotion detection');
         return;
       }
@@ -99,7 +107,7 @@ const LoginForm = () => {
       // Set up headers with authentication token
       const config = {
         headers: {
-          'Authorization': `Bearer ${user.access}`,
+          'Authorization': `Bearer ${authToken}`,
         },
         params: {
           type: type,
@@ -119,12 +127,35 @@ const LoginForm = () => {
         if (response.data.user && response.data.user.name) {
           toast.info(`Emotion recorded for: ${response.data.user.name}`);
         }
+      } else if (response.data.error && response.data.error.includes('No emotions detected')) {
+        // If no emotions were detected and this is not a logout request, schedule a retry
+        if (type !== 'LOGOUT' && retryCount < 3) {  // Limit to 3 retries
+          toast.info(`No face detected. Will try again in 10 minute. (Attempt ${retryCount + 1}/3)`);
+          
+          // Schedule retry after 10 minute
+          setTimeout(() => {
+            detectEmotion(type, retryCount + 1);
+          }, 10 * 60 * 1000); // 10 minute in milliseconds
+        } else {
+          toast.info('No emotion detected');
+        }
       } else {
         toast.info('No emotion detected');
       }
     } catch (emotionError) {
       console.error('Error detecting emotion:', emotionError);
-      toast.warning('Emotion detection unavailable');
+      
+      // If there was an error and this is not a logout request, schedule a retry
+      if (type !== 'LOGOUT' && retryCount < 3) {  // Limit to 3 retries
+        toast.warning(`Emotion detection failed. Will try again in 1 minute. (Attempt ${retryCount + 1}/3)`);
+        
+        // Schedule retry after 1 minute
+        setTimeout(() => {
+          detectEmotion(type, retryCount + 1);
+        }, 10 * 60 * 1000); // 10 minute in milliseconds
+      } else {
+        toast.warning('Emotion detection unavailable');
+      }
     }
   };
 

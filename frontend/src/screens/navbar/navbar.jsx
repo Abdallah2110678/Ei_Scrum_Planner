@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import './navbar.css';
 import RegistrationForm from '../registerationForm/registeration.jsx';
 import LoginForm from '../login/login.jsx';
-import { useDispatch,useSelector } from 'react-redux';
-import {  logout, reset, setLoading } from '../../features/auth/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout, reset, setLoading } from '../../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
@@ -18,50 +18,62 @@ const Navbar = () => {
   const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false); // State for Add User Modal
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
-  const {userInfo} = useSelector((state) => state.auth);
+  const { userInfo, user } = useSelector((state) => state.auth);
 
   // Function for emotion detection and logout
   const handleLogout = async () => {
     setIsLoggingOut(true);
     dispatch(setLoading(true)); // Set global loading state
     try {
-      // Get the user token from localStorage
-      const user = JSON.parse(localStorage.getItem('user'));
+      // Get the user token from Redux store
+      const authToken = user?.access;
       
-      if (user && user.access) {
-        // Emotion Detection Request with authentication token
-        const response = await axios.get('http://localhost:8000/emotion_detection/', {
-          headers: {
-            'Authorization': `Bearer ${user.access}`
-          },
-          params: {
-            type: 'LOGOUT',
-            timestamp: new Date().getTime() // Add timestamp to ensure unique requests
-          }
-        });
-        
-        if (response.data.emotion) {
-          toast.info(`Detected emotion before logout: ${response.data.emotion}`);
+      // First try emotion detection if we have a token
+      if (authToken) {
+        try {
+          // Emotion Detection Request with authentication token
+          const response = await axios.get('http://localhost:8000/emotion_detection/', {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            },
+            params: {
+              type: 'LOGOUT',
+              timestamp: new Date().getTime() // Add timestamp to ensure unique requests
+            }
+          });
           
-          // If user information is included in the response, display a personalized message
-          if (response.data.user && response.data.user.name) {
-            toast.info(`Goodbye, ${response.data.user.name}!`);
+          if (response.data.emotion) {
+            toast.info(`Detected emotion before logout: ${response.data.emotion}`);
+            
+            // If user information is included in the response, display a personalized message
+            if (response.data.user && response.data.user.name) {
+              toast.info(`Goodbye, ${response.data.user.name}!`);
+            } else if (userInfo && userInfo.name) {
+              toast.info(`Goodbye, ${userInfo.name}!`);
+            }
+          } else if (response.data.error && response.data.error.includes('No emotions detected')) {
+            // For logout, we don't retry but just inform the user
+            toast.warn('No face detected for emotion recording before logout.');
+          } else {
+            toast.warn('No emotion detected.');
           }
-        } else {
-          toast.warn('No emotion detected.');
+        } catch (emotionError) {
+          console.error('Error detecting emotion:', emotionError);
+          // Continue with logout even if emotion detection fails
+          toast.warn('Unable to detect emotion before logout.');
         }
-
-        // Add a small delay to ensure the emotion detection toast is visible
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Logout after emotion detection
+      // Add a small delay to ensure the emotion detection toast is visible
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Logout after emotion detection (or if emotion detection failed)
       await dispatch(logout());
       dispatch(reset());
       toast.success('Logged out successfully');
     } catch (error) {
-      console.error('Error detecting emotion:', error);
-      toast.error('Failed to detect emotion.');
+      console.error('Error during logout:', error);
+      toast.error('Failed to logout properly.');
     } finally {
       setIsLoggingOut(false);
       dispatch(setLoading(false)); // Reset global loading state

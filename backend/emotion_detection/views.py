@@ -1,18 +1,19 @@
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET
 import logging
 from .emotion_detection import detect_emotions
 from .models import DailyEmotion
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
+@permission_classes([AllowAny])
 def emotion_detection_view(request):
     try:
         # Get user from request (will be set by JWTAuthentication if token is valid)
@@ -59,10 +60,11 @@ def emotion_detection_view(request):
         return JsonResponse(result)
     except Exception as e:
         logger.error(f"Error in emotion_detection_view: {str(e)}")
-        return JsonResponse({'error': 'Internal server error'}, status=500)
+        return JsonResponse({'error': f'Internal server error: {str(e)}'}, status=500)
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
+@permission_classes([AllowAny])
 def get_daily_emotions(request):
     try:
         today = timezone.now().date()
@@ -101,4 +103,4 @@ def get_daily_emotions(request):
         return JsonResponse({'message': 'No emotions recorded today'}, status=404)
     except Exception as e:
         logger.error(f"Error in get_daily_emotions: {str(e)}")
-        return JsonResponse({'error': 'Internal server error'}, status=500)
+        return JsonResponse({'error': f'Internal server error: {str(e)}'}, status=500)
