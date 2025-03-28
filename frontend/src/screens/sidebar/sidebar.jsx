@@ -24,6 +24,12 @@ const Sidebar = ({ toggleComponent }) => {
             <span className="sidebar-text">Board</span>
           </Link>
         </li>
+        <li className="sidebar-item">
+          <Link to="/eiscrum/history" className="sidebar-link" onClick={() => toggleComponent('history')}>
+            <span className="sidebar-icon">🕘</span> {/* You can choose any icon */}
+            <span className="sidebar-text">History</span>
+          </Link>
+        </li>
       </ul>
     </div>
   );

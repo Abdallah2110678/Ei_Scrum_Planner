@@ -4,11 +4,11 @@ import Backlog from "./screens/backlog/backlog";
 import Board from "./screens/board/board";
 import Timeline from "./screens/timeline/timeline";
 import LoginForm from "./screens/login/login";
+import History from "./screens/history/History.jsx";
 import RegistrationForm from "./screens/registerationForm/registeration.jsx";
 import IntroductionPage from "./screens/Introduction/IntroductionPage.jsx";
 import { Navigate } from "react-router-dom";
 import {useSelector} from 'react-redux';
-
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   return user ? children : <Navigate to="/login" />;
@@ -34,6 +34,7 @@ const App = () => {
         <Route path="backlog" element={<Backlog />} />
         <Route path="board" element={<Board />} />
         <Route path="timeline" element={<Timeline />} />
+        <Route path="history" element={<History />} />
       </Route>
 
       {/* Redirect All Unknown Routes to Home */}
