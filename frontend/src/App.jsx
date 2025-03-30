@@ -7,6 +7,7 @@ import LoginForm from "./screens/login/login";
 import History from "./screens/history/History.jsx";
 import RegistrationForm from "./screens/registerationForm/registeration.jsx";
 import IntroductionPage from "./screens/Introduction/IntroductionPage.jsx";
+import Dashboard from "./screens/Dashboard/Dashboard";
 import { Navigate } from "react-router-dom";
 import {useSelector} from 'react-redux';
 const PrivateRoute = ({ children }) => {
@@ -28,12 +29,16 @@ const App = () => {
       <Route path="/register" element={<PublicRoute><RegistrationForm /></PublicRoute>} />
       <Route path="/" element={<PublicRoute><IntroductionPage /></PublicRoute>} />
 
+      {/* Dashboard as a standalone route */}
+      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+
       {/* Protected Routes - Only Accessible If Logged In */}
       <Route path="/eiscrum" element={<PrivateRoute><Home /></PrivateRoute>}>
         <Route index element={<Timeline />} />
         <Route path="backlog" element={<Backlog />} />
         <Route path="board" element={<Board />} />
         <Route path="timeline" element={<Timeline />} />
+        {/* Dashboard moved to standalone route */}
         <Route path="history" element={<History />} />
       </Route>
 
