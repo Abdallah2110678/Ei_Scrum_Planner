@@ -44,3 +44,25 @@
 p {
     color: #666;
 }
+
+.reactivate-button {
+    background-color: #0052cc;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.reactivate-button:hover {
+    background-color: #0065ff;
+}
+
+.tasks-list .task-item {
+    display: grid;
+    grid-template-columns: 2fr 100px 60px 50px 80px 80px;
+    align-items: center;
+}
