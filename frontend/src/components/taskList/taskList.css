@@ -9,16 +9,16 @@
 /* Individual Task Item */
 .task-item {
     display: grid;
-    grid-template-columns: 2fr 100px 60px 50px 80px;
+    grid-template-columns: 2fr 120px 120px 80px 120px 50px 100px;
     align-items: center;
     background-color: #fff;
-    padding: 4px;
+    padding: 8px;
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     gap: 10px;
-    width: 1132px; 
-  }
+    width: 1132px;
+}
 
 .task-item:hover {
     background-color: #f8f9fa;
@@ -62,17 +62,17 @@
 
 /* Task Status Dropdown */
 .task-status {
-    color: #333;
-    padding: 5px;
-    font-size: 14px;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
     border-radius: 3px;
     background-color: white;
+    font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: border-color 0.3s ease;
 }
 
 .task-status:hover {
-    background-color: #ddd;
+    border-color: #0052cc;
 }
 
 /* Story Points Section */
@@ -147,8 +147,9 @@
 
 .delete-task:hover {
     color: #333;
-}/* Task Dropdown Menu */
+}
 
+/* Task Dropdown Menu */
 .task-options-button{
     background-color: #cfcdcd; /* Light gray background */
   border: 1px solid #dcdcdc; /* Light border */
@@ -228,4 +229,143 @@
 /* Close dropdown when clicking outside */
 .hidden {
   display: none;
+}
+
+/* Dropdown Select Styles */
+.task-complexity-select,
+.task-category-select,
+.task-status {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background-color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.task-complexity-select:hover,
+.task-category-select:hover,
+.task-status:hover {
+  border-color: #0052cc;
+}
+
+/* Priority Input Styles */
+.priority-input {
+  width: 60px;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.priority-input::-webkit-inner-spin-button,
+.priority-input::-webkit-outer-spin-button {
+  opacity: 1;
+  height: 20px;
+}
+
+/* Status colors */
+.task-status[value="TO DO"] {
+  color: #0052cc;
+}
+
+.task-status[value="IN PROGRESS"] {
+  color: #ff9900;
+}
+
+.task-status[value="DONE"] {
+  color: #36b37e;
+}
+
+/* Hover states */
+.task-complexity-select:focus,
+.task-category-select:focus,
+.task-status:focus,
+.priority-input:focus {
+  outline: none;
+  border-color: #0052cc;
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+/* Add these styles for read-only fields in history view */
+.readonly {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    border-radius: 3px;
+    font-size: 14px;
+    color: #666;
+    pointer-events: none;
+    user-select: none;
+}
+
+.task-complexity-select.readonly,
+.task-category-select.readonly,
+.task-status.readonly,
+.priority-input.readonly {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+}
+
+/* Maintain consistent width with editable fields */
+.task-complexity-select.readonly,
+.task-category-select.readonly {
+    width: 120px;
+}
+
+.priority-input.readonly {
+    width: 60px;
+}
+
+.task-status.readonly {
+    width: 100px;
+}
+
+/* Add these styles for disabled fields */
+.task-complexity-select:disabled,
+.task-category-select:disabled,
+.task-status:disabled,
+.priority-input:disabled {
+    background-color: #f5f5f5;
+    opacity: 1;
+    cursor: not-allowed;
+    color: #333;
+    -webkit-text-fill-color: #333;
+}
+
+/* Remove the default disabled appearance in Firefox */
+.task-complexity-select:disabled,
+.task-category-select:disabled,
+.task-status:disabled,
+.priority-input:disabled {
+    -moz-appearance: none;
+}
+
+/* Remove the default disabled appearance in IE */
+.task-complexity-select:disabled::-ms-expand,
+.task-category-select:disabled::-ms-expand,
+.task-status:disabled::-ms-expand {
+    display: none;
+}
+
+/* Add styles for the Active button */
+.reactivate-button {
+    background-color: #0052cc;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    margin-left: auto; /* This will push the button to the right */
+}
+
+.reactivate-button:hover {
+    background-color: #0065ff;
 }

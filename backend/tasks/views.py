@@ -14,39 +14,31 @@ class TaskViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         """
-        Fetch all tasks, and filter by user=None if query param exists.
+        Fetch all tasks, with optional filtering by project_id and sprint.
         """
-        queryset = Task.objects.all()
-
-        # Check if user=null filtering is requested
-        if request.query_params.get("sprint") == "null":
-            queryset = queryset.filter(sprint__isnull=True)
-
+        queryset = self.get_queryset()  # This will use the filtered queryset
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def get_queryset(self):
         """
         Fetch tasks optionally filtered by sprint or project.
-        Example: 
-            - /api/tasks/?sprint=1   (Fetch tasks in Sprint 1)
-            - /api/tasks/?sprint=null (Fetch tasks with no sprint assigned)
-            - /api/tasks/?project_id=2 (Fetch tasks for Project ID 2)
         """
         queryset = Task.objects.all()
         sprint_id = self.request.query_params.get("sprint")
-        project_id = self.request.query_params.get("project_id")  # ✅ Fetch project_id from request
+        project_id = self.request.query_params.get("project_id")
 
         if project_id:
-            queryset = queryset.filter(project_id=project_id)  # ✅ Filter by project ID
+            print(f"Filtering by project_id: {project_id}")  # Add logging
+            queryset = queryset.filter(project_id=project_id)
 
         if sprint_id == "null":
-            queryset = queryset.filter(sprint__isnull=True)  # ✅ Fetch tasks with no sprint
+            queryset = queryset.filter(sprint__isnull=True)
         elif sprint_id:
-            queryset = queryset.filter(sprint_id=sprint_id)  # ✅ Fetch tasks by sprint ID
+            queryset = queryset.filter(sprint_id=sprint_id)
 
+        print(f"Returning {queryset.count()} tasks")  # Add logging
         return queryset
-
 
     @action(detail=True, methods=['patch'])
     def assign_sprint(self, request, pk=None):
@@ -73,10 +65,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.save()
         return Response(TaskSerializer(task).data, status=status.HTTP_200_OK)
 
-    def list(self, request, *args, **kwargs):
-        """
-        Fetch all tasks, but allow filtering by project_id.
-        """
-        queryset = self.get_queryset()  # ✅ Apply filtering from get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def create(self, request, *args, **kwargs):
+        print("Received data:", request.data)  # Keep this logging
+        return super().create(request, *args, **kwargs)

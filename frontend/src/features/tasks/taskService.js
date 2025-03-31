@@ -10,18 +10,43 @@ const config = {
 
 // Fetch all tasks
 const fetchTasks = async (selectedProjectId) => {
-  if (!selectedProjectId) {
-    return [];
+  try {
+    if (!selectedProjectId) {
+      console.log("No project ID provided");
+      return [];
+    }
+    
+    console.log("Fetching tasks for project:", selectedProjectId);
+    const url = `${API_URL}?project_id=${selectedProjectId}`;
+    const response = await axios.get(url);
+    console.log("Fetched tasks:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching tasks:", error.response?.data || error.message);
+    throw error;
   }
-  const url = `${API_URL}?project_id=${selectedProjectId}`;
-  const response = await axios.get(url);
-  return response.data; // ✅ Return only tasks related to selected project
 };
 
 // Add a new task
 const addTask = async (taskData) => {
-  const response = await axios.post(API_URL, taskData, config);
-  return response.data;
+  try {
+    console.log("Sending task data:", taskData); // Add logging
+    const response = await axios.post(API_URL, {  // Remove the extra /tasks/
+      task_name: taskData.task_name,
+      task_category: taskData.task_category || "FE",
+      task_complexity: taskData.task_complexity || "MEDIUM",
+      effort: taskData.effort || 1.0,
+      priority: taskData.priority || 1,
+      status: taskData.status || "TO DO",
+      project: taskData.project,
+      sprint: taskData.sprint || null,
+      user: taskData.user || null
+    }, config);
+    return response.data;
+  } catch (error) {
+    console.error("Error in addTask:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 const predictStoryPoints = async (taskData) => {
