@@ -129,40 +129,32 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const handleMoveToSprint = (sprintId) => {
     // If moving to a sprint (not removing from sprint)
     if (sprintId) {
-      const updatedTask = { ...taskData, sprint: sprintId, status: task.status || "TO DO" };
-      setTaskData(updatedTask);
-      dispatch(updateTask({ id: task.id, taskData: updatedTask }))
-        .unwrap()
-        .then(() => {
-          // Show success message
-          const sprintName = sprints.find(s => s.id === sprintId)?.sprint_name || "selected sprint";
-          alert(`Task "${task.task_name}" has been moved to ${sprintName}`);
-          
-          // Refresh data
-          dispatch(fetchSprints());
-          dispatch(fetchTasks(selectedProjectId));
-        })
-        .catch((error) => {
-          console.error("Error moving task to sprint:", error);
-          alert("Failed to move task to sprint. Please try again.");
-        });
+        const updatedTask = { ...taskData, sprint: sprintId, status: task.status || "TO DO" };
+        setTaskData(updatedTask);
+        dispatch(updateTask({ id: task.id, taskData: updatedTask }))
+            .unwrap()
+            .then(() => {
+                // Refresh data without showing alert
+                dispatch(fetchSprints());
+                dispatch(fetchTasks(selectedProjectId));
+            })
+            .catch((error) => {
+                console.error("Error moving task to sprint:", error);
+            });
     } else {
-      // Removing from sprint (moving back to backlog)
-      const updatedTask = { ...taskData, sprint: null };
-      setTaskData(updatedTask);
-      dispatch(updateTask({ id: task.id, taskData: updatedTask }))
-        .unwrap()
-        .then(() => {
-          alert(`Task "${task.task_name}" has been moved to Backlog`);
-          
-          // Refresh data
-          dispatch(fetchSprints());
-          dispatch(fetchTasks(selectedProjectId));
-        })
-        .catch((error) => {
-          console.error("Error removing task from sprint:", error);
-          alert("Failed to move task to Backlog. Please try again.");
-        });
+        // Removing from sprint (moving back to backlog)
+        const updatedTask = { ...taskData, sprint: null };
+        setTaskData(updatedTask);
+        dispatch(updateTask({ id: task.id, taskData: updatedTask }))
+            .unwrap()
+            .then(() => {
+                // Refresh data without showing alert
+                dispatch(fetchSprints());
+                dispatch(fetchTasks(selectedProjectId));
+            })
+            .catch((error) => {
+                console.error("Error removing task from sprint:", error);
+            });
     }
     
     // Close dropdowns
