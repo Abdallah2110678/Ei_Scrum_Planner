@@ -8,8 +8,9 @@ class TaskSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         allow_null=True,
-        required=False  
+        required=False      
     )
+    productivity_score = serializers.ReadOnlyField()
 
     class Meta:
         model = Task

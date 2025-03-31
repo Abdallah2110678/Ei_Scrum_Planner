@@ -6,10 +6,12 @@ import {
   fetchSprints,
   addSprint,
   deleteSprint,
+  updateSprint,
 } from "../../features/sprints/sprintSlice";
 import TaskList from "../../components/taskList/taskList";
 import projectService from "../../features/projects/projectService";
 import ProjectsDropdown from "./../../components/projectsdropdown/ProjectsDropdown";
+import { updateTask } from "../../features/tasks/taskSlice";
 
 const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) => {
   const dispatch = useDispatch();
@@ -281,6 +283,45 @@ const Backlog = () => {
     return sprints.filter(sprint => sprint.project === selectedProjectId && !sprint.is_completed);
   };
 
+  const handleCompleteSprint = async (sprintId) => {
+    try {
+      // Get the sprint's tasks
+      const sprintToComplete = sprints.find(sprint => sprint.id === sprintId);
+      
+      // Move incomplete tasks back to backlog
+      const incompleteTasks = sprintToComplete.tasks.filter(
+          task => task.status !== "DONE"
+      );
+
+      // First move incomplete tasks out of the sprint
+      for (const task of incompleteTasks) {
+          await dispatch(updateTask({
+              id: task.id,
+              taskData: {
+                  ...task,
+                  sprint: null,  // Remove from sprint
+                  status: "TO DO" // Reset status to TO DO
+              }
+          })).unwrap();
+      }
+
+      // Then complete the sprint
+      await dispatch(updateSprint({
+          id: sprintId,
+          sprintData: {
+              is_completed: true,
+              end_date: new Date().toISOString()
+          }
+      })).unwrap();
+
+      // Refresh the sprints to update the UI
+      dispatch(fetchSprints());
+      
+    } catch (error) {
+        console.error("Failed to complete sprint:", error);
+    }
+  };
+
   return (
     <div className="backlog-container">
       <div className="projects-school-links">
@@ -342,32 +383,7 @@ const Backlog = () => {
                     onClick={async () => {
                       if (sprint.is_active) {
                         try {
-                          const response = await fetch(
-                            `http://localhost:8000/api/v1/sprints/${sprint.id}/`,
-                            {
-                              method: "PATCH",
-                              headers: {
-                                "Content-Type": "application/json",
-                              },
-                              body: JSON.stringify({
-                                sprint_name: sprint.sprint_name,
-                                duration: sprint.duration,
-                                start_date: sprint.start_date,
-                                sprint_goal: sprint.sprint_goal,
-                                project: sprint.project,
-                                is_completed: true,
-                                is_active: false,
-                                end_date: new Date().toISOString()
-                              }),
-                            }
-                          );
-                          if (!response.ok) {
-                            const errorData = await response.json();
-                            console.error("Error response:", errorData);
-                            throw new Error(errorData.message || "Failed to complete sprint");
-                          }
-                          console.log(`Sprint ${sprint.id} marked as completed.`);
-                          dispatch(fetchSprints());
+                          await handleCompleteSprint(sprint.id);
                         } catch (error) {
                           console.error("Error completing sprint:", error);
                           alert("Failed to complete sprint: " + error.message);
