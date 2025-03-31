@@ -369,3 +369,23 @@
 .reactivate-button:hover {
     background-color: #0065ff;
 }
+
+/* Add these styles for the category input */
+.task-category-input {
+    width: 120px;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+    background-color: white;
+}
+
+.task-category-input:hover {
+    border-color: #0052cc;
+}
+
+.task-category-input:focus {
+    outline: none;
+    border-color: #0052cc;
+    box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}

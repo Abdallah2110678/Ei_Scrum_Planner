@@ -220,18 +220,14 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
         <option value="HARD">Hard</option>
       </select>
 
-      {/* Task Category Dropdown */}
-      <select
-        className="task-category-select"
+      {/* Task Category Input - Changed from select to input */}
+      <input
+        type="text"
+        className="task-category-input"
         value={taskData.task_category}
         onChange={(e) => handleUpdateTask('task_category', e.target.value)}
-      >
-        <option value="FE">Frontend</option>
-        <option value="BE">Backend</option>
-        <option value="REWORK">Rework</option>
-        <option value="DEVOPS">DevOps</option>
-        <option value="TESTING">Testing</option>
-      </select>
+        placeholder="Enter category"
+      />
 
       {/* Priority Input */}
       <input

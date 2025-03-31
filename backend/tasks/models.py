@@ -10,14 +10,6 @@ class Task(models.Model):
         ("DONE", "Done"),
     ]
 
-    TASK_CATEGORY_CHOICES = [
-        ("FE", "Frontend"),
-        ("BE", "Backend"),
-        ("REWORK", "Rework"),
-        ("DEVOPS", "DevOps"),
-        ("TESTING", "Testing"),
-    ]
-
     COMPLEXITY_CHOICES = [
         ("EASY", "Easy"),
         ("MEDIUM", "Medium"),
@@ -29,7 +21,7 @@ class Task(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)
 
     task_name = models.CharField(max_length=255)
-    task_category = models.CharField(max_length=10, choices=TASK_CATEGORY_CHOICES, default="FE")
+    task_category = models.CharField(max_length=50, default="Frontend")
     task_complexity = models.CharField(max_length=10, choices=COMPLEXITY_CHOICES, default="MEDIUM") 
     effort = models.FloatField(default=1.0)
     priority = models.IntegerField(default=1)

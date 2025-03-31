@@ -46,18 +46,13 @@ const HistoryTasks = ({ task, sprint }) => {
                 <option value="HARD">Hard</option>
             </select>
 
-            {/* Task Category Dropdown (Disabled) */}
-            <select
-                className="task-category-select"
+            {/* Task Category Input (Disabled) - Changed from select to input */}
+            <input
+                type="text"
+                className="task-category-input"
                 value={task.task_category}
                 disabled
-            >
-                <option value="FE">Frontend</option>
-                <option value="BE">Backend</option>
-                <option value="REWORK">Rework</option>
-                <option value="DEVOPS">DevOps</option>
-                <option value="TESTING">Testing</option>
-            </select>
+            />
 
             {/* Priority Input (Disabled) */}
             <input
@@ -80,7 +75,7 @@ const HistoryTasks = ({ task, sprint }) => {
                 <option value="DONE">Done</option>
             </select>
 
-            {/* User Avatar and Active Button */}
+            {/* User Avatar */}
             <div className="history-avatar-container">
                 <div className="user-avatar">
                     {task.user_initials || "ZM"}
