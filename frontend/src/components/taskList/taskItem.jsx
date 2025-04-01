@@ -302,7 +302,9 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
                     .filter(
                       (sprint) =>
                         Number(sprint.project) === Number(selectedProjectId) &&
-                        sprint.id !== task.sprint)
+                        sprint.id !== task.sprint &&
+                        !sprint.is_completed
+                    )
                     .map((sprint) => (
                       <button
                         key={sprint.id}
