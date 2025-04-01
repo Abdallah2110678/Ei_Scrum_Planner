@@ -1,0 +1,103 @@
+.history-task-item {
+    display: grid;
+    grid-template-columns: 2fr 120px 120px 80px 120px 50px 100px;
+    align-items: center;
+    background-color: #fff;
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    gap: 20px; /* Increased gap between all grid items */
+    width: 1132px;
+}
+
+.history-task-name-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.history-task-name {
+    font-size: 16px;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+/* Styles for disabled fields */
+.task-complexity-select:disabled,
+.task-category-select:disabled,
+.task-status:disabled,
+.priority-input:disabled {
+    background-color: #f5f5f5;
+    opacity: 1;
+    cursor: not-allowed;
+    color: #333;
+    -webkit-text-fill-color: #333;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+/* User Avatar */
+.user-avatar {
+    background-color: #FF5733;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+/* Active button */
+.reactivate-button {
+    background-color: #0052cc;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.reactivate-button:hover {
+    background-color: #0065ff;
+}
+
+/* Container for avatar and button */
+.avatar-button-container {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.history-avatar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Add styles for category input */
+.task-category-input {
+    width: 120px;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+    background-color: #f5f5f5;
+}
+
+.task-category-input:disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    color: #333;
+    -webkit-text-fill-color: #333;
+} 

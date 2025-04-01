@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { updateTask, deleteTask, fetchTasks, predictStoryPoints } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
+import './taskList.css';
 
 const TaskItem = ({ task, sprints, selectedProjectId }) => {
 
@@ -14,6 +15,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const [editStoryPoints, setEditStoryPoints] = useState(task.story_points);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [moveDropdownOpen, setMoveDropdownOpen] = useState(false);
+  const [taskData, setTaskData] = useState(task);
 
   // Fetch tasks & sprints when component mounts
   useEffect(() => {
@@ -29,12 +31,13 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
 
   const handleSaveTaskName = () => {
     if (editTaskName.trim() !== "") {
-      dispatch(updateTask({ id: task.id, taskData: { task_name: editTaskName } }))
+      const updatedTask = { ...taskData, task_name: editTaskName };
+      setTaskData(updatedTask);
+      dispatch(updateTask({ id: task.id, taskData: updatedTask }))
         .unwrap()
         .then(() => {
           dispatch(fetchSprints());
           dispatch(fetchTasks());
-
         })
         .catch((error) => console.error("Error updating task:", error));
     }
@@ -52,12 +55,13 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     if (isNaN(correctedValue) || correctedValue < 0) {
       correctedValue = 0;
     }
-    dispatch(updateTask({ id: task.id, taskData: { story_points: correctedValue } }))
+    const updatedTask = { ...taskData, story_points: correctedValue };
+    setTaskData(updatedTask);
+    dispatch(updateTask({ id: task.id, taskData: updatedTask }))
       .unwrap()
       .then(() => {
         dispatch(fetchSprints());
         dispatch(fetchTasks());
-
       })
       .catch((error) => console.error("Error updating task:", error));
     setEditStoryId(null);
@@ -65,12 +69,13 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
 
   // Handle Task Status Change
   const handleStatusChange = (newStatus) => {
-    dispatch(updateTask({ id: task.id, taskData: { status: newStatus } }))
+    const updatedTask = { ...taskData, status: newStatus };
+    setTaskData(updatedTask);
+    dispatch(updateTask({ id: task.id, taskData: updatedTask }))
       .unwrap()
       .then(() => {
         dispatch(fetchSprints());
         dispatch(fetchTasks());
-
       })
       .catch((error) => console.error("Error updating task:", error));
   };
@@ -82,10 +87,10 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       .then(() => {
         dispatch(fetchSprints());
         dispatch(fetchTasks());
-
       })
       .catch((error) => console.error("Error updating task:", error));
   };
+
   const handleEstimateStoryPoints = async () => {
     try {
       setLoadingEstimate(true);
@@ -103,10 +108,16 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       ).unwrap();
 
       if (response?.estimatedPoints !== undefined) {
-        setEditStoryPoints(response.estimatedPoints); // Update state to reflect changes immediately
+        const updatedTask = { ...taskData, story_points: response.estimatedPoints };
+        setTaskData(updatedTask);
       }
 
-      dispatch(fetchTasks()); // Refresh tasks after updating state
+      dispatch(updateTask({ id: task.id, taskData: taskData }))
+        .unwrap()
+        .then(() => {
+          dispatch(fetchTasks());
+        })
+        .catch((error) => console.error("Error estimating story points:", error));
     } catch (error) {
       console.error("Error estimating story points:", error);
     } finally {
@@ -118,49 +129,32 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const handleMoveToSprint = (sprintId) => {
     // If moving to a sprint (not removing from sprint)
     if (sprintId) {
-      dispatch(updateTask({ 
-        id: task.id, 
-        taskData: { 
-          sprint: sprintId,
-          // Set additional fields as needed when moving to a sprint
-          // For example, you might want to set a default status
-          status: task.status || "TO DO" 
-        } 
-      }))
-        .unwrap()
-        .then(() => {
-          // Show success message
-          const sprintName = sprints.find(s => s.id === sprintId)?.sprint_name || "selected sprint";
-          alert(`Task "${task.task_name}" has been moved to ${sprintName}`);
-          
-          // Refresh data
-          dispatch(fetchSprints());
-          dispatch(fetchTasks(selectedProjectId));
-        })
-        .catch((error) => {
-          console.error("Error moving task to sprint:", error);
-          alert("Failed to move task to sprint. Please try again.");
-        });
+        const updatedTask = { ...taskData, sprint: sprintId, status: task.status || "TO DO" };
+        setTaskData(updatedTask);
+        dispatch(updateTask({ id: task.id, taskData: updatedTask }))
+            .unwrap()
+            .then(() => {
+                // Refresh data without showing alert
+                dispatch(fetchSprints());
+                dispatch(fetchTasks(selectedProjectId));
+            })
+            .catch((error) => {
+                console.error("Error moving task to sprint:", error);
+            });
     } else {
-      // Removing from sprint (moving back to backlog)
-      dispatch(updateTask({ 
-        id: task.id, 
-        taskData: { 
-          sprint: null 
-        } 
-      }))
-        .unwrap()
-        .then(() => {
-          alert(`Task "${task.task_name}" has been moved to Backlog`);
-          
-          // Refresh data
-          dispatch(fetchSprints());
-          dispatch(fetchTasks(selectedProjectId));
-        })
-        .catch((error) => {
-          console.error("Error removing task from sprint:", error);
-          alert("Failed to move task to Backlog. Please try again.");
-        });
+        // Removing from sprint (moving back to backlog)
+        const updatedTask = { ...taskData, sprint: null };
+        setTaskData(updatedTask);
+        dispatch(updateTask({ id: task.id, taskData: updatedTask }))
+            .unwrap()
+            .then(() => {
+                // Refresh data without showing alert
+                dispatch(fetchSprints());
+                dispatch(fetchTasks(selectedProjectId));
+            })
+            .catch((error) => {
+                console.error("Error removing task from sprint:", error);
+            });
     }
     
     // Close dropdowns
@@ -180,6 +174,12 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     document.addEventListener("click", closeDropdown);
     return () => document.removeEventListener("click", closeDropdown);
   }, []);
+
+  const handleUpdateTask = (field, value) => {
+    const updatedTask = { ...taskData, [field]: value };
+    setTaskData(updatedTask);
+    dispatch(updateTask({ id: task.id, taskData: updatedTask }));
+  };
 
   return (
     <div key={task.id} className="task-item">
@@ -201,12 +201,47 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
         )}
       </div>
 
-      {/* Task Status Dropdown */}
-      <select value={task.status} onChange={(e) => handleStatusChange(e.target.value)} className="task-status">
-        <option value="TO DO">TO DO</option>
-        <option value="IN PROGRESS">IN PROGRESS</option>
-        <option value="DONE">DONE</option>
+      {/* Task Complexity Dropdown */}
+      <select
+        className="task-complexity-select"
+        value={taskData.task_complexity}
+        onChange={(e) => handleUpdateTask('task_complexity', e.target.value)}
+      >
+        <option value="EASY">Easy</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="HARD">Hard</option>
       </select>
+
+      {/* Task Category Input - Changed from select to input */}
+      <input
+        type="text"
+        className="task-category-input"
+        value={taskData.task_category}
+        onChange={(e) => handleUpdateTask('task_category', e.target.value)}
+        placeholder="Enter category"
+      />
+
+      {/* Priority Input */}
+      <input
+        type="number"
+        className="priority-input"
+        value={taskData.priority}
+        min="1"
+        max="5"
+        onChange={(e) => handleUpdateTask('priority', parseInt(e.target.value))}
+      />
+
+      {/* Task Status Dropdown */}
+      <select
+        className="task-status"
+        value={taskData.status}
+        onChange={(e) => handleStatusChange(e.target.value)}
+      >
+        <option value="TO DO">To Do</option>
+        <option value="IN PROGRESS">In Progress</option>
+        <option value="DONE">Done</option>
+      </select>
+
       {/* Story Points (Editable) */}
       <div className="story-points">
         {editStoryId === task.id ? (
@@ -235,6 +270,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
           {loadingEstimate ? "Estimating..." : "Estimate"}
         </button>
       </div>
+
       {/* User Avatar */}
       <div className="user-avatar">{task.user_initials || "ZM"}</div>
 

@@ -50,12 +50,22 @@ export const addTask = createAsyncThunk(
         return rejectWithValue("No project selected");
       }
 
-      return await taskService.addTask({
+      // Ensure all required fields are present
+      const completeTaskData = {
         ...taskData,
-        project: selectedProjectId, // Ensuring the correct project ID
-      });
+        project: selectedProjectId,
+        task_name: taskData.task_name,
+        task_category: taskData.task_category || "FE",
+        task_complexity: taskData.task_complexity || "MEDIUM",
+        effort: taskData.effort || 1.0,
+        priority: taskData.priority || 1,
+        status: taskData.status || "TO DO"
+      };
+
+      return await taskService.addTask(completeTaskData);
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to add task");
+      console.error("Error adding task:", error.response?.data || error.message);
+      return rejectWithValue(error.response?.data || "Failed to add task");
     }
   }
 );

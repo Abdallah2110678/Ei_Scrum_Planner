@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { updateTask, deleteTask, fetchTasks, predictStoryPoints } from "../../features/tasks/taskSlice";
+import { updateTask } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
-import "../taskList/taskList.css"; // Import the taskList styles directly
+import "./historyTasks.css";
 
 const HistoryTasks = ({ task, sprint }) => {
     const dispatch = useDispatch();
@@ -14,17 +14,14 @@ const HistoryTasks = ({ task, sprint }) => {
 
     const handleReactivateTask = async () => {
         try {
-            // Update task status to "TO DO" while keeping it in the same sprint
             await dispatch(updateTask({
                 id: task.id,
                 taskData: {
                     ...task,
                     status: "TO DO",
-                    sprint: sprint.id  // Keep the task in its current sprint
+                    sprint: sprint.id
                 }
             })).unwrap();
-
-            // Refresh the sprints to update the UI
             await dispatch(fetchSprints());
         } catch (error) {
             console.error("Failed to reactivate task:", error);
@@ -32,26 +29,60 @@ const HistoryTasks = ({ task, sprint }) => {
     };
 
     return (
-        <div key={task.id} className="task-item">
+        <div key={task.id} className="history-task-item">
             {/* Task Name */}
-            <div className="task-name-container">
-                <span className="task-name">{task.task_name}</span>
+            <div className="history-task-name-container">
+                <span className="history-task-name">{task.task_name}</span>
             </div>
 
-            {/* Story Points */}
-            <div className="story-points">
-                <span className="story-points-text">{task.story_points || 0}</span>
-            </div>
+            {/* Task Complexity Dropdown (Disabled) */}
+            <select
+                className="task-complexity-select"
+                value={task.task_complexity}
+                disabled
+            >
+                <option value="EASY">Easy</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HARD">Hard</option>
+            </select>
 
-            {/* Status */}
-            <div className="task-status">
-                <span>{task.status}</span>
-            </div>
+            {/* Task Category Input (Disabled) - Changed from select to input */}
+            <input
+                type="text"
+                className="task-category-input"
+                value={task.task_category}
+                disabled
+            />
+
+            {/* Priority Input (Disabled) */}
+            <input
+                type="number"
+                className="priority-input"
+                value={task.priority}
+                min="1"
+                max="5"
+                disabled
+            />
+
+            {/* Status Dropdown (Disabled) */}
+            <select
+                className="task-status"
+                value={task.status}
+                disabled
+            >
+                <option value="TO DO">To Do</option>
+                <option value="IN PROGRESS">In Progress</option>
+                <option value="DONE">Done</option>
+            </select>
 
             {/* User Avatar */}
-            <div className="user-avatar">{task.user_initials || "ZM"}</div>
+            <div className="history-avatar-container">
+                <div className="user-avatar">
+                    {task.user_initials || "ZM"}
+                </div>
+            </div>
 
-            {/* Reactivate Button */}
+            {/* Active Button */}
             <button 
                 className="reactivate-button"
                 onClick={handleReactivateTask}
