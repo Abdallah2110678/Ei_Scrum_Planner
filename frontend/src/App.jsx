@@ -10,6 +10,7 @@ import IntroductionPage from "./screens/Introduction/IntroductionPage.jsx";
 import Dashboard from "./screens/Dashboard/Dashboard";
 import { Navigate } from "react-router-dom";
 import {useSelector} from 'react-redux';
+import AcceptInvitation from "./components/acceptInvitation.jsx";
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   return user ? children : <Navigate to="/login" />;
@@ -28,7 +29,7 @@ const App = () => {
       <Route path="/login" element={<PublicRoute><LoginForm /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegistrationForm /></PublicRoute>} />
       <Route path="/" element={<PublicRoute><IntroductionPage /></PublicRoute>} />
-
+      <Route path="/accept-invitation/:token" element={<PrivateRoute><AcceptInvitation /></PrivateRoute>} />
       {/* Dashboard as a standalone route */}
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
 
