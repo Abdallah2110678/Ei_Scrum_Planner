@@ -236,6 +236,27 @@ const Backlog = () => {
     }
   }, [dispatch, selectedProjectId]);
 
+  // Add this function to check for expired sprints
+  const checkExpiredSprints = () => {
+    sprints.forEach(sprint => {
+      if (sprint.is_active && sprint.end_date) {
+        const endDate = new Date(sprint.end_date);
+        const now = new Date();
+        
+        if (endDate < now) {
+          console.log(`Sprint "${sprint.sprint_name}" has expired. Auto-completing...`);
+          handleCompleteSprint(sprint.id);
+        }
+      }
+    });
+  };
+
+  // Call this function after fetching sprints
+  useEffect(() => {
+    if (selectedProjectId && sprints.length > 0) {
+      checkExpiredSprints();
+    }
+  }, [sprints, selectedProjectId]);
 
   const handleProjectSelect = (projectId) => {
     // Make sure we're working with an integer project ID
