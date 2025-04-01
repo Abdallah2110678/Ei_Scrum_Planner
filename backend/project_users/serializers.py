@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from project_users.models import ProjectUsers
+from project_users.models import Invitation, ProjectUsers
 from users.models import User  # Import your User model
 
 class UserSerializer(serializers.ModelSerializer):
@@ -13,3 +13,8 @@ class ProjectUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectUsers
         fields = ['project', 'points', 'badges', 'user']
+
+class InvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invitation
+        fields = ['id', 'email', 'project', 'token', 'created_at', 'accepted']

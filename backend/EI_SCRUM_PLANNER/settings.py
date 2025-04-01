@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'tasks',
     'projects',
     'emotion_detection',
-    'project_users'
+    'project_users',
 
 ]
 
@@ -194,3 +194,4 @@ EMAIL_HOST_PASSWORD = 'madgjtgullnzhwdg'
 EMAIL_PORT = '25'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+FRONTEND_URL = 'http://localhost:3000'

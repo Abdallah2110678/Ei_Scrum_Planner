@@ -4,6 +4,7 @@ from django.db import models
 from django.db import models
 from django.conf import settings
 from projects.models import Project
+import uuid
 
 class ProjectUsers(models.Model):
     """
@@ -41,3 +42,15 @@ class ProjectUsers(models.Model):
     def has_badge(self, badge):
         """Check if the user has a specific badge."""
         return badge in self.get_badges_list()
+    
+
+
+class Invitation(models.Model):
+    email = models.EmailField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="invitations")
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Invitation for {self.email} to {self.project.name}"
