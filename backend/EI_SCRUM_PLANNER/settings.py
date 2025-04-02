@@ -173,16 +173,19 @@ SIMPLE_JWT = {
 
 
 DJOSER = {
+    "LOGOUT_ON_PASSWORD_CHANGE": False,  # Don't log out on password change
     'LOGIN_FIELD': 'name',  # Use a different field for login instead of email (e.g., "name")
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,  # Disable password change email notifications
     "SEND_CONFIRMATION_EMAIL": False,  # Disable email confirmation
     "PASSWORD_RESET_CONFIRM_URL": None,  # Disable password reset URL
     "ACTIVATION_URL": None,  # Disable account activation
+    'TOKEN_MODEL': None,  # Disable the Token model since we're using JWT
     'SERIALIZERS': {
         'user_create': 'users.serializers.CreateUserSerializer',
         'user': "users.serializers.CreateUserSerializer",
         'user_delete': "djoser.serializers.UserDeleteSerializer",
     },
+    'TOKEN_MODEL': None,  # Disable the Token model since we're using JWT
 }
 
 
