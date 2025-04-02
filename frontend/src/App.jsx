@@ -37,10 +37,10 @@ const App = () => {
 
       {/* Protected Routes - Only Accessible If Logged In */}
       <Route path="/eiscrum" element={<PrivateRoute><Home /></PrivateRoute>}>
-        <Route index element={<Timeline />} />
+        <Route path="timeline" element={<Timeline />} />
         <Route path="backlog" element={<Backlog />} />
         <Route path="board" element={<Board />} />
-        <Route path="timeline" element={<Timeline />} />
+        
         {/* Dashboard moved to standalone route */}
         <Route path="history" element={<History />} />
         <Route path="gamification" element={<GamificationPaga />} />
