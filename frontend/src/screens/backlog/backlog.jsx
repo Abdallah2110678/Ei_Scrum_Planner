@@ -292,10 +292,8 @@ const Backlog = () => {
   };
 
   const handleDeleteSprint = (id) => {
-    if (window.confirm("Are you sure you want to delete this sprint?")) {
-      dispatch(deleteSprint(id));
-      setOpenDropdown(null);
-    }
+    dispatch(deleteSprint(id));
+    setOpenDropdown(null);
   };
 
   // Helper function to get filtered sprints for current project
