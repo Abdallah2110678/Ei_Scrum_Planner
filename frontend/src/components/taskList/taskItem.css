@@ -9,3 +9,41 @@
     font-size: 1.2rem;
     font-weight: bold;
 }
+
+
+/* User Avatar Container */
+.user-avatar-container {
+  position: relative;
+}
+
+/* User Avatar */
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background-color: #e5e7eb; /* Tailwind gray-200 */
+  color: #374151; /* Tailwind gray-700 */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.user-avatar:hover {
+  background-color: #d1d5db; /* Tailwind gray-300 */
+}
+
+/* User Dropdown Menu */
+.user-dropdown-menu {
+  min-width: 150px;
+  max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Dropdown Item */
+.dropdown-item {
+  display: block;
+}

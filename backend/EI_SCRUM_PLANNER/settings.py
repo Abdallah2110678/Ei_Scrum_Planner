@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'tasks',
     'projects',
     'emotion_detection',
-    'project_users'
+    'project_users',
 
 ]
 
@@ -173,16 +173,19 @@ SIMPLE_JWT = {
 
 
 DJOSER = {
+    "LOGOUT_ON_PASSWORD_CHANGE": False,  # Don't log out on password change
     'LOGIN_FIELD': 'name',  # Use a different field for login instead of email (e.g., "name")
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,  # Disable password change email notifications
     "SEND_CONFIRMATION_EMAIL": False,  # Disable email confirmation
     "PASSWORD_RESET_CONFIRM_URL": None,  # Disable password reset URL
     "ACTIVATION_URL": None,  # Disable account activation
+    'TOKEN_MODEL': None,  # Disable the Token model since we're using JWT
     'SERIALIZERS': {
         'user_create': 'users.serializers.CreateUserSerializer',
         'user': "users.serializers.CreateUserSerializer",
         'user_delete': "djoser.serializers.UserDeleteSerializer",
     },
+    'TOKEN_MODEL': None,  # Disable the Token model since we're using JWT
 }
 
 
@@ -191,6 +194,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'abdulrahmanabdalmoniem@gmail.com'
 EMAIL_HOST_PASSWORD = 'madgjtgullnzhwdg'
-EMAIL_PORT = '25'
+EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+FRONTEND_URL = 'http://localhost:3000'

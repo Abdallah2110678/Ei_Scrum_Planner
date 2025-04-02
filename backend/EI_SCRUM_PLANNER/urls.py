@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/', include('tasks.urls')),
     path('task-estimation/', include('task_estimation.urls')),
     path('api/v1/sprints/', include('sprints.urls')),
-    path('api/', include('projects.urls')),
+    path('api/projects/', include('projects.urls')),
     path('', include('project_users.urls')),
 
     # path('logout/', LogoutView.as_view(), name='logout'),

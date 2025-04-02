@@ -29,9 +29,9 @@ const AddUserModal = ({ onClose }) => {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/project/add-user/", {
+      const response = await axios.post("http://127.0.0.1:8000/add-user-to-project/", {
         email,
-        project_id: 1, // Hardcoded project ID (replace with dynamic value if needed)
+        project_id: localStorage.getItem("selectedProjectId"), // Hardcoded project ID (replace with dynamic value if needed)
       });
 
       setMessage(response.data.message || "User added successfully!");
