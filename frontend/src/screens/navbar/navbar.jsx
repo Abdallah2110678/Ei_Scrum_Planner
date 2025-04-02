@@ -111,11 +111,7 @@ const Navbar = () => {
   <a href="/#" className="navbar-link">Assigned to Me</a>
   <ProjectsDropdown /> {/* Projects Dropdown Component */}
   <NavLink to="/dashboard" className="navbar-link">Dashboard</NavLink>
-  <button
-    className="navbar-link bg-transparent border-none text-white hover:text-gray-300"
-    onClick={() => setIsAddUserModalVisible(true)}
-  >Add User
-  </button>
+  <NavLink to="/eiscrum/participant" className="navbar-link">Add User</NavLink>
 </div>
 
         <div className="navbar-search">

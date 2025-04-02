@@ -11,11 +11,14 @@ const ProjectsDropdown = () => {
 
     const dispatch = useDispatch();
     const { projects, isLoading, isError, message, selectedProjectId } = useSelector((state) => state.projects);
+    const { userInfo } = useSelector((state) => state.auth);
+    const userId = userInfo?.id;
 
     useEffect(() => {
-        dispatch(fetchProjects());
-    }, [dispatch]);
-
+      if (userId && Number.isInteger(userId)) {
+        dispatch(fetchProjects(userId));
+      }
+    }, [dispatch, userId]);
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -40,7 +43,7 @@ const ProjectsDropdown = () => {
         if (!projectName.trim()) return;
 
         try {
-            const newProject = await dispatch(createNewProject({ name: projectName })).unwrap();
+            const newProject = await dispatch(createNewProject({ name: projectName, user_id:userId})).unwrap();
             setProjectName("");
             setShowForm(false);
             setIsOpen(false);

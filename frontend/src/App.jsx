@@ -11,6 +11,8 @@ import Dashboard from "./screens/Dashboard/Dashboard";
 import { Navigate } from "react-router-dom";
 import {useSelector} from 'react-redux';
 import AcceptInvitation from "./components/acceptInvitation.jsx";
+import GamificationPaga from "./screens/gamification/gamification.jsx";
+import ParticipantsPage from "./screens/participant/participant.jsx";
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   return user ? children : <Navigate to="/login" />;
@@ -41,6 +43,8 @@ const App = () => {
         <Route path="timeline" element={<Timeline />} />
         {/* Dashboard moved to standalone route */}
         <Route path="history" element={<History />} />
+        <Route path="gamification" element={<GamificationPaga />} />
+        <Route path="participant" element={<ParticipantsPage />} />
       </Route>
 
       {/* Redirect All Unknown Routes to Home */}
