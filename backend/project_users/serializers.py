@@ -18,3 +18,20 @@ class InvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invitation
         fields = ['id', 'email', 'project', 'token', 'created_at', 'accepted']
+
+
+
+class ProjectUserDetailSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+    points = serializers.IntegerField(required=False)
+    badges = serializers.ListField(required=False)
+
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'email', 'specialist', 'experience', 'role', 'points', 'badges']
+
+    def get_role(self, obj):
+        return obj.role if hasattr(obj, 'role') else "Developer"
+    
+
+    

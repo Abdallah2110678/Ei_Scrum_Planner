@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,7 +13,7 @@ from project_users.serializers import ProjectUsersSerializer
 from django.core.mail import send_mail
 from rest_framework.generics import ListAPIView
 from project_users.models import ProjectUsers
-from .serializers import InvitationSerializer, ProjectUsersSerializer
+from .serializers import InvitationSerializer, ProjectUserDetailSerializer, ProjectUsersSerializer
 
 class ProjectUsersByProjectID(ListAPIView):
     serializer_class = ProjectUsersSerializer
@@ -110,3 +111,72 @@ class AcceptInvitation(APIView):
             {"message": "Project joined successfully", "data": ProjectUsersSerializer(project_user).data},
             status=status.HTTP_201_CREATED
         )
+    
+
+def get_project_team_list(project_id):
+    try:
+        # Get the project by ID
+        project = Project.objects.get(id=project_id)
+        
+        # Initialize the result dictionary with a list of users
+        result = {
+            "project_name": project.name,
+            "users": []
+        }
+        
+        # Get the creator (Scrum Master)
+        creator = project.created_by
+        creator_in_project_users = None
+        if creator:
+            # Check if the creator is also in ProjectUsers to get their points and badges
+            try:
+                creator_in_project_users = ProjectUsers.objects.get(project=project, user=creator)
+                points = creator_in_project_users.points
+                badges = creator_in_project_users.get_badges_list()
+            except ProjectUsers.DoesNotExist:
+                points = None
+                badges = []
+            
+            # Add the Scrum Master to the list
+            result["users"].append({
+                "id": creator.id,
+                "name": creator.name,
+                "specialist": creator.specialist,
+                "email": creator.email,
+                "experience": creator.experience,
+                "role": "Scrum Master",
+                "points": points,
+                "badges": badges
+            })
+        
+        # Get all users involved in the project via ProjectUsers (Developers)
+        project_users = ProjectUsers.objects.filter(project=project).select_related('user')
+        for pu in project_users:
+            # Skip the creator if already added as Scrum Master
+            if creator and pu.user.id == creator.id:
+                continue
+            
+            # Add the developer to the list
+            result["users"].append({
+                "id": pu.user.id,
+                "name": pu.user.name,
+                "specialist": pu.user.specialist,
+                "email": pu.user.email,
+                "experience": pu.user.experience,
+                "role": "Developer",
+                "points": pu.points,
+                "badges": pu.get_badges_list()
+            })
+        
+        return result
+    
+    except Project.DoesNotExist:
+        return {"error": "Project not found"}
+
+# Django View for React endpoint
+class ProjectTeamListView(APIView):
+    def get(self, request, project_id):
+        data = get_project_team_list(project_id)
+        if "error" in data:
+            return JsonResponse({"error": data["error"]}, status=404)
+        return JsonResponse(data, status=200)
