@@ -19,7 +19,7 @@ const HistoryTasks = ({ task, sprint }) => {
                 taskData: {
                     ...task,
                     status: "TO DO",
-                    sprint: sprint.id
+                    sprint: null  // Set sprint to null to move it back to backlog
                 }
             })).unwrap();
             await dispatch(fetchSprints());

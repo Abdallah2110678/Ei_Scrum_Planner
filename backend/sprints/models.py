@@ -2,6 +2,8 @@ from django.db import models
 from projects.models import Project
 from datetime import timedelta
 from django.utils.timezone import now
+from django.utils import timezone
+
 class Sprint(models.Model):
     DURATION_CHOICES = [
         (7, "1 week"),
@@ -25,20 +27,30 @@ class Sprint(models.Model):
         if not self.is_completed:
             if self.start_date and self.duration > 0:
                 self.end_date = self.start_date + timedelta(days=self.duration)
-            if self.start_date and self.end_date:
-                self.is_active = self.start_date <= now() <= self.end_date
+            
+            # Check if end_date has passed and auto-complete sprint
+            current_time = timezone.now()
+            if self.end_date and self.end_date < current_time and self.is_active:
+                self.auto_complete_sprint()
+            elif self.start_date and self.end_date:
+                self.is_active = self.start_date <= current_time <= self.end_date
             else:
                 self.is_active = False
+                
         super().save(*args, **kwargs)
-        
-
-    def complete_sprint(self):
-        """Mark the sprint as completed."""
+    
+    def auto_complete_sprint(self):
+        """Automatically complete the sprint when end date is reached"""
         self.is_completed = True
-        self.end_date = now()
+        self.is_active = False
+        # Keep the scheduled end_date as the completion date
+        
+    def complete_sprint(self):
+        """Mark the sprint as completed manually."""
+        self.is_completed = True
+        self.end_date = timezone.now()  # Use the current time when manually completed
         self.is_active = False
         self.save()
-
 
     def __str__(self):
         return f"{self.sprint_name} (Project: {self.project.name})"
