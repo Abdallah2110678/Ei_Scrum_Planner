@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch,useSelector } from "react-redux";
 import { updateTask, deleteTask, fetchTasks, predictStoryPoints } from "../../features/tasks/taskSlice";
+import { fetchProjectParticipants } from "../../features/projects/projectSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
 import './taskList.css';
 
 const TaskItem = ({ task, sprints, selectedProjectId }) => {
 
   const dispatch = useDispatch();
-
+  const { developers } = useSelector((state) => state.projects);
   const [editTaskId, setEditTaskId] = useState(null);
   const [editStoryId, setEditStoryId] = useState(null);
   const [loadingEstimate, setLoadingEstimate] = useState(false);
@@ -15,12 +16,14 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const [editStoryPoints, setEditStoryPoints] = useState(task.story_points);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [moveDropdownOpen, setMoveDropdownOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [taskData, setTaskData] = useState(task);
 
   // Fetch tasks & sprints when component mounts
   useEffect(() => {
     dispatch(fetchTasks());
     dispatch(fetchSprints());
+    dispatch(fetchProjectParticipants(selectedProjectId));
   }, [dispatch]);
 
   // Handle Editing Task Name
@@ -180,7 +183,39 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     setTaskData(updatedTask);
     dispatch(updateTask({ id: task.id, taskData: updatedTask }));
   };
+// Function to get initials from a name
+const getInitials = (name) => {
+  if (!name) return "N/A";
+  const nameParts = name.split(" ");
+  return nameParts.length > 1
+    ? `${nameParts[0][0]}${nameParts[1][0]}`
+    : nameParts[0][0] || "N/A";
+};
 
+// Handle assigning a developer to the task
+const handleAssignUser = (userId) => {
+  const updatedTask = { ...taskData, user: userId };
+  setTaskData(updatedTask);
+  dispatch(updateTask({ id: task.id, taskData: updatedTask }))
+    .unwrap()
+    .then(() => {
+      dispatch(fetchTasks()); // Refresh tasks after update
+    })
+    .catch((error) => console.error("Error assigning user to task:", error));
+  setUserDropdownOpen(false); // Close dropdown after selection
+};
+
+// Close user dropdown when clicking outside
+useEffect(() => {
+  const closeUserDropdown = (event) => {
+    if (!event.target.closest(".user-avatar-container") && !event.target.closest(".user-dropdown-menu")) {
+      setUserDropdownOpen(false);
+    }
+  };
+
+  document.addEventListener("click", closeUserDropdown);
+  return () => document.removeEventListener("click", closeUserDropdown);
+}, []);
   return (
     <div key={task.id} className="task-item">
       {/* Task Name (Editable) */}
@@ -271,9 +306,45 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
         </button>
       </div>
 
-      {/* User Avatar */}
-      <div className="user-avatar">{task.user_initials || "ZM"}</div>
+    {/* User Avatar with Dropdown */}
+    <div className="user-avatar-container relative">
+        <div
+          className="user-avatar cursor-pointer"
+          onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+          title={taskData.user ? developers?.users?.find((dev) => dev.id === taskData.user)?.name || "Unassigned" : "Unassigned"}
+        >
+          {taskData.user
+            ? getInitials(developers?.users?.find((dev) => dev.id === taskData.user)?.name)
+            : "N/A"}
+        </div>
 
+        {/* User Dropdown */}
+        {userDropdownOpen && (
+          <div className="user-dropdown-menu absolute z-10 bg-white border border-gray-200 rounded-md shadow-lg mt-1">
+            <button
+              className="dropdown-item px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+              onClick={() => handleAssignUser(null)}
+            >
+              Unassign
+            </button>
+            {developers?.users?.length > 0 ? (
+              developers.users.map((developer) => (
+                <button
+                  key={developer.id}
+                  className="dropdown-item px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  onClick={() => handleAssignUser(developer.id)}
+                >
+                  {developer.name}
+                </button>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-sm text-gray-500">No developers available</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ... (rest of the component unchanged) */}
       {/* Task Options Button */}
       <button className="task-options-button" onClick={() => setDropdownOpen(!dropdownOpen)}>...</button>
 
