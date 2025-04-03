@@ -15,9 +15,9 @@ const ProjectsDropdown = () => {
     const userId = userInfo?.id;
 
     useEffect(() => {
-      if (userId && Number.isInteger(userId)) {
-        dispatch(fetchProjects(userId));
-      }
+        if (userId && Number.isInteger(userId)) {
+            dispatch(fetchProjects(userId));
+        }
     }, [dispatch, userId]);
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -36,19 +36,19 @@ const ProjectsDropdown = () => {
         dispatch(setSelectedProjectId(project.id)); // ✅ Save in Redux + localStorage
         setIsOpen(false);
     };
-    
+
 
     const handleCreateProject = async (e) => {
         e.preventDefault();
         if (!projectName.trim()) return;
 
         try {
-            const newProject = await dispatch(createNewProject({ name: projectName, user_id:userId})).unwrap();
+            const newProject = await dispatch(createNewProject({ name: projectName, user_id: userId })).unwrap();
             setProjectName("");
             setShowForm(false);
             setIsOpen(false);
-            dispatch(fetchProjects());  
-            handleProjectSelect(newProject);  
+            dispatch(fetchProjects());
+            handleProjectSelect(newProject);
         } catch (error) {
             console.error("🚨 Failed to create project:", error);
         }

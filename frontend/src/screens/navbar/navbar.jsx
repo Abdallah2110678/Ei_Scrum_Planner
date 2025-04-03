@@ -27,7 +27,7 @@ const Navbar = () => {
     try {
       // Get the user token from Redux store
       const authToken = user?.access;
-      
+
       // First try emotion detection if we have a token
       if (authToken) {
         try {
@@ -41,10 +41,10 @@ const Navbar = () => {
               timestamp: new Date().getTime() // Add timestamp to ensure unique requests
             }
           });
-          
+
           if (response.data.emotion) {
             toast.info(`Detected emotion before logout: ${response.data.emotion}`);
-            
+
             // If user information is included in the response, display a personalized message
             if (response.data.user && response.data.user.name) {
               toast.info(`Goodbye, ${response.data.user.name}!`);
@@ -91,7 +91,7 @@ const Navbar = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-    
+
   }, []);
 
   const openLoginForm = (e) => {
@@ -108,11 +108,11 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-links">
-  <a href="/#" className="navbar-link">Assigned to Me</a>
-  <ProjectsDropdown /> {/* Projects Dropdown Component */}
-  <NavLink to="/dashboard" className="navbar-link">Dashboard</NavLink>
-  <NavLink to="/eiscrum/participant" className="navbar-link">Add User</NavLink>
-</div>
+          <a href="/#" className="navbar-link">Assigned to Me</a>
+          <ProjectsDropdown /> {/* Projects Dropdown Component */}
+          <NavLink to="/dashboard" className="navbar-link">Dashboard</NavLink>
+          <NavLink to="/eiscrum/participant" className="navbar-link">Add User</NavLink>
+        </div>
 
         <div className="navbar-search">
           <input type="text" placeholder="Search" />
@@ -145,9 +145,9 @@ const Navbar = () => {
               <a href="/notifications" className="dropdown-item">Notifications <span className="new-badge">NEW</span></a>
               <a href="/theme" className="dropdown-item">Theme</a>
               <div className="dropdown-divider"></div>
-              <NavLink 
-                className="dropdown-item" 
-                to="/" 
+              <NavLink
+                className="dropdown-item"
+                to="/"
                 onClick={handleLogout}
                 style={{ pointerEvents: isLoggingOut ? 'none' : 'auto' }}
               >
@@ -165,8 +165,8 @@ const Navbar = () => {
         </div>
       </nav>
 
-{/* Add User Modal (Only show when isAddUserModalVisible is true) */}
-{isAddUserModalVisible && <AddUserModal onClose={() => setIsAddUserModalVisible(false)} />}
+      {/* Add User Modal (Only show when isAddUserModalVisible is true) */}
+      {isAddUserModalVisible && <AddUserModal onClose={() => setIsAddUserModalVisible(false)} />}
       {isRegistrationFormVisible && (
         <div className="overlay">
           <div className="registration-modal-content">

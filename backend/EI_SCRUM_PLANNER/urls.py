@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/v1/sprints/', include('sprints.urls')),
     path('api/projects/', include('projects.urls')),
     path('', include('project_users.urls')),
+    path('developer-performance/', include('developer_performance.urls')),
 
     # path('logout/', LogoutView.as_view(), name='logout'),
 ]
