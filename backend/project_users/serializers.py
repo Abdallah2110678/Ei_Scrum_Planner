@@ -5,7 +5,7 @@ from users.models import User  # Import your User model
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['name', 'email', 'specialist', 'experience']  # Exclude user ID
+        fields = ['name', 'email', 'specialist']  # Exclude user ID
 
 class ProjectUsersSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)  # Nested user data instead of ID
@@ -28,7 +28,7 @@ class ProjectUserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'specialist', 'experience', 'role', 'points', 'badges']
+        fields = ['id', 'name', 'email', 'specialist', 'role', 'points', 'badges']
 
     def get_role(self, obj):
         return obj.role if hasattr(obj, 'role') else "Developer"

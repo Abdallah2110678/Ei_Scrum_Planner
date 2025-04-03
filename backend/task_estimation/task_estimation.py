@@ -12,32 +12,48 @@ from sklearn.neural_network import MLPRegressor
 from xgboost import XGBRegressor
 from task_estimation.models import Estimation, Task
 from users.models import User
-MODEL_PATH = "best_model.pkl"
-BEST_ALGO_PATH = "best_model_algo.txt"
+from developer_performance.models import DeveloperPerformance
+
+MODEL_PATH = "best_effort_model.pkl"
+BEST_ALGO_PATH = "best_effort_algo.txt"
+
 def train_model():
-    from task_estimation.models import Task
-    
-    # Fetch tasks and related user experience
+    # Load task data with user info
     tasks = Task.objects.select_related("user").values(
-        "user__experience", "task_duration", "task_complexity", "story_points"
+        "id", "user_id", "task_complexity", "task_category", "effort"
     )
     df = pd.DataFrame(tasks)
 
     if df.empty:
-        raise ValueError("No data available for training.")
+        raise ValueError("No task data found for training.")
 
-    # Rename columns for consistency
-    df.rename(columns={"user__experience": "developer_experience"}, inplace=True)
+    # Add productivity
+    productivity_list = []
+    for _, row in df.iterrows():
+        try:
+            perf = DeveloperPerformance.objects.get(
+                user_id=row["user_id"],
+                category=row["task_category"],
+                complexity=row["task_complexity"]
+            )
+            productivity_list.append(perf.productivity)
+        except DeveloperPerformance.DoesNotExist:
+            productivity_list.append(1.0)  # default fallback
 
-    # Prepare features and target
-    X = df[["developer_experience", "task_duration", "task_complexity"]]
-    y = df["story_points"]
+    df["productivity"] = productivity_list
 
-    # Split data
+    # Encode task complexity into numbers
+    complexity_map = {"EASY": 1, "MEDIUM": 2, "HARD": 3}
+    df["task_complexity"] = df["task_complexity"].map(complexity_map)
+
+    # Features and target
+    X = df[["task_complexity", "productivity"]]
+    y = df["effort"]
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Define multiple algorithms to compare
-    algorithms = {
+    # ML Models
+    models = {
         "RandomForest": RandomForestRegressor(random_state=42),
         "LinearRegression": LinearRegression(),
         "DecisionTree": DecisionTreeRegressor(random_state=42),
@@ -49,75 +65,42 @@ def train_model():
         "MLPRegressor": MLPRegressor(hidden_layer_sizes=(100,), max_iter=1000, random_state=42)
     }
 
-    # Evaluate each algorithm
-    best_model = None
-    best_mae = float("inf")
-    best_algo = None
-    results = {}
+    best_model, best_mae, best_algo = None, float("inf"), None
 
-    print("\nAlgorithm Performance:")
-    print("-" * 40)
-
-    for name, model in algorithms.items():
+    for name, model in models.items():
         model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
-        mae = mean_absolute_error(y_test, predictions)
-        results[name] = mae
-
-        # Print MAE for each algorithm
-        print(f"{name}: MAE = {mae:.4f}")
-
-        # Store the best model based on lowest MAE
+        mae = mean_absolute_error(y_test, model.predict(X_test))
         if mae < best_mae:
             best_mae = mae
             best_model = model
             best_algo = name
 
-    print("\nBest Model Selected:")
-    print(f"{best_algo} with MAE = {best_mae:.4f}")
-
-    # Save the best model and algorithm name to a file
+    # Save best model
     with open(MODEL_PATH, "wb") as f:
         pickle.dump(best_model, f)
-
     with open(BEST_ALGO_PATH, "w") as f:
         f.write(best_algo)
 
-    return results
+    return best_algo, best_mae
 
 
-
-def predict_story_points(developer_experience, task_duration, task_complexity, user_id, task_id):
-    train_model()  # Ensure model is trained before making predictions
-    
+def predict_effort(task_complexity, productivity, user_id, task_id):
     if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError("Trained model not found. Please train the model first.")
+        train_model()
 
-    if not os.path.exists(BEST_ALGO_PATH):
-        raise FileNotFoundError("Algorithm information not found. Please train the model first.")
-
-    # Load the best model
     with open(MODEL_PATH, "rb") as f:
         model = pickle.load(f)
 
-    # Load the best algorithm name
-    with open(BEST_ALGO_PATH, "r") as f:
-        best_algo = f.read()
+    input_df = pd.DataFrame([[task_complexity, productivity]], columns=["task_complexity", "productivity"])
+    predicted_effort = model.predict(input_df)[0]
 
-    # Create a DataFrame for the input features
-    feature_names = ["developer_experience", "task_duration", "task_complexity"]
-    features = pd.DataFrame([[developer_experience, task_duration, task_complexity]], columns=feature_names)
-
-    # Predict story points
-    predicted_story_points = model.predict(features)[0]
-
-    # Save the result in the Estimation model
-    user = User.objects.get(id=user_id)
+    # Save to Estimation model
     task = Task.objects.get(id=task_id)
-    estimation, created = Estimation.objects.get_or_create(user=user, task=task)
-    estimation.estimation_result = predicted_story_points
+    user = User.objects.get(id=user_id)
+    estimation, _ = Estimation.objects.get_or_create(user=user, task=task)
+
+    estimation.estimated_effort = predicted_effort
+    estimation.productivity = productivity
     estimation.save()
 
-    print(f"Prediction done using {best_algo} algorithm. Saved estimation result: {predicted_story_points}")
-
-    return predicted_story_points
+    return predicted_effort

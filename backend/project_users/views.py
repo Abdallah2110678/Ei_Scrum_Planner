@@ -143,7 +143,6 @@ def get_project_team_list(project_id):
                 "name": creator.name,
                 "specialist": creator.specialist,
                 "email": creator.email,
-                "experience": creator.experience,
                 "role": "Scrum Master",
                 "points": points,
                 "badges": badges
@@ -162,7 +161,6 @@ def get_project_team_list(project_id):
                 "name": pu.user.name,
                 "specialist": pu.user.specialist,
                 "email": pu.user.email,
-                "experience": pu.user.experience,
                 "role": "Developer",
                 "points": pu.points,
                 "badges": pu.get_badges_list()
