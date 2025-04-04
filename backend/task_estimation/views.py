@@ -19,44 +19,39 @@ def train_model_view(request):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "GET method only"}, status=405)
+
 @csrf_exempt
 def predict_task_view(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            user_id = int(data["user_id"])  # Validate as integer
-            task_id = int(data["task_id"])  # Validate as integer
+            user_id = int(data["user_id"])
+            task_id = int(data["task_id"])
+            task_complexity = data["task_complexity"]  # Use Postman input
+            task_category = data["task_category"]      # Use Postman input
 
-            task = Task.objects.get(id=task_id)
-
-            # Encode complexity
+            # Encode complexity from Postman input
             complexity_map = {"EASY": 1, "MEDIUM": 2, "HARD": 3}
-            task_complexity = complexity_map.get(task.task_complexity.upper(), 2)
-
-            # Get productivity
-            perf = DeveloperPerformance.objects.get(
-                user_id=user_id,
-                category=task.task_category,
-                complexity=task.task_complexity
-            )
-            productivity = perf.productivity or 1.0
+            task_complexity_encoded = complexity_map.get(task_complexity.upper(), 2)
 
             # Predict effort
-            predicted_effort = predict_effort(task_complexity, productivity, user_id, task_id)
+            predicted_effort = predict_effort(task_complexity_encoded, task_category, user_id, task_id)
+
+            # Fetch task for response
+            task = Task.objects.get(id=task_id)
 
             return JsonResponse({
                 "predicted_effort": round(predicted_effort, 2),
-                "task_name": task.task_name,  # Fetch from Task
-                "task_category": task.task_category,  # Fetch from Task
-                "task_complexity": task.task_complexity,  # Fetch from Task
-                "productivity": productivity,
+                "task_name": task.task_name,
+                "task_category": task_category,
+                "task_complexity": task_complexity,
                 "message": "Effort estimated successfully"
             })
 
         except KeyError as e:
             return JsonResponse({"error": f"Missing field: {str(e)}"}, status=400)
-        except (User.DoesNotExist, Task.DoesNotExist, DeveloperPerformance.DoesNotExist):
-            return JsonResponse({"error": "User, Task, or DeveloperPerformance not found"}, status=404)
+        except (User.DoesNotExist, Task.DoesNotExist):
+            return JsonResponse({"error": "User or Task not found"}, status=404)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
