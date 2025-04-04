@@ -53,4 +53,4 @@ class Invitation(models.Model):
     accepted = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Invitation for {self.email} to {self.project.name}"
+        return f"Invitation for {self.email} to join {self.project.name}"

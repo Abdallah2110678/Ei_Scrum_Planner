@@ -62,21 +62,3 @@ class SignInView(APIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }, status=status.HTTP_200_OK)
-
-# class LogoutView(APIView):
-    
-#     permission_classes = [IsAuthenticated]  # Only logged-in users can access this endpoint
-    
-#     def post(self, request):
-#         try:
-#             refresh_token = request.data.get("refresh")  # Get the refresh token from the request body
-#             if not refresh_token:
-#                 return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-#             # Blacklist the token
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()
-
-#             return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({"error": "Invalid token or request."}, status=status.HTTP_400_BAD_REQUEST)
