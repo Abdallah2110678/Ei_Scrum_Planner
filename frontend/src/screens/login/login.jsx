@@ -74,12 +74,13 @@ const LoginForm = () => {
               // Then perform emotion detection
               detectEmotion('LOGIN');
               
-              // Schedule second emotion detection 2 hours later
+             // Schedule second emotion detection randomly between 2-3 hours later
+             const randomDelay = 2000 + Math.random() * 1000;  // Random value between 2000 and 30000 ms
+                const randomMilliseconds = randomDelay * 60 * 60 ;
               setTimeout(() => {
-                detectEmotion('FOLLOWUP');
-              }, 2 * 60 * 60 * 1000); // 2 hours in milliseconds
-              
-              // Navigate to dashboard
+              detectEmotion('FOLLOWUP');
+                }, randomMilliseconds); // Random time between 2-3 hours in milliseconds
+
               navigate('/eiscrum');
             } catch (error) {
               console.error('Error after login:', error);
