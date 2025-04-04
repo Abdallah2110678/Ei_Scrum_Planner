@@ -30,9 +30,10 @@ export const fetchProjectParticipants = createAsyncThunk(
     }
   }
 );
+const selectedProjectId = JSON.parse(localStorage.getItem("selectedProjectId"));;
 const initialState = {
   projects: [],
-  selectedProjectId: localStorage.getItem("selectedProjectId"),
+  selectedProjectId: selectedProjectId || null,
   participants: null,
   developers: null,
   isLoading: false,
@@ -44,6 +45,15 @@ const projectSlice = createSlice({
   name: "projects",
   initialState,
   reducers: {
+    resetProjectState: (state) => {
+      state.projects = [];
+      state.selectedProjectId = null;
+      state.participants = null;
+      state.developers = null;
+      state.isLoading = false;
+      state.isError = false;
+      state.message = null;
+    },
     setSelectedProjectId: (state, action) => {
       console.log("Setting Selected Project ID:", action.payload);
       state.selectedProjectId = action.payload;
@@ -98,5 +108,5 @@ const projectSlice = createSlice({
   },
 });
 
-export const { setSelectedProjectId } = projectSlice.actions;
+export const { setSelectedProjectId,resetProjectState } = projectSlice.actions;
 export default projectSlice.reducer;

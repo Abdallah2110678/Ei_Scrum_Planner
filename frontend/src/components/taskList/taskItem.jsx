@@ -22,7 +22,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   // Fetch tasks & sprints when component mounts
   useEffect(() => {
     dispatch(fetchTasks());
-    dispatch(fetchSprints());
+    
     dispatch(fetchProjectParticipants(selectedProjectId));
   }, [dispatch]);
 
@@ -39,7 +39,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       dispatch(updateTask({ id: task.id, taskData: updatedTask }))
         .unwrap()
         .then(() => {
-          dispatch(fetchSprints());
+          dispatch(fetchSprints(selectedProjectId))
           dispatch(fetchTasks());
         })
         .catch((error) => console.error("Error updating task:", error));
@@ -63,7 +63,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     dispatch(updateTask({ id: task.id, taskData: updatedTask }))
       .unwrap()
       .then(() => {
-        dispatch(fetchSprints());
+        
         dispatch(fetchTasks());
       })
       .catch((error) => console.error("Error updating task:", error));
@@ -77,7 +77,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     dispatch(updateTask({ id: task.id, taskData: updatedTask }))
       .unwrap()
       .then(() => {
-        dispatch(fetchSprints());
+        
         dispatch(fetchTasks());
       })
       .catch((error) => console.error("Error updating task:", error));
@@ -88,7 +88,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     dispatch(deleteTask(task.id))
       .unwrap()
       .then(() => {
-        dispatch(fetchSprints());
+        
         dispatch(fetchTasks());
       })
       .catch((error) => console.error("Error updating task:", error));
@@ -138,7 +138,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
             .unwrap()
             .then(() => {
                 // Refresh data without showing alert
-                dispatch(fetchSprints());
+                dispatch(fetchSprints(selectedProjectId));
                 dispatch(fetchTasks(selectedProjectId));
             })
             .catch((error) => {
@@ -152,7 +152,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
             .unwrap()
             .then(() => {
                 // Refresh data without showing alert
-                dispatch(fetchSprints());
+                
                 dispatch(fetchTasks(selectedProjectId));
             })
             .catch((error) => {

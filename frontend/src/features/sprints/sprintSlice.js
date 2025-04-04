@@ -2,9 +2,9 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import sprintService from "./sprintService";
 
 // Async Thunks for API Requests
-export const fetchSprints = createAsyncThunk("sprints/fetchSprints", async (_, thunkAPI) => {
+export const fetchSprints = createAsyncThunk("sprints/fetchSprints", async (projectId, thunkAPI) => {
   try {
-    return await sprintService.fetchSprints();
+    return await sprintService.fetchSprints(projectId);
   } catch (error) {
     return thunkAPI.rejectWithValue(error.message || "Failed to fetch sprints");
   }

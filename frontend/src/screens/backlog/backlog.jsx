@@ -224,7 +224,7 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) 
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-  const selectedProjectId = useSelector((state) => state.projects.selectedProjectId);
+  const {selectedProjectId} = useSelector((state) => state.projects);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
@@ -232,7 +232,7 @@ const Backlog = () => {
   // Fetch sprints when component mounts or when selectedProjectId changes
   useEffect(() => {
     if (selectedProjectId) {
-      dispatch(fetchSprints());
+      dispatch(fetchSprints(selectedProjectId));
     }
   }, [dispatch, selectedProjectId]);
 
@@ -280,7 +280,7 @@ const Backlog = () => {
 
     try {
       await dispatch(addSprint(newSprintData)).unwrap();
-      dispatch(fetchSprints()); // Refresh sprints
+      dispatch(fetchSprints(selectedProjectId)); // Refresh sprints
     } catch (error) {
       console.error("❌ Failed to create sprint:", error);
       alert("Failed to create sprint. Please try again.");
@@ -334,7 +334,7 @@ const Backlog = () => {
       })).unwrap();
 
       // Refresh the sprints to update the UI
-      dispatch(fetchSprints());
+      dispatch(fetchSprints(selectedProjectId));
       
     } catch (error) {
         console.error("Failed to complete sprint:", error);

@@ -9,8 +9,8 @@ const config = {
 };
 
 // Fetch all sprints
-const fetchSprints = async () => {
-  const response = await axios.get(API_URL);
+const fetchSprints = async (projectId) => {
+  const response = await axios.get(`${API_URL}?project=${projectId}`);
   return response.data;
 };
 

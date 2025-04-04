@@ -10,9 +10,9 @@ import { fetchSprints } from '../../features/sprints/sprintSlice';
 const Board = ({ toggleComponent }) => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-
+  const { selectedProjectId } = useSelector((state) => state.projects);
   useEffect(() => {
-    dispatch(fetchSprints());
+    dispatch(fetchSprints(selectedProjectId));
   }, [dispatch]);
 
   // Filter active sprints
