@@ -24,7 +24,6 @@ class UserModelTests(TestCase):
         self.assertEqual(user.email, 'test@example.com')
         self.assertEqual(user.name, 'Test User')
         self.assertEqual(user.specialist, 'Developer')
-        self.assertEqual(user.experience, 0)  # Default value
         self.assertTrue(user.check_password('password123'))
     
     def test_create_superuser(self):
@@ -75,7 +74,6 @@ class UserAPITests(APITestCase):
             password='password123',
             name='Test User',
             specialist='Developer',
-            experience=3
         )
         
         self.register_url = reverse('user-list')
