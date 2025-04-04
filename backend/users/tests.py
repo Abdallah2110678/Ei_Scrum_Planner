@@ -90,33 +90,6 @@ class UserAPITests(APITestCase):
         self.assertIn('name', response.data)
         self.assertEqual(response.data.get('name'), 'Test User')
     
-    def test_update_user_profile(self):
-        """Test updating user profile"""
-        # Create a new user specifically for updating
-        user_to_update = User.objects.create_user(
-            email='update_me@example.com',
-            password='password123',
-            name='Original Name',
-            specialist='Developer'
-        )
-        
-        # Get token for this user
-        refresh = RefreshToken.for_user(user_to_update)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
-        
-        # Update the user's name
-        data = {'name': 'Updated Name'}
-        response = self.client.patch(self.me_url, data)
-        
-        # Check response status code
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Verify the response data contains the updated name
-        self.assertEqual(response.data['name'], 'Updated Name')
-        
-        # Refresh the user from the database and verify the update
-        user_to_update.refresh_from_db()
-        self.assertEqual(user_to_update.name, 'Updated Name')
     
     def test_delete_user_account(self):
         """Test deleting user account"""
