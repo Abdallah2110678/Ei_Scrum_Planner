@@ -64,7 +64,7 @@ const Dashboard = () => {
   const getMockEmotionData = () => {
     // Instead of emotions by sprint, we'll track emotions by developer
     const developers = [...new Set(tasks.map(task => task.user_initials || 'Unassigned'))];
-    
+
     return developers.map(developer => ({
       developer,
       emotions: {
@@ -84,7 +84,7 @@ const Dashboard = () => {
       const completedTasks = sprintTasks.filter(task => task.status === 'DONE').length;
       const totalTasks = sprintTasks.length || 1; // Avoid division by zero
       const productivity = (completedTasks / totalTasks) * 100;
-      
+
       return {
         sprintName: sprint.sprint_name,
         productivity: productivity.toFixed(2)
@@ -132,13 +132,13 @@ const Dashboard = () => {
   const getProductivityByDeveloperData = () => {
     // Group tasks by developer and calculate productivity
     const developers = [...new Set(tasks.map(task => task.user_initials || 'Unassigned'))];
-    
+
     const developerData = developers.map(developer => {
       const developerTasks = tasks.filter(task => (task.user_initials || 'Unassigned') === developer);
       const completedTasks = developerTasks.filter(task => task.status === 'DONE').length;
       const totalTasks = developerTasks.length || 1; // Avoid division by zero
       const productivity = (completedTasks / totalTasks) * 100;
-      
+
       return {
         developer,
         productivity: productivity.toFixed(2)
@@ -176,7 +176,7 @@ const Dashboard = () => {
     // In a real implementation, you would track task history
     // For now, we'll use mock data
     const developers = [...new Set(tasks.map(task => task.user_initials || 'Unassigned'))];
-    
+
     const developerData = developers.map(developer => ({
       developer,
       rework: Math.floor(Math.random() * 30) // Mock rework percentage
@@ -274,8 +274,8 @@ const Dashboard = () => {
         <div className="chart-container">
           <h3>Productivity by Sprint</h3>
           <div className="chart-wrapper">
-            <Bar 
-              data={getProductivityBySprintData()} 
+            <Bar
+              data={getProductivityBySprintData()}
               options={{
                 ...chartOptions,
                 plugins: {
@@ -285,7 +285,7 @@ const Dashboard = () => {
                     text: 'Percentage of Completed Tasks per Sprint',
                   },
                 },
-              }} 
+              }}
             />
           </div>
         </div>
@@ -293,8 +293,8 @@ const Dashboard = () => {
         <div className="chart-container">
           <h3>Rework by Sprint</h3>
           <div className="chart-wrapper">
-            <Bar 
-              data={getReworkBySprintData()} 
+            <Bar
+              data={getReworkBySprintData()}
               options={{
                 ...chartOptions,
                 plugins: {
@@ -304,7 +304,7 @@ const Dashboard = () => {
                     text: 'Percentage of Tasks Requiring Rework per Sprint',
                   },
                 },
-              }} 
+              }}
             />
           </div>
         </div>
@@ -312,8 +312,8 @@ const Dashboard = () => {
         <div className="chart-container">
           <h3>Productivity by Developer</h3>
           <div className="chart-wrapper">
-            <Pie 
-              data={getProductivityByDeveloperData()} 
+            <Pie
+              data={getProductivityByDeveloperData()}
               options={{
                 ...chartOptions,
                 plugins: {
@@ -323,7 +323,7 @@ const Dashboard = () => {
                     text: 'Productivity Rate by Team Member',
                   },
                 },
-              }} 
+              }}
             />
           </div>
         </div>
@@ -331,8 +331,8 @@ const Dashboard = () => {
         <div className="chart-container">
           <h3>Rework by Developer</h3>
           <div className="chart-wrapper">
-            <Pie 
-              data={getReworkByDeveloperData()} 
+            <Pie
+              data={getReworkByDeveloperData()}
               options={{
                 ...chartOptions,
                 plugins: {
@@ -342,7 +342,7 @@ const Dashboard = () => {
                     text: 'Rework Rate by Team Member',
                   },
                 },
-              }} 
+              }}
             />
           </div>
         </div>
@@ -350,19 +350,24 @@ const Dashboard = () => {
         <div className="chart-container full-width">
           <h3>Emotions Detected by Developer</h3>
           <div className="chart-wrapper">
-            <Line 
-              data={getEmotionsByDeveloperData()} 
-              options={{
-                ...chartOptions,
-                plugins: {
-                  ...chartOptions.plugins,
-                  title: {
-                    ...chartOptions.plugins.title,
-                    text: 'Team Member Emotional States',
+            {getEmotionsByDeveloperData() ? (
+              <Line
+                data={getEmotionsByDeveloperData()}
+                options={{
+                  ...chartOptions,
+                  plugins: {
+                    ...chartOptions.plugins,
+                    title: {
+                      ...chartOptions.plugins.title,
+                      text: 'Team Member Emotional States',
+                    },
                   },
-                },
-              }} 
-            />
+                }}
+              />
+            ) : (
+              <p>No emotion data available.</p>
+            )}
+
           </div>
         </div>
       </div>
