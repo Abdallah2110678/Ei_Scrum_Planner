@@ -30,7 +30,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         project_id = self.request.query_params.get("project_id")
 
         if project_id:
-            print(f"Filtering by project_id: {project_id}")  # Add logging
+            print(f"Filtering by project_id: {project_id}")  
             queryset = queryset.filter(project_id=project_id)
 
         if sprint_id == "null":
@@ -38,7 +38,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         elif sprint_id:
             queryset = queryset.filter(sprint_id=sprint_id)
 
-        print(f"Returning {queryset.count()} tasks")  # Add logging
+        print(f"Returning {queryset.count()} tasks")  
         return queryset
 
     @action(detail=True, methods=['patch'])

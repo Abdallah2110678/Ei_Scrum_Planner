@@ -6,8 +6,7 @@ from projects.models import Project  # Import Project model
 class SprintSerializer(serializers.ModelSerializer):
     tasks = TaskSerializer(many=True, read_only=True)
     custom_end_date = serializers.DateTimeField(required=False)
-    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all(), required=True)  # ✅ Ensure Project is required
-
+    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all(), required=True)  
     class Meta:
         model = Sprint
         fields = ['id', 'sprint_name', 'project', 'duration', 'start_date', 'sprint_goal', 'custom_end_date', 'tasks', 'is_active', 'is_completed']

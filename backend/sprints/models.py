@@ -23,12 +23,10 @@ class Sprint(models.Model):
     is_completed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # Only recalculate is_active if sprint is not completed
         if not self.is_completed:
             if self.start_date and self.duration > 0:
                 self.end_date = self.start_date + timedelta(days=self.duration)
             
-            # Check if end_date has passed and auto-complete sprint
             current_time = timezone.now()
             if self.end_date and self.end_date < current_time and self.is_active:
                 self.auto_complete_sprint()
@@ -40,15 +38,12 @@ class Sprint(models.Model):
         super().save(*args, **kwargs)
     
     def auto_complete_sprint(self):
-        """Automatically complete the sprint when end date is reached"""
         self.is_completed = True
         self.is_active = False
-        # Keep the scheduled end_date as the completion date
         
     def complete_sprint(self):
-        """Mark the sprint as completed manually."""
         self.is_completed = True
-        self.end_date = timezone.now()  # Use the current time when manually completed
+        self.end_date = timezone.now()  
         self.is_active = False
         self.save()
 
