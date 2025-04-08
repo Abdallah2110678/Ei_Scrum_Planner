@@ -19,7 +19,6 @@ export const createNewProject = createAsyncThunk("projects/createProject", async
   }
 });
 
-
 export const fetchProjectParticipants = createAsyncThunk(
   "projects/fetchProjectParticipants",
   async (projectId, thunkAPI) => {
@@ -30,9 +29,23 @@ export const fetchProjectParticipants = createAsyncThunk(
     }
   }
 );
+
+// Safely parse selectedProjectId from localStorage
+const storedProjectId = localStorage.getItem("selectedProjectId");
+console.log("Stored Project ID from localStorage:", storedProjectId, typeof storedProjectId);
+let selectedProjectId = null;
+if (storedProjectId) {
+  try {
+    selectedProjectId = JSON.parse(storedProjectId);
+  } catch (error) {
+    console.error("Failed to parse storedProjectId:", error);
+    selectedProjectId = null; // Fallback to null if parsing fails
+  }
+}
+
 const initialState = {
   projects: [],
-  selectedProjectId: localStorage.getItem("selectedProjectId"),
+  selectedProjectId: selectedProjectId || null,
   participants: null,
   developers: null,
   isLoading: false,
@@ -44,6 +57,15 @@ const projectSlice = createSlice({
   name: "projects",
   initialState,
   reducers: {
+    resetProjectState: (state) => {
+      state.projects = [];
+      state.selectedProjectId = null;
+      state.participants = null;
+      state.developers = null;
+      state.isLoading = false;
+      state.isError = false;
+      state.message = null;
+    },
     setSelectedProjectId: (state, action) => {
       console.log("Setting Selected Project ID:", action.payload);
       state.selectedProjectId = action.payload;
@@ -74,29 +96,27 @@ const projectSlice = createSlice({
       .addCase(createNewProject.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
-        state.message = action.payload;})
-        .addCase(fetchProjectParticipants.pending, (state) => {
-          state.isLoading = true;
-        })
-        .addCase(fetchProjectParticipants.fulfilled, (state, action) => {
-          state.isLoading = false;
-          // Filter out the Scrum Master and store only developers
-          state.participants = action.payload;
-          const developers = action.payload.users.filter((user) => user.role === 'Developer');
-          state.developers = {
-            project_name: action.payload.project_name,
-            users: developers,
-          };
-        })
-      
-        .addCase(fetchProjectParticipants.rejected, (state, action) => {
-          state.isLoading = false;
-          state.isError = true;
-          state.message = action.payload;
-        })
-        
+        state.message = action.payload;
+      })
+      .addCase(fetchProjectParticipants.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchProjectParticipants.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.participants = action.payload;
+        const developers = action.payload.users.filter((user) => user.role === 'Developer');
+        state.developers = {
+          project_name: action.payload.project_name,
+          users: developers,
+        };
+      })
+      .addCase(fetchProjectParticipants.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      });
   },
 });
 
-export const { setSelectedProjectId } = projectSlice.actions;
+export const { setSelectedProjectId, resetProjectState } = projectSlice.actions;
 export default projectSlice.reducer;

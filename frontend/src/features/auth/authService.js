@@ -1,4 +1,9 @@
 import axios from "axios";
+// import { resetProjectState } from "../projects/projectSlice";
+// import { useDispatch } from "react-redux";
+
+
+
 
 const BACKEND_DOMAIN = "http://localhost:8000";
 
@@ -41,9 +46,12 @@ const login = async (userData) => {
 // Logout
 
 const logout = () => {
+  
   localStorage.removeItem("user");
   localStorage.removeItem("userInfo");
-  return
+  localStorage.removeItem("selectedProjectId");
+  localStorage.removeItem("selectedProjectName");
+  
 };
 
 // Activate user

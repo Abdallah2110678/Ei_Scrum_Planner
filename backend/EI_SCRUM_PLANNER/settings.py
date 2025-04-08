@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'projects',
     'emotion_detection',
     'project_users',
+    'developer_performance',
 
 ]
 

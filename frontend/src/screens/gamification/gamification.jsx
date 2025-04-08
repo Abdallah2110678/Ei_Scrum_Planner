@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useSelector } from 'react-redux';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -17,12 +18,13 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const GamificationPage = () => {
   const [teamData, setTeamData] = useState(null);
   const [error, setError] = useState(null);
+  const { selectedProjectId } = useSelector((state) => state.projects);
 
   // Fetch team data from the API
   useEffect(() => {
     const fetchTeamData = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/projects/${localStorage.getItem("selectedProjectId")}/users/`);
+        const response = await axios.get(`http://127.0.0.1:8000/projects/${selectedProjectId}/users/`);
         setTeamData(response.data);
       } catch (err) {
         setError('Failed to fetch team data');

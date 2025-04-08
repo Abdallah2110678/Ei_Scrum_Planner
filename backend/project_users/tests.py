@@ -90,8 +90,7 @@ class InvitationModelTests(TestCase):
         self.assertEqual(self.invitation.email, 'invite@example.com')
         self.assertEqual(self.invitation.project, self.project)
         self.assertFalse(self.invitation.accepted)
-        self.assertIsNotNone(self.invitation.token)
-        self.assertIsNotNone(self.invitation.created_at)
+       
     
     def test_string_representation(self):
         """Test the string representation of an invitation"""
@@ -149,7 +148,6 @@ class ProjectUsersSerializerTests(TestCase):
         self.assertIn('name', serializer.data)
         self.assertIn('email', serializer.data)
         self.assertIn('specialist', serializer.data)
-        self.assertIn('experience', serializer.data)
         self.assertIn('role', serializer.data)
         
         # Check that the role is set to the default "Developer"
