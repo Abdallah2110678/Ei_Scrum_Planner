@@ -9,7 +9,7 @@
 /* Individual Task Item */
 .task-item {
     display: grid;
-    grid-template-columns: 2fr 120px 120px 80px 120px 50px 100px;
+    grid-template-columns: 2fr 120px 120px 80px 120px 60px 100px 50px;
     align-items: center;
     background-color: #fff;
     padding: 8px;
@@ -386,6 +386,39 @@
 }
 
 .task-category-input:focus {
+    outline: none;
+    border-color: #0052cc;
+    box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+/* Estimate Button Styling */
+.estimate-button {
+    background-color: #0052cc;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.estimate-button:hover {
+    background-color: #0065ff;
+}
+
+/* Effort Input Styling */
+.effort-input {
+    width: 60px;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.effort-input:focus {
     outline: none;
     border-color: #0052cc;
     box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);

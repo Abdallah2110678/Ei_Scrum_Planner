@@ -46,7 +46,7 @@ const HistoryTasks = ({ task, sprint }) => {
                 <option value="HARD">Hard</option>
             </select>
 
-            {/* Task Category Input (Disabled) - Changed from select to input */}
+            {/* Task Category Input (Disabled) */}
             <input
                 type="text"
                 className="task-category-input"
@@ -81,6 +81,14 @@ const HistoryTasks = ({ task, sprint }) => {
                     {task.user_initials || "ZM"}
                 </div>
             </div>
+
+            {/* Effort Input (Disabled) */}
+            <input
+                type="number"
+                className="effort-input"
+                value={task.effort}
+                disabled
+            />
 
             {/* Active Button */}
             <button 

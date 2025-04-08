@@ -277,37 +277,28 @@ useEffect(() => {
         <option value="DONE">Done</option>
       </select>
 
-      {/* Story Points (Editable) */}
-      <div className="story-points">
-        {editStoryId === task.id ? (
-          <input
-            type="number"
-            value={editStoryPoints}
-            onChange={(e) => setEditStoryPoints(e.target.value)}
-            onBlur={handleBlurStoryPoints}
-            onKeyDown={(e) => e.key === "Enter" && handleBlurStoryPoints()}
-            min="0"
-            className="story-points-input"
-            autoFocus
-          />
-        ) : (
-          <span className="story-points-text" onClick={handleEditStoryPoints}>
-            {editStoryPoints}
-          </span>
-        )}
+      {/* Effort Input Field */}
+      <input
+        type="number"
+        className="effort-input"
+        value={taskData.effort}
+        onChange={(e) => handleUpdateTask('effort', parseFloat(e.target.value) || 0)}
+        min="0"
+        step="0.5"
+        placeholder="Effort"
+      />
 
-        {/* "Estimate" Button */}
-        <button
-          className="estimate-button"
-          onClick={handleEstimateStoryPoints}
-          disabled={loadingEstimate}
-        >
-          {loadingEstimate ? "Estimating..." : "Estimate"}
-        </button>
-      </div>
+      {/* Estimate Button */}
+      <button
+        className="estimate-button"
+        onClick={handleEstimateStoryPoints}
+        disabled={loadingEstimate}
+      >
+        {loadingEstimate ? "..." : "Estimate"}
+      </button>
 
-    {/* User Avatar with Dropdown */}
-    <div className="user-avatar-container relative">
+      {/* User Avatar (Logo) */}
+      <div className="user-avatar-container relative">
         <div
           className="user-avatar cursor-pointer"
           onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -317,8 +308,7 @@ useEffect(() => {
             ? getInitials(developers?.users?.find((dev) => dev.id === taskData.user)?.name)
             : "N/A"}
         </div>
-
-        {/* User Dropdown */}
+        {/* User Dropdown Menu */}
         {userDropdownOpen && (
           <div className="user-dropdown-menu absolute z-10 bg-white border border-gray-200 rounded-md shadow-lg mt-1">
             <button
@@ -344,7 +334,6 @@ useEffect(() => {
         )}
       </div>
 
-      {/* ... (rest of the component unchanged) */}
       {/* Task Options Button */}
       <button className="task-options-button" onClick={() => setDropdownOpen(!dropdownOpen)}>...</button>
 
