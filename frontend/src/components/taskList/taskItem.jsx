@@ -53,23 +53,6 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     setEditStoryPoints(task.story_points);
   };
 
-  const handleBlurStoryPoints = () => {
-    let correctedValue = parseFloat(editStoryPoints);
-    if (isNaN(correctedValue) || correctedValue < 0) {
-      correctedValue = 0;
-    }
-    const updatedTask = { ...taskData, story_points: correctedValue };
-    setTaskData(updatedTask);
-    dispatch(updateTask({ id: task.id, taskData: updatedTask }))
-      .unwrap()
-      .then(() => {
-
-        dispatch(fetchTasks());
-      })
-      .catch((error) => console.error("Error updating task:", error));
-    setEditStoryId(null);
-  };
-
   // Handle Task Status Change
   const handleStatusChange = (newStatus) => {
     const updatedTask = { ...taskData, status: newStatus };
@@ -247,7 +230,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       <input
         type="text"
         className="task-category-input"
-        value={taskData.task_category}
+        value={taskData.task_category|| ""}
         onChange={(e) => handleUpdateTask('task_category', e.target.value)}
         placeholder="Enter category"
       />
@@ -256,7 +239,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       <input
         type="number"
         className="priority-input"
-        value={taskData.priority}
+        value={taskData.priority|| ""}
         min="1"
         max="5"
         onChange={(e) => handleUpdateTask('priority', parseInt(e.target.value))}
@@ -277,7 +260,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       <input
         type="number"
         className="effort-input"
-        value={taskData.actual_effort}
+        value={taskData.actual_effort|| ""}
         onChange={(e) => handleUpdateTask('actual_effort', parseFloat(e.target.value) || 0)}
         min="0"
         step="0.5"
