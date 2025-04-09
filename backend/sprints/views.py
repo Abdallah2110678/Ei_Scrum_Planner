@@ -10,7 +10,7 @@ import logging
 # Set up logging
 logger = logging.getLogger(__name__)
 
-class SprintViewSet(viewsets.ModelViewSet):  
+class SprintViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing Sprints.
     - Create
@@ -24,14 +24,20 @@ class SprintViewSet(viewsets.ModelViewSet):
     serializer_class = SprintSerializer
     
     def get_queryset(self):
-        # First check for and auto-complete any expired sprints
         self.check_expired_sprints()
-        
-        # Then return filtered sprints
+    
         project_id = self.request.query_params.get('project')
+    
+    # ✅ Safely check if project_id is a valid integer
+        if project_id and project_id.isdigit():
+            return Sprint.objects.filter(project_id=int(project_id))
+
+    # 🛡️ Optional: Log when invalid project_id is received
         if project_id:
-            return Sprint.objects.filter(project_id=project_id)
+            logger.warning(f"⚠️ Invalid project_id received in query: {project_id}")
+    
         return Sprint.objects.all()
+
     
     def check_expired_sprints(self):
         """

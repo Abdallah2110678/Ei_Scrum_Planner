@@ -14,7 +14,6 @@ const TaskList = ({ handleCreateSprint }) => {
 
   useEffect(() => {
     if (selectedProjectId) {
-      console.log("🔄 Switching projects, clearing tasks first...");
       dispatch(clearTasks());  // ✅ Clear previous project's tasks
       dispatch(fetchTasks(selectedProjectId));  // ✅ Fetch tasks for new project
       dispatch(fetchSprints());

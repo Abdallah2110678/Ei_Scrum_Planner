@@ -32,7 +32,6 @@ export const fetchProjectParticipants = createAsyncThunk(
 
 // Safely parse selectedProjectId from localStorage
 const storedProjectId = localStorage.getItem("selectedProjectId");
-console.log("Stored Project ID from localStorage:", storedProjectId, typeof storedProjectId);
 let selectedProjectId = null;
 if (storedProjectId) {
   try {

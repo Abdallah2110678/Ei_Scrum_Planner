@@ -16,10 +16,8 @@ const fetchTasks = async (selectedProjectId) => {
       return [];
     }
     
-    console.log("Fetching tasks for project:", selectedProjectId);
     const url = `${API_URL}?project_id=${selectedProjectId}`;
     const response = await axios.get(url);
-    console.log("Fetched tasks:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching tasks:", error.response?.data || error.message);
@@ -30,7 +28,6 @@ const fetchTasks = async (selectedProjectId) => {
 // Add a new task
 const addTask = async (taskData) => {
   try {
-    console.log("Sending task data:", taskData); // Add logging
     const response = await axios.post(API_URL, {  // Remove the extra /tasks/
       task_name: taskData.task_name,
       task_category: taskData.task_category || "FE",
@@ -41,7 +38,9 @@ const addTask = async (taskData) => {
       project: taskData.project,
       sprint: taskData.sprint || null,
       user: taskData.user || null
+      
     }, config);
+    console.log("Sending task data:", taskData); // Add logging
     return response.data;
   } catch (error) {
     console.error("Error in addTask:", error.response?.data || error.message);
