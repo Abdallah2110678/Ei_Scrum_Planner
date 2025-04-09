@@ -27,15 +27,16 @@ class SprintViewSet(viewsets.ModelViewSet):
         self.check_expired_sprints()
     
         project_id = self.request.query_params.get('project')
-    
-    # ✅ Safely check if project_id is a valid integer
-        if project_id and project_id.isdigit():
-            return Sprint.objects.filter(project_id=int(project_id))
 
-    # 🛡️ Optional: Log when invalid project_id is received
-        if project_id:
-            logger.warning(f"⚠️ Invalid project_id received in query: {project_id}")
-    
+        if project_id and project_id != 'undefined':
+            try:
+                project_id = int(project_id)
+                return Sprint.objects.filter(project_id=project_id)
+            except (ValueError, TypeError):
+                # Log invalid project_id for debugging
+                logger.error(f"Invalid project_id received: {project_id}")
+                # Return empty queryset for invalid project_id
+                return Sprint.objects.none()
         return Sprint.objects.all()
 
     

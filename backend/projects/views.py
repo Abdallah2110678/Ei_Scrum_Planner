@@ -26,7 +26,13 @@ class CreateProject(APIView):
         if not name:
             return Response({"error": "Project name is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if not user_id or not isinstance(user_id, int):
+        if not user_id:
+            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Try to convert user_id to integer if it's a string
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
             return Response({"error": "A valid user ID (integer) is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if project name is unique
@@ -34,7 +40,10 @@ class CreateProject(APIView):
             return Response({"error": "A project with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Find the user by ID
-        user = get_object_or_404(User, id=user_id)  # Raises 404 if user doesn’t exist
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": f"User with ID {user_id} does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Create the project
         project = Project.objects.create(
@@ -93,5 +102,3 @@ class ProjectViewSet(viewsets.ModelViewSet):
     """
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-
-

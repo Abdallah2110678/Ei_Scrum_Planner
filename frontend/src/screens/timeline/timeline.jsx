@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 import { format, addDays, addMonths, parseISO, differenceInDays, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSprints, updateSprint } from "../../features/sprints/sprintSlice";
+import { fetchTasks, updateTask } from '../../features/tasks/taskSlice';
 import "./Timeline.css";
 import { FaSearch, FaPlus, FaTasks, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { fetchTasks, updateTask } from '../../features/tasks/taskSlice';
 
 const Timeline = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
+  const { selectedProjectId } = useSelector((state) => state.projects);
   const [selectedView, setSelectedView] = useState("months");
   const [currentDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,26 +34,35 @@ const Timeline = () => {
   const [tasks, setTasks] = useState({});
 
   useEffect(() => {
-    dispatch(fetchSprints());
-    // Fetch tasks for each sprint
-    sprints.forEach(sprint => {
-      dispatch(fetchTasks({ sprint: sprint.id }))
+    if (selectedProjectId && selectedProjectId !== 'undefined') {
+      dispatch(fetchSprints(selectedProjectId));
+      // Fetch tasks for the selected project
+      dispatch(fetchTasks({ project: selectedProjectId }))
         .then(response => {
-          setTasks(prev => ({
-            ...prev,
-            [sprint.id]: response.payload
-          }));
+          // Group tasks by sprint
+          const tasksBySprint = {};
+          response.payload.forEach(task => {
+            if (task.sprint) {
+              if (!tasksBySprint[task.sprint]) {
+                tasksBySprint[task.sprint] = [];
+              }
+              tasksBySprint[task.sprint].push(task);
+            } else {
+              // Handle unassigned tasks
+              if (!tasksBySprint['unassigned']) {
+                tasksBySprint['unassigned'] = [];
+              }
+              tasksBySprint['unassigned'].push(task);
+            }
+          });
+          setTasks(tasksBySprint);
         });
-    });
-    // Also fetch unassigned tasks
-    dispatch(fetchTasks({ sprint: 'null' }))
-      .then(response => {
-        setTasks(prev => ({
-          ...prev,
-          unassigned: response.payload
-        }));
-      });
-  }, [dispatch]);
+    } else {
+      // If no project is selected, show a message or default state
+      console.log('No project selected. Please select a project in the Backlog view.');
+      setTasks({});
+    }
+  }, [dispatch, selectedProjectId]);
 
   const generateTimelineHeaders = () => {
     const headers = [];
@@ -160,7 +170,7 @@ const Timeline = () => {
           status: "TO DO",
           user_experience: 1
         });
-        dispatch(fetchSprints());
+        dispatch(fetchSprints(selectedProjectId));
       } else {
         const errorData = await response.json();
         console.error('Error adding task:', errorData);
@@ -519,16 +529,16 @@ const Timeline = () => {
         <div className="timeline-content">
           <div className="timeline-header-section">
             <h2>Timeline</h2>
-            <div className="search-section">
-              <div className="search-bar">
-                <FaSearch className="search-icon" />
+            <div className="timeline-controls">
+              <div className="search-container">
                 <input
                   type="text"
-                  placeholder="Search"
-                  className="search-input"
+                  placeholder="Search sprints..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
                 />
+                <FaSearch className="search-icon" />
               </div>
             </div>
           </div>

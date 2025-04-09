@@ -43,13 +43,18 @@ const Dashboard = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        await dispatch(fetchSprints()).unwrap();
-        if (selectedProjectId) {
-          await dispatch(fetchTasks(selectedProjectId)).unwrap();
+        if (selectedProjectId && selectedProjectId !== 'undefined') {
+          await dispatch(fetchSprints(selectedProjectId)).unwrap();
+          await dispatch(fetchTasks({ project: selectedProjectId })).unwrap();
+          // Fetch emotion data (mock data for now)
+          // In a real implementation, you would fetch this from your backend
+          setEmotionData(getMockEmotionData());
+        } else {
+          // If no project is selected, show a message or default data
+          console.log('No project selected. Please select a project in the Backlog view.');
+          // Clear any existing data
+          setEmotionData([]);
         }
-        // Fetch emotion data (mock data for now)
-        // In a real implementation, you would fetch this from your backend
-        setEmotionData(getMockEmotionData());
       } catch (error) {
         console.error("Error loading dashboard data:", error);
       } finally {
