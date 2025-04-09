@@ -20,7 +20,6 @@ class Task(models.Model):
     sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)
     
-    
     estimated_effort = models.FloatField(null=True, blank=True)
     actual_effort = models.FloatField(null=True, blank=True)
 

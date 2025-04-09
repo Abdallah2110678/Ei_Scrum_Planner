@@ -1,15 +1,15 @@
-import pandas as pd
+import pandas as pd # type: ignore
 import pickle
 import os
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.svm import SVR
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.neural_network import MLPRegressor
-from xgboost import XGBRegressor
+from sklearn.model_selection import train_test_split # type: ignore
+from sklearn.metrics import mean_absolute_error # type: ignore
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor # type: ignore
+from sklearn.linear_model import LinearRegression # type: ignore
+from sklearn.tree import DecisionTreeRegressor # type: ignore
+from sklearn.svm import SVR # type: ignore
+from sklearn.neighbors import KNeighborsRegressor # type: ignore
+from sklearn.neural_network import MLPRegressor # type: ignore
+from xgboost import XGBRegressor # type: ignore
 from .models import Task
 
 MODEL_PATH = "best_effort_model.pkl"
