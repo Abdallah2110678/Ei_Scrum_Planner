@@ -11,11 +11,13 @@ const Timeline = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
   const { selectedProjectId } = useSelector((state) => state.projects);
+  const { tasks: allTasks } = useSelector((state) => state.tasks);
   const [selectedView, setSelectedView] = useState("months");
   const [currentDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSprint, setExpandedSprint] = useState(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [activeSprintId, setActiveSprintId] = useState(null);
   const [taskFormData, setTaskFormData] = useState({
     task_name: "",
     task_duration: 1,
@@ -34,35 +36,57 @@ const Timeline = () => {
   const [tasks, setTasks] = useState({});
 
   useEffect(() => {
+    // Only proceed if we have a valid project ID
     if (selectedProjectId && selectedProjectId !== 'undefined') {
-      dispatch(fetchSprints(selectedProjectId));
-      // Fetch tasks for the selected project
-      dispatch(fetchTasks({ project: selectedProjectId }))
-        .then(response => {
-          // Group tasks by sprint
-          const tasksBySprint = {};
-          response.payload.forEach(task => {
-            if (task.sprint) {
-              if (!tasksBySprint[task.sprint]) {
-                tasksBySprint[task.sprint] = [];
-              }
-              tasksBySprint[task.sprint].push(task);
-            } else {
-              // Handle unassigned tasks
-              if (!tasksBySprint['unassigned']) {
-                tasksBySprint['unassigned'] = [];
-              }
-              tasksBySprint['unassigned'].push(task);
-            }
-          });
-          setTasks(tasksBySprint);
-        });
+      // Normalize the project ID to ensure consistent comparison
+      const projectId = typeof selectedProjectId === 'string' 
+        ? parseInt(selectedProjectId, 10) 
+        : selectedProjectId;
+      
+      if (!isNaN(projectId)) {
+        console.log(`Fetching data for project ID: ${projectId}`);
+        // Get sprints first
+        dispatch(fetchSprints(projectId));
+        
+        // Then fetch tasks for the selected project
+        dispatch(fetchTasks({ project: projectId }));
+      } else {
+        console.log('Invalid project ID format');
+        setTasks({});
+      }
     } else {
-      // If no project is selected, show a message or default state
       console.log('No project selected. Please select a project in the Backlog view.');
       setTasks({});
     }
   }, [dispatch, selectedProjectId]);
+
+  useEffect(() => {
+    if (allTasks && allTasks.length > 0) {
+      const tasksBySprint = {};
+      
+      // Group tasks by their sprint ID
+      allTasks.forEach(task => {
+        if (task.sprint) {
+          const sprintId = String(task.sprint);
+          if (!tasksBySprint[sprintId]) {
+            tasksBySprint[sprintId] = [];
+          }
+          tasksBySprint[sprintId].push(task);
+        } else {
+          // Handle unassigned tasks
+          if (!tasksBySprint['unassigned']) {
+            tasksBySprint['unassigned'] = [];
+          }
+          tasksBySprint['unassigned'].push(task);
+        }
+      });
+      
+      setTasks(tasksBySprint);
+      console.log('Tasks organized by sprint:', tasksBySprint);
+    } else {
+      setTasks({});
+    }
+  }, [allTasks, sprints]);
 
   const generateTimelineHeaders = () => {
     const headers = [];
@@ -143,7 +167,7 @@ const Timeline = () => {
     };
   };
 
-  const handleAddTask = async (sprintId) => {
+  const handleAddTask = async () => {
     try {
       if (!taskFormData.task_name.trim()) {
         return;
@@ -153,15 +177,19 @@ const Timeline = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token if authentication is needed
         },
         body: JSON.stringify({
           ...taskFormData,
-          sprint: sprintId
+          sprint: activeSprintId,
+          project: selectedProjectId
         }),
       });
       
       if (response.ok) {
+        // Reset form state
         setShowTaskForm(false);
+        setActiveSprintId(null);
         setTaskFormData({
           task_name: "",
           task_duration: 1,
@@ -170,7 +198,10 @@ const Timeline = () => {
           status: "TO DO",
           user_experience: 1
         });
+        
+        // Refresh data
         dispatch(fetchSprints(selectedProjectId));
+        dispatch(fetchTasks({ project: selectedProjectId }));
       } else {
         const errorData = await response.json();
         console.error('Error adding task:', errorData);
@@ -306,7 +337,10 @@ const Timeline = () => {
                           {renderSprintBar(sprint)}
                           <button 
                             className="add-task-button"
-                            onClick={() => setShowTaskForm(true)}
+                            onClick={() => {
+                              setShowTaskForm(true);
+                              setActiveSprintId(sprint.id);
+                            }}
                           >
                             <FaPlus />
                           </button>
@@ -333,11 +367,16 @@ const Timeline = () => {
                         )}
                       </td>
                     </tr>
-                    {sprint.tasks?.map((task) => {
-                      // Calculate task bar position based on sprint start date and task duration
-                      const taskStart = parseISO(sprint.start_date);
-                      const taskWidth = (task.task_duration / totalDays) * 100;
-                      const taskLeft = (differenceInDays(taskStart, timelineHeaders[0].start) / totalDays) * 100;
+                    {tasks[String(sprint.id)]?.map((task) => {
+                      // Use default date if sprint isn't started
+                      const sprintStart = sprint.start_date ? parseISO(sprint.start_date) : new Date();
+                      
+                      // Use task duration or default to 1 day
+                      const taskDuration = task.task_duration || 1;
+                      const taskWidth = (taskDuration / totalDays) * 100;
+                      
+                      // Calculate position relative to timeline start
+                      const taskLeft = (differenceInDays(sprintStart, timelineHeaders[0].start) / totalDays) * 100;
 
                       const taskBarPosition = {
                         left: `${taskLeft}%`,
@@ -365,7 +404,7 @@ const Timeline = () => {
                             <div 
                               className={`task-bar ${task.status.toLowerCase().replace(' ', '-')}`}
                               style={taskBarPosition}
-                              title={`${task.task_name} (${task.task_duration} days)`}
+                              title={`${task.task_name} (${taskDuration} days)`}
                             >
                               {task.task_name}
                             </div>
@@ -375,7 +414,7 @@ const Timeline = () => {
                     })}
                     <tr className="add-task-row">
                       <td colSpan={timelineHeaders.length + 1}>
-                        {showTaskForm ? (
+                        {showTaskForm && activeSprintId === sprint.id ? (
                           <div className="task-form">
                             <input
                               type="text"
@@ -387,13 +426,14 @@ const Timeline = () => {
                               })}
                             />
                             <button 
-                              onClick={() => handleAddTask(sprint.id)}
+                              onClick={handleAddTask}
                               disabled={!taskFormData.task_name.trim()}
                             >
                               Add Task
                             </button>
                             <button onClick={() => {
                               setShowTaskForm(false);
+                              setActiveSprintId(null);
                               setTaskFormData({
                                 task_name: "",
                                 task_duration: 1,
@@ -409,7 +449,10 @@ const Timeline = () => {
                         ) : (
                           <button 
                             className="create-task-button"
-                            onClick={() => setShowTaskForm(true)}
+                            onClick={() => {
+                              setShowTaskForm(true);
+                              setActiveSprintId(sprint.id);
+                            }}
                           >
                             <FaPlus />
                           </button>
