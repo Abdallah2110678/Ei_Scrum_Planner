@@ -281,11 +281,11 @@ useEffect(() => {
       <input
         type="number"
         className="effort-input"
-        value={taskData.effort}
-        onChange={(e) => handleUpdateTask('effort', parseFloat(e.target.value) || 0)}
+        value={taskData.actual_effort}
+        onChange={(e) => handleUpdateTask('actual_effort', parseFloat(e.target.value) || 0)}
         min="0"
         step="0.5"
-        placeholder="Effort"
+        placeholder="actual_effort"
       />
 
       {/* Estimate Button */}

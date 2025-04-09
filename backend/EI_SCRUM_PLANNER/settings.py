@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     # task estimation
-    'task_estimation',
     'sprints',
     'tasks',
     'projects',

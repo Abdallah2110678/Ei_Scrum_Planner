@@ -1,15 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import TaskViewSet
-
+from .views import TaskViewSet,train_effort_model, predict_effort_view
 router = DefaultRouter()
 router.register(r'tasks', TaskViewSet, basename='task')
 
 urlpatterns = [
     path('', include(router.urls)),
-    # Create Task	POST	/api/tasks/
-    #Get All Tasks	GET	/api/tasks/
-    #Update Task	PUT	/api/tasks/1/
-    #Delete Task	DELETE	/api/tasks/1/
-    #Get Task	Get api/tasks/?user=null  with none user
+    path("train/", train_effort_model),
+    path("predict/", predict_effort_view),
 ]

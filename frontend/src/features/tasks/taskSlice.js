@@ -57,7 +57,7 @@ export const addTask = createAsyncThunk(
         task_name: taskData.task_name,
         task_category: taskData.task_category || "FE",
         task_complexity: taskData.task_complexity || "MEDIUM",
-        effort: taskData.effort || 1.0,
+        actual_effort: taskData.actual_effort || 1.0,
         priority: taskData.priority || 1,
         status: taskData.status || "TO DO"
       };
