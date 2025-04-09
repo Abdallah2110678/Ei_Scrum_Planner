@@ -104,8 +104,11 @@ const Navbar = () => {
     <div>
       <nav className="navbar">
         <div className="navbar-logo">
-          <img src="../src/assets/emotional-intelligence.png" alt="Logo" />
+          <NavLink to="/eiscrum/">
+            <img src="../src/assets/emotional-intelligence.png" alt="Logo" />
+          </NavLink>
         </div>
+
 
         <div className="navbar-links">
           <a href="/#" className="navbar-link">Assigned to Me</a>
