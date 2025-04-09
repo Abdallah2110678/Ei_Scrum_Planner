@@ -198,4 +198,21 @@ EMAIL_HOST_PASSWORD = 'madgjtgullnzhwdg'
 EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = 'abdulrahmanabdalmoniem@gmail.com'
 FRONTEND_URL = 'http://localhost:3000'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],  # Optional: for project-level templates
+        'APP_DIRS': True,  # This enables app-level templates (e.g., project_users/templates/)
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
