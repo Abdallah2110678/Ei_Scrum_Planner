@@ -29,8 +29,15 @@ class SprintViewSet(viewsets.ModelViewSet):
         
         # Then return filtered sprints
         project_id = self.request.query_params.get('project')
-        if project_id:
-            return Sprint.objects.filter(project_id=project_id)
+        if project_id and project_id != 'undefined':
+            try:
+                project_id = int(project_id)
+                return Sprint.objects.filter(project_id=project_id)
+            except (ValueError, TypeError):
+                # Log invalid project_id for debugging
+                logger.error(f"Invalid project_id received: {project_id}")
+                # Return empty queryset for invalid project_id
+                return Sprint.objects.none()
         return Sprint.objects.all()
     
     def check_expired_sprints(self):
