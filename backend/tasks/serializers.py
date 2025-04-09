@@ -8,9 +8,10 @@ class TaskSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         allow_null=True,
-        required=False      
+        required=False
     )
     productivity_score = serializers.ReadOnlyField()
+    estimated_effort = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Task

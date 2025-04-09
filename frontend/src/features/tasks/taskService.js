@@ -15,12 +15,15 @@ const fetchTasks = async (selectedProjectId) => {
       console.log("No project ID provided");
       return [];
     }
-    
+
     const url = `${API_URL}?project_id=${selectedProjectId}`;
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
-    console.error("Error fetching tasks:", error.response?.data || error.message);
+    console.error(
+      "Error fetching tasks:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
@@ -28,18 +31,22 @@ const fetchTasks = async (selectedProjectId) => {
 // Add a new task
 const addTask = async (taskData) => {
   try {
-    const response = await axios.post(API_URL, {  // Remove the extra /tasks/
-      task_name: taskData.task_name,
-      task_category: taskData.task_category || "FE",
-      task_complexity: taskData.task_complexity || "MEDIUM",
-      actual_effort: taskData.actual_effort || 1.0,
-      priority: taskData.priority || 1,
-      status: taskData.status || "TO DO",
-      project: taskData.project,
-      sprint: taskData.sprint || null,
-      user: taskData.user || null
-      
-    }, config);
+    const response = await axios.post(
+      API_URL,
+      {
+        // Remove the extra /tasks/
+        task_name: taskData.task_name,
+        task_category: taskData.task_category || "FE",
+        task_complexity: taskData.task_complexity || "MEDIUM",
+        actual_effort: taskData.actual_effort || 1.0,
+        priority: taskData.priority || 1,
+        status: taskData.status || "TO DO",
+        project: taskData.project,
+        sprint: taskData.sprint || null,
+        user: taskData.user || null,
+      },
+      config
+    );
     console.log("Sending task data:", taskData); // Add logging
     return response.data;
   } catch (error) {
@@ -47,18 +54,19 @@ const addTask = async (taskData) => {
     throw error;
   }
 };
-
-const predictStoryPoints = async (taskData) => {
-
+const predictEffort = async (taskData) => {
   try {
     const response = await axios.post(
-      "http://127.0.0.1:8000/task-estimation/predict-task/",
+      "http://127.0.0.1:8000/api/predict/", // or whatever the new path is
       taskData,
       config
     );
-    return response.data.predicted_story_points;
+    return response.data.predicted_effort; // match your backend response key
   } catch (error) {
-    console.error("❌ Error Response:", error.response?.data || error.message);
+    console.error(
+      "❌ Error in effort prediction:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
@@ -81,7 +89,7 @@ const taskService = {
   addTask,
   updateTask,
   deleteTask,
-  predictStoryPoints,
+  predictEffort,
 };
 
 export default taskService;

@@ -1,19 +1,19 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import taskService from "./taskService";
 
-export const predictStoryPoints = createAsyncThunk(
-  "tasks/predictStoryPoints",
+export const predictEffort = createAsyncThunk(
+  "tasks/predictEffort",
   async ({ taskId, taskData }, thunkAPI) => {
     if (!taskData || !taskData.task_id) {
       return thunkAPI.rejectWithValue("❌ task_id is missing");
     }
 
     try {
-      const predictedPoints = await taskService.predictStoryPoints(taskData);
-      return { id: taskId, story_points: predictedPoints };
+      const predictedEffort = await taskService.predictEffort(taskData);
+      return { id: taskId, estimated_effort: predictedEffort };
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data || "Failed to estimate story points"
+        error.response?.data || "Failed to estimate effort"
       );
     }
   }
@@ -25,12 +25,12 @@ export const fetchTasks = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { projects } = getState();
-      const selectedProjectId = projects.selectedProjectId;  // ✅ Get selected project ID
+      const selectedProjectId = projects.selectedProjectId; // ✅ Get selected project ID
 
       if (!selectedProjectId) {
         return [];
       }
-      
+
       return await taskService.fetchTasks(selectedProjectId);
     } catch (error) {
       console.error("❌ Error fetching tasks:", error);
@@ -59,12 +59,15 @@ export const addTask = createAsyncThunk(
         task_complexity: taskData.task_complexity || "MEDIUM",
         actual_effort: taskData.actual_effort || 1.0,
         priority: taskData.priority || 1,
-        status: taskData.status || "TO DO"
+        status: taskData.status || "TO DO",
       };
 
       return await taskService.addTask(completeTaskData);
     } catch (error) {
-      console.error("Error adding task:", error.response?.data || error.message);
+      console.error(
+        "Error adding task:",
+        error.response?.data || error.message
+      );
       return rejectWithValue(error.response?.data || "Failed to add task");
     }
   }
@@ -158,27 +161,26 @@ const taskSlice = createSlice({
         state.message = action.payload;
       })
 
-      // 🔥 NEW: Predict Story Points
-      .addCase(predictStoryPoints.pending, (state) => {
+      //: Predict Effort
+      .addCase(predictEffort.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(predictStoryPoints.fulfilled, (state, action) => {
+      .addCase(predictEffort.fulfilled, (state, action) => {
         state.isLoading = false;
         const index = state.tasks.findIndex(
           (task) => task.id === action.payload.id
         );
         if (index !== -1) {
-          state.tasks[index].story_points = action.payload.story_points;
+          state.tasks[index].estimated_effort = action.payload.estimated_effort;
         }
       })
-      .addCase(predictStoryPoints.rejected, (state, action) => {
+      .addCase(predictEffort.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
       });
   },
 });
-
 
 export const { clearTasks } = taskSlice.actions;
 export default taskSlice.reducer;
