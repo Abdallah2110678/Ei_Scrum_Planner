@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import "./backlog.css";
 import { useDispatch, useSelector } from "react-redux";
-import TaskItem from "../../components/taskList/TaskItem";
+import TaskItem from "../../components/taskList/taskItem";
 import {
   fetchSprints,
   addSprint,
@@ -224,7 +225,7 @@ const StartSprintModal = ({ isOpen, onClose, sprintName, sprintId, projectId }) 
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-  const {selectedProjectId} = useSelector((state) => state.projects);
+  const { selectedProjectId } = useSelector((state) => state.projects);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
@@ -242,7 +243,7 @@ const Backlog = () => {
       if (sprint.is_active && sprint.end_date) {
         const endDate = new Date(sprint.end_date);
         const now = new Date();
-        
+
         if (endDate < now) {
           console.log(`Sprint "${sprint.sprint_name}" has expired. Auto-completing...`);
           handleCompleteSprint(sprint.id);
@@ -257,6 +258,30 @@ const Backlog = () => {
       checkExpiredSprints();
     }
   }, [sprints, selectedProjectId]);
+  const handleDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
+
+    // Exit if dropped outside
+    if (!destination) return;
+
+    const taskId = parseInt(draggableId.replace("task-", ""));
+    const sprintId = destination.droppableId.startsWith("sprint-")
+      ? parseInt(destination.droppableId.replace("sprint-", ""))
+      : null;
+
+    try {
+      await dispatch(updateTask({
+        id: taskId,
+        taskData: {
+          sprint: sprintId, // null = backlog
+        },
+      })).unwrap();
+
+      dispatch(fetchSprints(selectedProjectId));
+    } catch (err) {
+      console.error("Error moving task:", err);
+    }
+  };
 
   const handleProjectSelect = (projectId) => {
     // Make sure we're working with an integer project ID
@@ -306,170 +331,195 @@ const Backlog = () => {
     try {
       // Get the sprint's tasks
       const sprintToComplete = sprints.find(sprint => sprint.id === sprintId);
-      
+
       // Move incomplete tasks back to backlog
       const incompleteTasks = sprintToComplete.tasks.filter(
-          task => task.status !== "DONE"
+        task => task.status !== "DONE"
       );
 
       // First move incomplete tasks out of the sprint
       for (const task of incompleteTasks) {
-          await dispatch(updateTask({
-              id: task.id,
-              taskData: {
-                  ...task,
-                  sprint: null,  // Remove from sprint
-                  status: "TO DO" // Reset status to TO DO
-              }
-          })).unwrap();
+        await dispatch(updateTask({
+          id: task.id,
+          taskData: {
+            ...task,
+            sprint: null,  // Remove from sprint
+            status: "TO DO" // Reset status to TO DO
+          }
+        })).unwrap();
       }
 
       // Then complete the sprint
       await dispatch(updateSprint({
-          id: sprintId,
-          sprintData: {
-              is_completed: true,
-              end_date: new Date().toISOString()
-          }
+        id: sprintId,
+        sprintData: {
+          is_completed: true,
+          end_date: new Date().toISOString()
+        }
       })).unwrap();
 
       // Refresh the sprints to update the UI
       dispatch(fetchSprints(selectedProjectId));
-      
+
     } catch (error) {
-        console.error("Failed to complete sprint:", error);
+      console.error("Failed to complete sprint:", error);
     }
   };
 
   return (
-    <div className="backlog-container">
-      <div className="projects-school-links">
-        <a href="/projects" className="project-link">Projects</a>
-        <span className="separator"> / </span>
-        <a href="/school" className="school-link">School</a>
-      </div>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="backlog-container">
 
-      <h2>Backlog</h2>
-
-      <div className="search-section">
-        <div className="search-bar">
-          <input type="text" placeholder="Search" className="search-input" />
+        <div className="projects-school-links">
+          <a href="/projects" className="project-link">Projects</a>
+          <span className="separator"> / </span>
+          <a href="/school" className="school-link">School</a>
         </div>
-      </div>
 
-      {/* Show message if no project is selected */}
-      {!selectedProjectId ? (
-        <p className="no-project-message">Please select a project from the dropdown above.</p>
-      ) : (
-        <>
-          {/* Display sprints for selected project */}
-          {getFilteredSprints().length > 0 ? (
-            getFilteredSprints().map((sprint) => (
-              <div key={sprint.id} className="sprint-info">
-                <strong>{sprint.sprint_name}</strong>
-                <div className="sprint-content">
-                  {!sprint.tasks || sprint.tasks.length === 0 ? (
-                    <>
-                      <div className="sprint-image">
-                        <img
-                          src="https://jira-frontend-bifrost.prod-east.frontend.public.atl-paas.net/assets/sprint-planning.32ed1a38.svg"
-                          alt="Sprint Planning"
-                        />
-                      </div>
-                      <div className="sprint-text">
-                        <h3>Plan your sprint</h3>
-                        <p>
-                          Drag issues from the <b>Backlog</b> section, or create new
-                          issues, to plan the work for this sprint.
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="task-list-container">
-                      {sprint.tasks.map((task) => (
-                        <div key={task.id} className="task-item">
-                          <TaskItem key={task.id} task={task} sprints={sprints} selectedProjectId={selectedProjectId} />
+        <h2>Backlog</h2>
 
+        <div className="search-section">
+          <div className="search-bar">
+            <input type="text" placeholder="Search" className="search-input" />
+          </div>
+        </div>
+
+        {/* Show message if no project is selected */}
+        {!selectedProjectId ? (
+          <p className="no-project-message">Please select a project from the dropdown above.</p>
+        ) : (
+          <>
+            {/* Display sprints for selected project */}
+            {getFilteredSprints().length > 0 ? (
+              getFilteredSprints().map((sprint) => (
+                <div key={sprint.id} className="sprint-info">
+                  <strong>{sprint.sprint_name}</strong>
+                  <div className="sprint-content">
+                    {!sprint.tasks || sprint.tasks.length === 0 ? (
+                      <>
+                        <div className="sprint-image">
+                          <img
+                            src="https://jira-frontend-bifrost.prod-east.frontend.public.atl-paas.net/assets/sprint-planning.32ed1a38.svg"
+                            alt="Sprint Planning"
+                          />
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <div className="sprint-text">
+                          <h3>Plan your sprint</h3>
+                          <p>
+                            Drag issues from the <b>Backlog</b> section, or create new
+                            issues, to plan the work for this sprint.
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <Droppable droppableId={`sprint-${sprint.id}`}>
+                        {(provided) => (
+                          <div
+                            className="task-list-container"
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                          >
+                            {sprint.tasks.map((task, index) => (
+                              <Draggable
+                                key={task.id}
+                                draggableId={`task-${task.id}`}
+                                index={index}
+                              >
+                                {(provided) => (
+                                  <div
+                                    className="task-item"
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                  >
+                                    <TaskItem task={task} />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
 
-                <div className="sprint-actions">
-                  <button
-                    className={sprint.is_active ? "complete-sprint-button" : "start-sprint-button"}
-                    onClick={async () => {
-                      if (sprint.is_active) {
-                        try {
-                          await handleCompleteSprint(sprint.id);
-                        } catch (error) {
-                          console.error("Error completing sprint:", error);
-                          alert("Failed to complete sprint: " + error.message);
-                        }
-                      } else {
-                        setSelectedSprint(sprint);
-                        setIsStartSprintModalOpen(true);
-                      }
-                    }}
-                  >
-                    {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
-                  </button>
-                  <button
-                    className="sprint-actions-button"
-                    aria-haspopup="true"
-                    onClick={() => toggleDropdown(sprint.id)}
-                  >
-                    <span className="icon-more-actions">...</span>
-                  </button>
+                    )}
+                  </div>
 
-                  {openDropdown === sprint.id && (
-                    <div className="dropdown-menu1">
-                      <button
-                        className="dropdown-item1"
-                        onClick={() => {
+                  <div className="sprint-actions">
+                    <button
+                      className={sprint.is_active ? "complete-sprint-button" : "start-sprint-button"}
+                      onClick={async () => {
+                        if (sprint.is_active) {
+                          try {
+                            await handleCompleteSprint(sprint.id);
+                          } catch (error) {
+                            console.error("Error completing sprint:", error);
+                            alert("Failed to complete sprint: " + error.message);
+                          }
+                        } else {
                           setSelectedSprint(sprint);
                           setIsStartSprintModalOpen(true);
-                          setOpenDropdown(null);
-                        }}
-                      >
-                        Edit sprint
-                      </button>
-                      <button
-                        className="dropdown-item1"
-                        onClick={() => handleDeleteSprint(sprint.id)}
-                      >
-                        Delete sprint
-                      </button>
-                    </div>
-                  )}
+                        }
+                      }}
+                    >
+                      {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
+                    </button>
+                    <button
+                      className="sprint-actions-button"
+                      aria-haspopup="true"
+                      onClick={() => toggleDropdown(sprint.id)}
+                    >
+                      <span className="icon-more-actions">...</span>
+                    </button>
+
+                    {openDropdown === sprint.id && (
+                      <div className="dropdown-menu1">
+                        <button
+                          className="dropdown-item1"
+                          onClick={() => {
+                            setSelectedSprint(sprint);
+                            setIsStartSprintModalOpen(true);
+                            setOpenDropdown(null);
+                          }}
+                        >
+                          Edit sprint
+                        </button>
+                        <button
+                          className="dropdown-item1"
+                          onClick={() => handleDeleteSprint(sprint.id)}
+                        >
+                          Delete sprint
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className="no-sprints-message">No sprints available for this project.</p>
-          )}
-        </>
-      )}
+              ))
+            ) : (
+              <p className="no-sprints-message">No sprints available for this project.</p>
+            )}
+          </>
+        )}
 
-      {/* Task List and Create Issue */}
-      <TaskList
-        handleCreateSprint={handleCreateSprint}
-        projectId={selectedProjectId}
-      />
+        {/* Task List and Create Issue */}
+        <TaskList
+          handleCreateSprint={handleCreateSprint}
+          projectId={selectedProjectId}
+        />
 
-      {/* Pass Sprint ID to StartSprintModal */}
-      <StartSprintModal
-        isOpen={isStartSprintModalOpen}
-        onClose={() => {
-          setIsStartSprintModalOpen(false);
-          setSelectedSprint(null);
-        }}
-        sprintId={selectedSprint?.id || null}
-        sprintName={selectedSprint?.sprint_name || ""}
-        projectId={selectedProjectId}
-      />
-    </div>
+        {/* Pass Sprint ID to StartSprintModal */}
+        <StartSprintModal
+          isOpen={isStartSprintModalOpen}
+          onClose={() => {
+            setIsStartSprintModalOpen(false);
+            setSelectedSprint(null);
+          }}
+          sprintId={selectedSprint?.id || null}
+          sprintName={selectedSprint?.sprint_name || ""}
+          projectId={selectedProjectId}
+        />
+      </div>
+    </DragDropContext>
   );
 };
 
