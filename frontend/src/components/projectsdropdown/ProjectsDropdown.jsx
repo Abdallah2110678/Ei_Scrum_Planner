@@ -33,7 +33,7 @@ const ProjectsDropdown = () => {
     }, []);
 
     const handleProjectSelect = (project) => {
-        dispatch(setSelectedProjectId(project.id)); // ✅ Save in Redux + localStorage
+        dispatch(setSelectedProjectId(project.id)); // Save in Redux + localStorage
         setIsOpen(false);
     };
 
@@ -43,14 +43,22 @@ const ProjectsDropdown = () => {
         if (!projectName.trim()) return;
 
         try {
-            const newProject = await dispatch(createNewProject({ name: projectName, user_id: userId })).unwrap();
+            const result = await dispatch(createNewProject({ name: projectName, user_id: userId })).unwrap();
             setProjectName("");
             setShowForm(false);
             setIsOpen(false);
-            dispatch(fetchProjects());
-            handleProjectSelect(newProject);
+            
+            // Refresh projects list and select the new project
+            await dispatch(fetchProjects(userId));
+            
+            // Make sure we have the project data with ID before selecting it
+            if (result && result.id) {
+                dispatch(setSelectedProjectId(result.id));
+            }
         } catch (error) {
-            console.error("🚨 Failed to create project:", error);
+            console.error(" Failed to create project:", error.message);
+            // Show error to user
+            alert(`Failed to create project: ${error.message}`);
         }
     };
 

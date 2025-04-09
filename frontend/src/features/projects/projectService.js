@@ -27,10 +27,11 @@ const getProjects = async (userId) => {
 const createNewProject = async (projectData) => {
   try {
     const response = await axios.post(API_URL_create, projectData, config);
-    return response.data;
+    return response.data.data; // Return the actual project data
   } catch (error) {
     console.error("🚨 Error creating project:", error.response?.data || error.message);
-    throw error;
+    // Throw a more descriptive error
+    throw new Error(error.response?.data?.error || error.message || "Failed to create project");
   }
 };
 
