@@ -45,7 +45,6 @@ const Timeline = () => {
         : selectedProjectId;
       
       if (!isNaN(projectId)) {
-        console.log(`Fetching data for project ID: ${projectId}`);
         // Get sprints first
         dispatch(fetchSprints(projectId));
         
@@ -83,7 +82,6 @@ const Timeline = () => {
       });
       
       setTasks(tasksBySprint);
-      console.log('Tasks organized by sprint:', tasksBySprint);
     } else {
       setTasks({});
     }
