@@ -45,15 +45,15 @@ class AddUserToProject(APIView):
         if user and ProjectUsers.objects.filter(user=user, project=project).exists():
             return Response({"message": "User is already in this project"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if an unaccepted invitation already exists
-        if Invitation.objects.filter(email=email, project=project, accepted=False).exists():
-            return Response({"message": "Invitation already sent to this email"}, status=status.HTTP_400_BAD_REQUEST)
-  
+        # # Check if an unaccepted invitation already exists
+        # if Invitation.objects.filter(email=email, project=project, accepted=False).exists():
+        #     return Response({"message": "Invitation already sent to this email"}, status=status.HTTP_400_BAD_REQUEST)
+
         # Create and store invitation in the database
         invitation = Invitation.objects.create(email=email, project=project)
         
         # Generate invitation URL
-        invitation_url = f"{settings.FRONTEND_URL}/accept-invitation/{invitation.token}"
+        invitation_url = f"{settings.FRONTEND_URL}/eiscrum/accept-invitation/{invitation.token}"
         
         # Prepare email content
         subject = f"Invitation to Join {project.name}"
