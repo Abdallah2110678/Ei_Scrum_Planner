@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const ParticipantsPage = () => {
   const dispatch = useDispatch();
-  const { participants, isLoading, isError, message } = useSelector((state) => state.projects);
+  const { selectedProjectId,participants, isLoading, isError, message } = useSelector((state) => state.projects);
   const projectId = localStorage.getItem("selectedProjectId");
 
   // State for adding a new user
@@ -15,10 +15,10 @@ const ParticipantsPage = () => {
 
   // Fetch participants when the component mounts
   useEffect(() => {
-    if (projectId) {
-      dispatch(fetchProjectParticipants(projectId));
+    if (selectedProjectId) {
+      dispatch(fetchProjectParticipants(selectedProjectId));
     }
-  }, [dispatch, projectId]);
+  }, [dispatch, selectedProjectId]);
 
   // Handle adding a new user
   const handleAddUser = async () => {

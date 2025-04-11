@@ -31,7 +31,7 @@ const GamificationPage = () => {
       }
     };
     fetchTeamData();
-  }, []);
+  }, [selectedProjectId]);
 
   // Prepare data for the bar chart
   const prepareChartData = () => {

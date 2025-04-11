@@ -13,7 +13,7 @@ const Board = ({ toggleComponent }) => {
   const { selectedProjectId } = useSelector((state) => state.projects);
   useEffect(() => {
     dispatch(fetchSprints(selectedProjectId));
-  }, [dispatch]);
+  }, [dispatch, selectedProjectId]);
 
   // Filter active sprints
   const activeSprints = sprints.filter((sprint) => sprint.is_active);
