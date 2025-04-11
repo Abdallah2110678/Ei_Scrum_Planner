@@ -31,12 +31,12 @@ const App = () => {
       <Route path="/login" element={<PublicRoute><LoginForm /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegistrationForm /></PublicRoute>} />
       <Route path="/" element={<PublicRoute><IntroductionPage /></PublicRoute>} />
-      <Route path="/accept-invitation/:token" element={<PrivateRoute><AcceptInvitation /></PrivateRoute>} />
       {/* Dashboard as a standalone route */}
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
 
       {/* Protected Routes - Only Accessible If Logged In */}
       <Route path="/eiscrum" element={<PrivateRoute><Home /></PrivateRoute>}>
+      <Route path="accept-invitation/:token" element={<AcceptInvitation />}/>
         <Route path="timeline" element={<Timeline />} />
         <Route path="backlog" element={<Backlog />} />
         <Route path="board" element={<Board />} />

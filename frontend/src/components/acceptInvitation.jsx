@@ -31,11 +31,13 @@ const AcceptInvitation = () => {
     }, [token]);
 
     return (
-        <div>
-            <h1>Accept Invitation</h1>
-            {message && <p style={{ color: 'green' }}>{message}</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+      <div className="text-center p-6 rounded-lg ">
+        <h1 className="text-2xl font-bold mb-4">Status</h1>
+        {message && <p className="text-green-600 mb-2">{message}</p>}
+        {error && <p className="text-red-600 mb-2">{error}</p>}
+      </div>
+    </div>
     );
 };
 
