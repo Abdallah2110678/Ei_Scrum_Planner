@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Assignment Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .header {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .content p {
+            margin: 10px 0;
+        }
+        .footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 20px;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Task Assignment </h2>
+        </div>
+        <div class="content">
+            <p>Dear {{ user_name }},</p>
+            <p>You have been assigned to the task "<strong>{{ task_name }}</strong>".</p>
+            <p><strong>Project:</strong> {{ project_name }}</p>
+            <p><strong>Sprint:</strong> {{ sprint_name }}</p>
+            <p>Please visit website for details:</p>
+        </div>
+        <div class="footer">
+            <p>Best regards,<br>Ei Scrum Team</p>
+        </div>
+    </div>
+</body>
+</html>
