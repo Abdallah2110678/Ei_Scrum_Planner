@@ -1,0 +1,110 @@
+/* StartSprintModal.css */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 4px;
+    width: 600px;
+    max-height: 90vh;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+.modal-title {
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+.modal-content p {
+    font-size: 13px;
+    color: #666;
+    margin: 6px 0;
+}
+
+.form-group {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+    color: #000;
+    width: 100%;
+}
+
+.form-group textarea {
+    height: 60px;
+    resize: none;
+}
+
+.planned-date {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.helper-text {
+    font-size: 11px;
+    color: #999;
+}
+
+.modal-footer {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.cancel-button {
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #42526E;
+}
+
+.cancel-button:hover {
+    background: rgba(9, 30, 66, 0.04);
+}
+
+.start-button {
+    padding: 6px 12px;
+    background: #0052CC;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.start-button:hover {
+    background: #0065FF;
+}

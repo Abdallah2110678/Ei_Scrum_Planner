@@ -8,7 +8,44 @@ from rest_framework.decorators import action
 from .models import Task
 from .serializers import TaskSerializer
 from sprints.models import Sprint
+from .ml import train_model, predict_effort
+from rest_framework.decorators import api_view
 
+
+
+
+@api_view(["GET"])
+def train_effort_model(request):
+    try:
+        algo, mae = train_model()
+        return Response({"message": "Model trained", "algorithm": algo, "mae": mae})
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["POST"])
+def predict_effort_view(request):
+    try:
+        data = request.data
+        task_id = data.get("task_id")
+        task_category = data.get("task_category")
+        task_complexity = data.get("task_complexity")
+
+        predicted = predict_effort(task_complexity, task_category)
+        
+        task = Task.objects.get(id=task_id)
+        task.estimated_effort = predicted
+        task.save()
+
+        return Response({
+            "predicted_effort": round(predicted, 2),
+            "task_name": task.task_name,
+            "task_category": task.task_category,
+            "task_complexity": task.task_complexity,
+        })
+    except Task.DoesNotExist:
+        return Response({"error": "Task not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer

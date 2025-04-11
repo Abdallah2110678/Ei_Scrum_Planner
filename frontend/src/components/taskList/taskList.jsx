@@ -2,9 +2,10 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks, clearTasks } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
-import TaskItem from "./TaskItem";
+import TaskItem from "./taskItem";
 import CreateIssueButton from "../../components/taskButton/CreateTaskButton";
 import "./TaskList.css";
+import { Droppable, Draggable } from "react-beautiful-dnd";
 
 const TaskList = ({ handleCreateSprint }) => {
   const dispatch = useDispatch();
@@ -32,11 +33,40 @@ const TaskList = ({ handleCreateSprint }) => {
             <p>No tasks found in the backlog. All tasks have been assigned to sprints or no tasks exist for this project.</p>
           </div>
         ) : (
-          <div className="task-list-container">
-            {backlogTasks.map((task) => (
-              <TaskItem key={task.id} task={task} sprints={sprints} selectedProjectId={selectedProjectId} />
-            ))}
-          </div>
+          <Droppable droppableId="backlog">
+            {(provided) => (
+              <div
+                className="task-list-container"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {backlogTasks.map((task, index) => (
+                  <Draggable
+                    key={task.id}
+                    draggableId={`task-${task.id}`}
+                    index={index}
+                  >
+                    {(provided) => (
+                      <div
+                        className="task-item"
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <TaskItem
+                          task={task}
+                          sprints={sprints}
+                          selectedProjectId={selectedProjectId}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+
         )}
         <div className="sprint-actions">
           <button className="create-sprint-button" onClick={handleCreateSprint}>

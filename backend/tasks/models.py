@@ -35,11 +35,13 @@ class Task(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)
+    
+    estimated_effort = models.FloatField(null=True, blank=True)
+    actual_effort = models.FloatField(null=True, blank=True)
 
     task_name = models.CharField(max_length=255)
     task_category = models.CharField(max_length=50, default="Frontend")
     task_complexity = models.CharField(max_length=10, choices=COMPLEXITY_CHOICES, default="MEDIUM") 
-    effort = models.FloatField(default=1.0)
     priority = models.IntegerField(default=1)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="TO DO")
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useDispatch,useSelector } from "react-redux";
-import { updateTask, deleteTask, fetchTasks, predictStoryPoints } from "../../features/tasks/taskSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { updateTask, deleteTask, fetchTasks, predictEffort } from "../../features/tasks/taskSlice";
 import { fetchProjectParticipants } from "../../features/projects/projectSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
 import './taskList.css';
@@ -22,7 +22,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   // Fetch tasks & sprints when component mounts
   useEffect(() => {
     dispatch(fetchTasks());
-    
+
     dispatch(fetchProjectParticipants(selectedProjectId));
   }, [dispatch]);
 
@@ -53,23 +53,6 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     setEditStoryPoints(task.story_points);
   };
 
-  const handleBlurStoryPoints = () => {
-    let correctedValue = parseFloat(editStoryPoints);
-    if (isNaN(correctedValue) || correctedValue < 0) {
-      correctedValue = 0;
-    }
-    const updatedTask = { ...taskData, story_points: correctedValue };
-    setTaskData(updatedTask);
-    dispatch(updateTask({ id: task.id, taskData: updatedTask }))
-      .unwrap()
-      .then(() => {
-        
-        dispatch(fetchTasks());
-      })
-      .catch((error) => console.error("Error updating task:", error));
-    setEditStoryId(null);
-  };
-
   // Handle Task Status Change
   const handleStatusChange = (newStatus) => {
     const updatedTask = { ...taskData, status: newStatus };
@@ -77,7 +60,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     dispatch(updateTask({ id: task.id, taskData: updatedTask }))
       .unwrap()
       .then(() => {
-        
+
         dispatch(fetchTasks());
       })
       .catch((error) => console.error("Error updating task:", error));
@@ -88,78 +71,74 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     dispatch(deleteTask(task.id))
       .unwrap()
       .then(() => {
-        
+
         dispatch(fetchTasks());
       })
       .catch((error) => console.error("Error updating task:", error));
   };
 
-  const handleEstimateStoryPoints = async () => {
+  const handleEstimateEffort = async () => {
     try {
       setLoadingEstimate(true);
 
       const response = await dispatch(
-        predictStoryPoints({
-          task_id: task.id,
+        predictEffort({
+          taskId: task.id,
           taskData: {
             task_id: task.id,
-            user_id: 1,
-            task_duration: task.task_duration,
             task_complexity: task.task_complexity,
+            task_category: task.task_category,
           },
         })
       ).unwrap();
 
-      if (response?.estimatedPoints !== undefined) {
-        const updatedTask = { ...taskData, story_points: response.estimatedPoints };
+      if (response?.estimated_effort !== undefined) {
+        const updatedTask = { ...taskData, estimated_effort: response.estimated_effort };
         setTaskData(updatedTask);
-      }
 
-      dispatch(updateTask({ id: task.id, taskData: taskData }))
-        .unwrap()
-        .then(() => {
-          dispatch(fetchTasks());
-        })
-        .catch((error) => console.error("Error estimating story points:", error));
+        await dispatch(updateTask({ id: task.id, taskData: updatedTask }));
+        dispatch(fetchTasks());
+      }
     } catch (error) {
-      console.error("Error estimating story points:", error);
+      console.error("Error estimating effort:", error);
     } finally {
       setLoadingEstimate(false);
     }
   };
 
+
   // Handle Assigning a Task to a Sprint
   const handleMoveToSprint = (sprintId) => {
     // If moving to a sprint (not removing from sprint)
     if (sprintId) {
-        const updatedTask = { ...taskData, sprint: sprintId, status: task.status || "TO DO" };
-        setTaskData(updatedTask);
-        dispatch(updateTask({ id: task.id, taskData: updatedTask }))
-            .unwrap()
-            .then(() => {
-                // Refresh data without showing alert
-                dispatch(fetchSprints(selectedProjectId));
-                dispatch(fetchTasks(selectedProjectId));
-            })
-            .catch((error) => {
-                console.error("Error moving task to sprint:", error);
-            });
+      const updatedTask = { ...taskData, sprint: sprintId, status: task.status || "TO DO" };
+      setTaskData(updatedTask);
+      dispatch(updateTask({ id: task.id, taskData: updatedTask }))
+        .unwrap()
+        .then(() => {
+          // Refresh data without showing alert
+          dispatch(fetchSprints(selectedProjectId));
+          dispatch(fetchTasks(selectedProjectId));
+        })
+        .catch((error) => {
+          console.error("Error moving task to sprint:", error);
+        });
     } else {
-        // Removing from sprint (moving back to backlog)
-        const updatedTask = { ...taskData, sprint: null };
-        setTaskData(updatedTask);
-        dispatch(updateTask({ id: task.id, taskData: updatedTask }))
-            .unwrap()
-            .then(() => {
-                // Refresh data without showing alert
-                
-                dispatch(fetchTasks(selectedProjectId));
-            })
-            .catch((error) => {
-                console.error("Error removing task from sprint:", error);
-            });
+      // Removing from sprint (moving back to backlog)
+      const updatedTask = { ...taskData, sprint: null };
+      setTaskData(updatedTask);
+      dispatch(updateTask({ id: task.id, taskData: updatedTask }))
+        .unwrap()
+        .then(() => {
+          // Refresh data without showing alert
+
+          dispatch(fetchTasks(selectedProjectId));
+        })
+        .catch((error) => {
+          console.error("Error removing task from sprint:", error);
+        });
     }
-    
+
     // Close dropdowns
     setMoveDropdownOpen(false);
     setDropdownOpen(false);
@@ -183,39 +162,39 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     setTaskData(updatedTask);
     dispatch(updateTask({ id: task.id, taskData: updatedTask }));
   };
-// Function to get initials from a name
-const getInitials = (name) => {
-  if (!name) return "N/A";
-  const nameParts = name.split(" ");
-  return nameParts.length > 1
-    ? `${nameParts[0][0]}${nameParts[1][0]}`
-    : nameParts[0][0] || "N/A";
-};
-
-// Handle assigning a developer to the task
-const handleAssignUser = (userId) => {
-  const updatedTask = { ...taskData, user: userId };
-  setTaskData(updatedTask);
-  dispatch(updateTask({ id: task.id, taskData: updatedTask }))
-    .unwrap()
-    .then(() => {
-      dispatch(fetchTasks()); // Refresh tasks after update
-    })
-    .catch((error) => console.error("Error assigning user to task:", error));
-  setUserDropdownOpen(false); // Close dropdown after selection
-};
-
-// Close user dropdown when clicking outside
-useEffect(() => {
-  const closeUserDropdown = (event) => {
-    if (!event.target.closest(".user-avatar-container") && !event.target.closest(".user-dropdown-menu")) {
-      setUserDropdownOpen(false);
-    }
+  // Function to get initials from a name
+  const getInitials = (name) => {
+    if (!name) return "N/A";
+    const nameParts = name.split(" ");
+    return nameParts.length > 1
+      ? `${nameParts[0][0]}${nameParts[1][0]}`
+      : nameParts[0][0] || "N/A";
   };
 
-  document.addEventListener("click", closeUserDropdown);
-  return () => document.removeEventListener("click", closeUserDropdown);
-}, []);
+  // Handle assigning a developer to the task
+  const handleAssignUser = (userId) => {
+    const updatedTask = { ...taskData, user: userId };
+    setTaskData(updatedTask);
+    dispatch(updateTask({ id: task.id, taskData: updatedTask }))
+      .unwrap()
+      .then(() => {
+        dispatch(fetchTasks()); // Refresh tasks after update
+      })
+      .catch((error) => console.error("Error assigning user to task:", error));
+    setUserDropdownOpen(false); // Close dropdown after selection
+  };
+
+  // Close user dropdown when clicking outside
+  useEffect(() => {
+    const closeUserDropdown = (event) => {
+      if (!event.target.closest(".user-avatar-container") && !event.target.closest(".user-dropdown-menu")) {
+        setUserDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("click", closeUserDropdown);
+    return () => document.removeEventListener("click", closeUserDropdown);
+  }, []);
   return (
     <div key={task.id} className="task-item">
       {/* Task Name (Editable) */}
@@ -251,7 +230,7 @@ useEffect(() => {
       <input
         type="text"
         className="task-category-input"
-        value={taskData.task_category}
+        value={taskData.task_category|| ""}
         onChange={(e) => handleUpdateTask('task_category', e.target.value)}
         placeholder="Enter category"
       />
@@ -260,7 +239,7 @@ useEffect(() => {
       <input
         type="number"
         className="priority-input"
-        value={taskData.priority}
+        value={taskData.priority|| ""}
         min="1"
         max="5"
         onChange={(e) => handleUpdateTask('priority', parseInt(e.target.value))}
@@ -281,21 +260,27 @@ useEffect(() => {
       <input
         type="number"
         className="effort-input"
-        value={taskData.effort}
-        onChange={(e) => handleUpdateTask('effort', parseFloat(e.target.value) || 0)}
+        value={taskData.actual_effort|| ""}
+        onChange={(e) => handleUpdateTask('actual_effort', parseFloat(e.target.value) || 0)}
         min="0"
         step="0.5"
-        placeholder="Effort"
+        placeholder="actual_effort"
       />
 
       {/* Estimate Button */}
       <button
         className="estimate-button"
-        onClick={handleEstimateStoryPoints}
+        onClick={handleEstimateEffort}
         disabled={loadingEstimate}
       >
         {loadingEstimate ? "..." : "Estimate"}
       </button>
+      <div className="estimated-effort-display">
+        <strong>
+          {taskData.estimated_effort != null ? `${taskData.estimated_effort.toFixed(1)} hrs` : "N/A"}
+        </strong>
+      </div>
+
 
       {/* User Avatar (Logo) */}
       <div className="user-avatar-container relative">

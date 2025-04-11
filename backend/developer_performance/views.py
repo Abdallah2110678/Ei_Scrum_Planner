@@ -14,7 +14,7 @@ def calculate_developer_productivity(request, user_id):
 
     for task in tasks:
         key = task.task_category  # ✅ Only by category now
-        grouped_effort[key].append(task.effort)
+        grouped_effort[key].append(task.actual_effort)
 
     results = {}
     for category, efforts in grouped_effort.items():
@@ -41,7 +41,7 @@ def calculate_task_productivity(request, task_id):
             "developer_id": task.user.id if task.user else None,
             "category": task.task_category,
             "complexity": task.task_complexity,
-            "actual_effort": task.effort,
+            "actual_effort": task.actual_effort,
         })
     except Task.DoesNotExist:
         return JsonResponse({"error": "Task not found"}, status=404)
@@ -58,7 +58,7 @@ def calculate_sprint_productivity(request, sprint_id):
 
     for task in tasks:
         key = (task.task_category, task.task_complexity)
-        grouped_effort[key].append(task.effort)
+        grouped_effort[key].append(task.actual_effort)
 
     results = {
         f"{cat} - {comp}": {

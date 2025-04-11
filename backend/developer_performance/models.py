@@ -22,7 +22,7 @@ class DeveloperPerformance(models.Model):
     class Meta:
         unique_together = ('user', 'project', 'category', 'complexity')
 
-    def update_from_task(self, task_id, was_reworked=False, reference_effort=Task.effort):
+    def update_from_task(self, task_id, was_reworked=False, reference_effort=Task.actual_effort):
         try:
             task = Task.objects.get(id=task_id)
 
@@ -30,7 +30,7 @@ class DeveloperPerformance(models.Model):
             self.complexity = task.task_complexity
 
             self.total_tasks += 1
-            self.total_actual_effort += task.effort
+            self.total_actual_effort += task.actual_effort
             
             if was_reworked:
                 self.rework_count += 1
