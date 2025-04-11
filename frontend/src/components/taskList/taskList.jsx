@@ -5,7 +5,8 @@ import { fetchSprints } from "../../features/sprints/sprintSlice";
 import TaskItem from "./taskItem";
 import CreateIssueButton from "../../components/taskButton/CreateTaskButton";
 import "./TaskList.css";
-import { Droppable, Draggable } from "react-beautiful-dnd";
+import { Droppable, Draggable } from '@hello-pangea/dnd';
+
 
 const TaskList = ({ handleCreateSprint }) => {
   const dispatch = useDispatch();
@@ -13,13 +14,13 @@ const TaskList = ({ handleCreateSprint }) => {
   const { sprints } = useSelector((state) => state.sprints);
   const { selectedProjectId } = useSelector((state) => state.projects);
 
-  useEffect(() => {
-    if (selectedProjectId) {
-      dispatch(clearTasks());  // ✅ Clear previous project's tasks
-      dispatch(fetchTasks(selectedProjectId));  // ✅ Fetch tasks for new project
-      dispatch(fetchSprints());
-    }
-  }, [dispatch, selectedProjectId]);
+useEffect(() => {
+  if (!selectedProjectId) return;  // ✅ <-- ADD THIS LINE
+  dispatch(clearTasks());
+  dispatch(fetchTasks(selectedProjectId));
+  dispatch(fetchSprints());
+}, [dispatch, selectedProjectId]);
+
 
   // Filter tasks to only show those not assigned to a sprint (backlog tasks)
   const backlogTasks = tasks.filter(task => !task.sprint);

@@ -5,7 +5,8 @@ import { fetchSprints, updateSprint } from "../../features/sprints/sprintSlice";
 import { fetchTasks, updateTask } from '../../features/tasks/taskSlice';
 import "./Timeline.css";
 import { FaSearch, FaPlus, FaTasks, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+
 
 const Timeline = () => {
   const dispatch = useDispatch();

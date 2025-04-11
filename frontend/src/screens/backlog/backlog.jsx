@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import "./backlog.css";
 import { useDispatch, useSelector } from "react-redux";
 import TaskItem from "../../components/taskList/taskItem";
