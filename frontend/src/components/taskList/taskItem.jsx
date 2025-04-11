@@ -10,7 +10,6 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const dispatch = useDispatch();
   const { developers } = useSelector((state) => state.projects);
   const [editTaskId, setEditTaskId] = useState(null);
-  const [editStoryId, setEditStoryId] = useState(null);
   const [loadingEstimate, setLoadingEstimate] = useState(false);
   const [editTaskName, setEditTaskName] = useState(task.task_name);
   const [editStoryPoints, setEditStoryPoints] = useState(task.story_points);
@@ -20,11 +19,13 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const [taskData, setTaskData] = useState(task);
 
   // Fetch tasks & sprints when component mounts
-  useEffect(() => {
+useEffect(() => {
+  if (selectedProjectId) {
     dispatch(fetchTasks());
-
     dispatch(fetchProjectParticipants(selectedProjectId));
-  }, [dispatch]);
+  }
+}, [dispatch, selectedProjectId]);
+
 
   // Handle Editing Task Name
   const handleEditTask = () => {
