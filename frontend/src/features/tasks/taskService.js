@@ -12,7 +12,7 @@ const config = {
 const fetchTasks = async (selectedProjectId) => {
   try {
     if (!selectedProjectId) {
-      console.log("No project ID provided");
+      console.log("❌ No project ID provided");
       return [];
     }
 

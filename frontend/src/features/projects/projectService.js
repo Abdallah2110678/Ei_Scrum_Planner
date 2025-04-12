@@ -36,13 +36,15 @@ const createNewProject = async (projectData) => {
 };
 
 const getProjectParticipants = async (projectId) => {
-  try {
-    const response = await axios.get(`${API_URL_PARTICIPANTS}${projectId}/users/`, config);
-    return response.data; // Expecting { project_name: "...", users: [...] }
-  } catch (error) {
-    throw new Error(error.response?.data?.error || error.message || "Error fetching participants");
+  if (!projectId) {
+    console.warn("⚠️ Tried to fetch participants without a project ID");
+    return { project_name: "", users: [] };
   }
+
+  const response = await axios.get(`${API_URL_PARTICIPANTS}${projectId}/users/`, config);
+  return response.data;
 };
+
 
 const projectService = {
   getProjects,

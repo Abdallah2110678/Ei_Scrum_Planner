@@ -10,7 +10,6 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const dispatch = useDispatch();
   const { developers } = useSelector((state) => state.projects);
   const [editTaskId, setEditTaskId] = useState(null);
-  const [editStoryId, setEditStoryId] = useState(null);
   const [loadingEstimate, setLoadingEstimate] = useState(false);
   const [editTaskName, setEditTaskName] = useState(task.task_name);
   const [editStoryPoints, setEditStoryPoints] = useState(task.story_points);
@@ -20,11 +19,13 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const [taskData, setTaskData] = useState(task);
 
   // Fetch tasks & sprints when component mounts
-  useEffect(() => {
+useEffect(() => {
+  if (selectedProjectId) {
     dispatch(fetchTasks());
-
     dispatch(fetchProjectParticipants(selectedProjectId));
-  }, [dispatch]);
+  }
+}, [dispatch, selectedProjectId]);
+
 
   // Handle Editing Task Name
   const handleEditTask = () => {
@@ -196,7 +197,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     return () => document.removeEventListener("click", closeUserDropdown);
   }, []);
   return (
-    <div key={task.id} className="task-item">
+    <>
       {/* Task Name (Editable) */}
       <div className="task-name-container">
         {editTaskId === task.id ? (
@@ -226,11 +227,11 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
         <option value="HARD">Hard</option>
       </select>
 
-      {/* Task Category Input - Changed from select to input */}
+      {/* Task Category Input */}
       <input
         type="text"
         className="task-category-input"
-        value={taskData.task_category|| ""}
+        value={taskData.task_category || ""}
         onChange={(e) => handleUpdateTask('task_category', e.target.value)}
         placeholder="Enter category"
       />
@@ -239,7 +240,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       <input
         type="number"
         className="priority-input"
-        value={taskData.priority|| ""}
+        value={taskData.priority || ""}
         min="1"
         max="5"
         onChange={(e) => handleUpdateTask('priority', parseInt(e.target.value))}
@@ -260,7 +261,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       <input
         type="number"
         className="effort-input"
-        value={taskData.actual_effort|| ""}
+        value={taskData.actual_effort || ""}
         onChange={(e) => handleUpdateTask('actual_effort', parseFloat(e.target.value) || 0)}
         min="0"
         step="0.5"
@@ -281,19 +282,22 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
         </strong>
       </div>
 
-
-      {/* User Avatar (Logo) */}
+      {/* User Avatar */}
       <div className="user-avatar-container relative">
         <div
           className="user-avatar cursor-pointer"
           onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-          title={taskData.user ? developers?.users?.find((dev) => dev.id === taskData.user)?.name || "Unassigned" : "Unassigned"}
+          title={
+            taskData.user
+              ? developers?.users?.find((dev) => dev.id === taskData.user)?.name || "Unassigned"
+              : "Unassigned"
+          }
         >
           {taskData.user
             ? getInitials(developers?.users?.find((dev) => dev.id === taskData.user)?.name)
             : "N/A"}
         </div>
-        {/* User Dropdown Menu */}
+
         {userDropdownOpen && (
           <div className="user-dropdown-menu absolute z-10 bg-white border border-gray-200 rounded-md shadow-lg mt-1">
             <button
@@ -320,18 +324,24 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       </div>
 
       {/* Task Options Button */}
-      <button className="task-options-button" onClick={() => setDropdownOpen(!dropdownOpen)}>...</button>
+      <button className="task-options-button" onClick={() => setDropdownOpen(!dropdownOpen)}>
+        ...
+      </button>
 
-      {/* Task Options Dropdown */}
       {dropdownOpen && (
         <div className="task-dropdown-menu">
-          <button className="dropdown-item" onClick={handleDeleteTask}>Delete</button>
+          <button className="dropdown-item" onClick={handleDeleteTask}>
+            Delete
+          </button>
 
-          <div className="dropdown-item move-to" onMouseEnter={() => setMoveDropdownOpen(true)} onMouseLeave={() => setMoveDropdownOpen(false)}>
+          <div
+            className="dropdown-item move-to"
+            onMouseEnter={() => setMoveDropdownOpen(true)}
+            onMouseLeave={() => setMoveDropdownOpen(false)}
+          >
             Move to
             {moveDropdownOpen && (
               <div className="move-to-dropdown">
-                {/* Show "Remove from Sprint" if task is already assigned to a sprint */}
                 {task.sprint && (
                   <button
                     className="dropdown-item remove-sprint"
@@ -340,8 +350,6 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
                     Remove from Sprint
                   </button>
                 )}
-
-                {/* Display only sprints the task is NOT already in */}
                 {sprints.length > 0 ? (
                   sprints
                     .filter(
@@ -367,7 +375,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
