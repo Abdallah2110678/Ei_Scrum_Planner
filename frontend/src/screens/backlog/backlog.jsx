@@ -24,6 +24,7 @@ const Backlog = () => {
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch sprints when component mounts or when selectedProjectId changes
   useEffect(() => {
@@ -116,7 +117,7 @@ const Backlog = () => {
     setOpenDropdown(null);
   };
 
-  // Helper function to get filtered sprints for current project
+  // Modify the getFilteredSprints function to include search functionality
   const getFilteredSprints = () => {
     if (!selectedProjectId) return [];
     
@@ -124,11 +125,22 @@ const Backlog = () => {
       sprint.project === selectedProjectId && !sprint.is_completed
     );
 
+    // Filter by search query
+    if (searchQuery) {
+      filteredSprints = filteredSprints.map(sprint => ({
+        ...sprint,
+        tasks: sprint.tasks?.filter(task => 
+          task.task_name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      })).filter(sprint => sprint.tasks?.length > 0);
+    }
+
     // If a user is selected, only show sprints that have tasks assigned to that user
     if (selectedUserId) {
-      filteredSprints = filteredSprints.filter(sprint => 
-        sprint.tasks?.some(task => task.user === selectedUserId)
-      );
+      filteredSprints = filteredSprints.map(sprint => ({
+        ...sprint,
+        tasks: sprint.tasks?.filter(task => task.user === selectedUserId)
+      })).filter(sprint => sprint.tasks?.length > 0);
     }
 
     return filteredSprints;
@@ -196,7 +208,13 @@ const Backlog = () => {
 
         <div className="search-section">
           <div className="search-bar">
-            <input type="text" placeholder="Search" className="search-input" />
+            <input 
+              type="text" 
+              placeholder="Search" 
+              className="search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
             <UserAvatars 
               onUserSelect={handleUserSelect}
               selectedUserId={selectedUserId}
