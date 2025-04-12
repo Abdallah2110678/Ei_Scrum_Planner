@@ -1,15 +1,15 @@
-import pandas as pd # type: ignore
+import pandas as pd  # type: ignore
 import pickle
 import os
-from sklearn.model_selection import train_test_split # type: ignore
-from sklearn.metrics import mean_absolute_error # type: ignore
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor # type: ignore
-from sklearn.linear_model import LinearRegression # type: ignore
-from sklearn.tree import DecisionTreeRegressor # type: ignore
-from sklearn.svm import SVR # type: ignore
-from sklearn.neighbors import KNeighborsRegressor # type: ignore
-from sklearn.neural_network import MLPRegressor # type: ignore
-from xgboost import XGBRegressor # type: ignore
+from sklearn.model_selection import train_test_split  # type: ignore
+from sklearn.metrics import mean_absolute_percentage_error  # type: ignore
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor  # type: ignore
+from sklearn.linear_model import LinearRegression  # type: ignore
+from sklearn.tree import DecisionTreeRegressor  # type: ignore
+from sklearn.svm import SVR  # type: ignore
+from sklearn.neighbors import KNeighborsRegressor  # type: ignore
+from sklearn.neural_network import MLPRegressor  # type: ignore
+from xgboost import XGBRegressor  # type: ignore
 from .models import Task
 
 MODEL_PATH = "best_effort_model.pkl"
@@ -22,20 +22,17 @@ def train_model():
     if df.empty:
         raise ValueError("No task data found for training.")
 
-    # 🛑 Drop rows with missing effort
-    df = df.dropna(subset=["actual_effort"])
-
-    # 🧹 Optional: drop rows with missing complexity or category too
-    df = df.dropna(subset=["task_complexity", "task_category"])
+    # Drop rows with missing values
+    df = df.dropna(subset=["actual_effort", "task_complexity", "task_category"])
 
     if df.empty:
         raise ValueError("All task records have missing or invalid values.")
 
-    # 🔁 Encode complexity
+    # Encode complexity
     complexity_map = {"EASY": 1, "MEDIUM": 2, "HARD": 3}
     df["task_complexity"] = df["task_complexity"].map(complexity_map)
 
-    # 🧠 One-hot encode category
+    # One-hot encode category
     df = pd.get_dummies(df, columns=["task_category"], drop_first=True)
 
     feature_cols = ["task_complexity"] + [col for col in df.columns if "task_category" in col]
@@ -56,22 +53,28 @@ def train_model():
         "MLPRegressor": MLPRegressor(hidden_layer_sizes=(100,), max_iter=1000, random_state=42)
     }
 
-    best_model, best_mae, best_algo = None, float("inf"), None
+    best_model, best_mape, best_algo = None, float("inf"), None
 
+    print("\n Model Evaluation:")
     for name, model in models.items():
         model.fit(X_train, y_train)
-        mae = mean_absolute_error(y_test, model.predict(X_test))
-        if mae < best_mae:
-            best_mae = mae
+        mape = mean_absolute_percentage_error(y_test, model.predict(X_test)) * 100
+        accuracy = 100 - mape
+        print(f"{name}: Accuracy = {accuracy:.2f}% (MAPE = {mape:.2f}%)")
+        if mape < best_mape:
+            best_mape = mape
             best_model = model
             best_algo = name
 
+    # Save best model
     with open(MODEL_PATH, "wb") as f:
         pickle.dump(best_model, f)
     with open(BEST_ALGO_PATH, "w") as f:
         f.write(best_algo)
 
-    return best_algo, best_mae
+    print(f"\nBest Model: {best_algo} with Accuracy = {100 - best_mape:.2f}% (MAPE = {best_mape:.2f}%)")
+    return best_algo, best_mape
+
 
 def predict_effort(task_complexity, task_category):
     if not os.path.exists(MODEL_PATH):
@@ -94,4 +97,6 @@ def predict_effort(task_complexity, task_category):
         if col in expected_features:
             input_df[col] = task_category_encoded[col].iloc[0]
 
-    return model.predict(input_df)[0]
+    prediction = model.predict(input_df)[0]
+    print(f"\n🔮 Prediction done using model: {type(model).__name__}")
+    return prediction
