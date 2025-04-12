@@ -1,0 +1,74 @@
+.user-avatars-list {
+    display: flex;
+    align-items: center;
+}
+
+.user-avatar-item {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    border: 2px solid #f4f5f7;
+    cursor: pointer;
+    transition: transform 0.2s;
+    margin-left: -8px; /* Create overlap effect */
+}
+
+.user-avatar-item:first-child {
+    margin-left: 0;
+}
+
+.user-avatar-item:hover {
+    transform: translateY(-2px);
+    z-index: 2;
+}
+
+/* Add tooltip on hover */
+.user-avatar-item:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+.user-avatars-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #0052cc;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.1);
+}
+
+.user-avatar.selected {
+  border: 2px solid #00875a;
+  box-shadow: 0 0 0 2px rgba(0, 135, 90, 0.2);
+}

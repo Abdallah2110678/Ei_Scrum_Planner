@@ -38,14 +38,15 @@
 
   .search-section {
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    background-color: white;
   }
 
   .search-bar {
     display: flex;
     align-items: center;
-    width: 250px;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 16px;
   }
 
   .search-input {
@@ -60,6 +61,10 @@
 
   .search-input:focus {
     border-color: #0052cc;
+  }
+
+  .search-input::placeholder {
+    color: #7a869a;
   }
 
   .sprint-info {
@@ -159,6 +164,22 @@
     font-size: 15px;
     color: #333;
     margin-bottom: 10px;
+    border: none;
+    text-decoration: none;
+    border-bottom: none !important;
+    position: relative;
+  }
+
+  .sprint-info strong::before,
+  .sprint-info strong::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .sprint-info strong:hover,
+  .sprint-info strong:focus {
+    text-decoration: none;
+    border: none;
   }
 
   .sprint-content {
@@ -166,6 +187,7 @@
     align-items: center;
     gap: 10px;
     border: 2px dashed #ccc;
+    border-bottom: none;
   }
 
   .sprint-image img {
