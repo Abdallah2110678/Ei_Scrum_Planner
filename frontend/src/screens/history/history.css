@@ -10,10 +10,104 @@
     background-color: #ffffff; 
 }
 
-.history-container h2 {
-    font-size: 24px;
-    margin-bottom: 20px;
+.projects-school-links {
+    padding-top: 40px;
+    display: flex;
+    gap: 5px;
+}
+
+.projects-school-links a {
+    text-decoration: none;
     color: #333;
+    font-weight: 500;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.projects-school-links a:hover {
+    color: #0052cc;
+}
+
+.history-container h2 {
+    margin-top: 0px;
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: normal;
+    color: #000000;
+}
+
+.search-section {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    background-color: white;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 200px;
+    background-color: white;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: #0052cc;
+}
+
+.search-input::placeholder {
+    color: #7a869a;
+}
+
+.sprint-info {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.sprint-info strong {
+    display: block;
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.sprint-details {
+    margin-bottom: 15px;
+}
+
+.sprint-details p {
+    color: #666;
+    font-size: 13px;
+    margin: 5px 0;
+}
+
+.tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.no-project-message,
+.no-sprints-message,
+.no-tasks-message {
+    color: #666;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    margin-top: 20px;
 }
 
 .sprint-history {
@@ -33,32 +127,6 @@
     font-size: 20px;
     margin-bottom: 10px;
     color: #007bff;
-}
-
-.tasks-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-p {
-    color: #666;
-}
-
-.reactivate-button {
-    background-color: #0052cc;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-}
-
-.reactivate-button:hover {
-    background-color: #0065ff;
 }
 
 .tasks-list .task-item {
