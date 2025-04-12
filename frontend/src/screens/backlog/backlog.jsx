@@ -224,7 +224,7 @@ const Backlog = () => {
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
                                   >
-                                    <TaskItem task={task} />
+                                    <TaskItem task={task} sprints={sprints} selectedProjectId={selectedProjectId} />
                                   </div>
                                 )}
                               </Draggable>
