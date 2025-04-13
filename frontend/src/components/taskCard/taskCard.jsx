@@ -1,6 +1,6 @@
-import React from "react";
-import { FaEllipsisH } from "react-icons/fa";
-import { useSelector } from "react-redux";
+import React from 'react';
+import { FaEllipsisH } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
 
 const TaskCard = ({ task }) => {
   // Destructure all attributes from the task object
@@ -11,24 +11,23 @@ const TaskCard = ({ task }) => {
     priority,
     estimated_effort,
     actual_effort,
-    story_points,
     user,
   } = task;
 
   // Optional: Map complexity values to human-readable labels
   const complexityLabels = {
-    EASY: "Easy",
-    MEDIUM: "Medium",
-    HARD: "Hard",
+    EASY: 'Easy',
+    MEDIUM: 'Medium',
+    HARD: 'Hard',
   };
 
   const { developers } = useSelector((state) => state.projects);
   const getInitials = (name) => {
-    if (!name) return "N/A";
-    const nameParts = name.split(" ");
+    if (!name) return 'N/A';
+    const nameParts = name.split(' ');
     return nameParts.length > 1
       ? `${nameParts[0][0]}${nameParts[1][0]}`
-      : nameParts[0][0] || "N/A";
+      : nameParts[0][0] || 'N/A';
   };
 
   return (
@@ -52,10 +51,12 @@ const TaskCard = ({ task }) => {
           <strong>Priority:</strong> {priority}
         </p>
         <p className="text-sm text-gray-800">
-          <strong>Estimated Effort:</strong> {estimated_effort ? `${estimated_effort} hours` : "N/A"}
+          <strong>Estimated Effort:</strong>{' '}
+          {estimated_effort != null ? `${Number(estimated_effort).toFixed(1)} hours` : 'N/A'}
         </p>
         <p className="text-sm text-gray-800">
-          <strong>Actual Effort:</strong> {actual_effort ? `${actual_effort} hours` : "N/A"}
+          <strong>Actual Effort:</strong>{' '}
+          {actual_effort != null ? `${Number(actual_effort).toFixed(1)} hours` : 'N/A'}
         </p>
       </div>
       <div className="flex justify-between items-center">
@@ -63,13 +64,11 @@ const TaskCard = ({ task }) => {
           <span className="text-sm text-gray-600"></span>
         </div>
         <div className="flex items-center gap-2">
-{/*           
-          <img
+          {/* <img
             src="avatar"
             alt="avatar"
             className="w-6 h-6 rounded-full"
           /> */}
-          
         </div>
       </div>
     </div>

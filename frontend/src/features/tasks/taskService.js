@@ -71,10 +71,18 @@ const predictEffort = async (taskData) => {
   }
 };
 
-// Update a task
 const updateTask = async ({ id, taskData }) => {
-  const response = await axios.patch(`${API_URL}${id}/`, taskData, config);
-  return response.data;
+  try {
+    console.log(`PATCH ${API_URL}${id}/`, { taskData });
+    const response = await axios.patch(`${API_URL}${id}/`, taskData, config);
+    console.log('Update response:', response.data);
+    // Extract task from { message, data } response
+    const updatedTask = response.data.data || response.data;
+    return updatedTask;
+  } catch (error) {
+    console.error('Update task error:', error.response?.data || error.message);
+    throw error;
+  }
 };
 
 // Delete a task
