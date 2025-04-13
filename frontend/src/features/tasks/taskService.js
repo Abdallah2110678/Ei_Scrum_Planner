@@ -73,9 +73,7 @@ const predictEffort = async (taskData) => {
 
 const updateTask = async ({ id, taskData }) => {
   try {
-    console.log(`PATCH ${API_URL}${id}/`, { taskData });
     const response = await axios.patch(`${API_URL}${id}/`, taskData, config);
-    console.log('Update response:', response.data);
     // Extract task from { message, data } response
     const updatedTask = response.data.data || response.data;
     return updatedTask;

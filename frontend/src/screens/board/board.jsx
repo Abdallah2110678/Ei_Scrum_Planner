@@ -24,7 +24,6 @@ const Board = ({ toggleComponent }) => {
   // Fetch tasks and sprints when selectedProjectId changes
   useEffect(() => {
     if (selectedProjectId) {
-      console.log('Fetching data for project:', selectedProjectId);
       dispatch(fetchTasks());
       dispatch(fetchSprints(selectedProjectId));
     }
@@ -54,7 +53,6 @@ const Board = ({ toggleComponent }) => {
 
     const taskId = parseInt(draggableId.replace('task-', ''), 10);
     const newStatus = destination.droppableId;
-    console.log('Dragging task:', { taskId, from: source.droppableId, to: newStatus });
 
     // Optimistic update
     setLocalTasks((prevTasks) =>
@@ -70,7 +68,6 @@ const Board = ({ toggleComponent }) => {
           taskData: { status: newStatus },
         })
       ).unwrap();
-      console.log('Task status updated:', { taskId, newStatus });
     } catch (error) {
       console.error('Error updating task status:', error);
       // Revert optimistic update on error
