@@ -17,7 +17,7 @@ import StartSprintModal from "./../../components/sprint/StartSprintModal";
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-  const { selectedProjectId } = useSelector((state) => state.projects);
+  const { selectedProjectId, projects } = useSelector((state) => state.projects);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
@@ -163,9 +163,9 @@ const Backlog = () => {
       <div className="backlog-container">
 
         <div className="projects-school-links">
-          <a href="/projects" className="project-link">Projects</a>
+          <a href="#" className="project-link">Project</a>
           <span className="separator"> / </span>
-          <a href="/school" className="school-link">School</a>
+          <a href="#" className="school-link">{selectedProjectId ? projects.find(p => p.id === selectedProjectId)?.name : ""}</a>
         </div>
 
         <h2>Backlog</h2>
