@@ -49,10 +49,8 @@ const Board = ({ toggleComponent }) => {
                 .filter((task) => task.status === "TO DO")
                 .map((task) => (
                   <TaskCard
-                    key={task.id}
-                    description={task.task_name}
-            
-                    count={task.story_points}
+                  key={task.id}
+                  task = {task}
                   />
                 ))
             )}
@@ -71,9 +69,8 @@ const Board = ({ toggleComponent }) => {
                 .map((task) => (
                   <TaskCard
                     key={task.id}
-                    description={task.task_name}
-            
-                    count={task.story_points}
+                    task = {task}
+                  
                   />
                 ))
             )}
@@ -91,9 +88,8 @@ const Board = ({ toggleComponent }) => {
                 .filter((task) => task.status === "DONE")
                 .map((task) => (
                   <TaskCard
-                    key={task.id}
-                    description={task.task_name}
-                    count={task.story_points}
+                  key={task.id}
+                  task = {task}
                   />
                 ))
             )}
