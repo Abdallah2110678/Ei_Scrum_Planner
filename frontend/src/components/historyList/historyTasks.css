@@ -1,6 +1,6 @@
 .history-task-item {
     display: grid;
-    grid-template-columns: 2fr 120px 120px 80px 120px 60px 60px 100px;
+    grid-template-columns: 2fr 120px 120px 80px 120px 60px 60px 60px 100px;
     align-items: center;
     background-color: #fff;
     padding: 8px;
@@ -41,18 +41,42 @@
 }
 
 /* User Avatar */
+.history-avatar-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
 .user-avatar {
     background-color: #FF5733;
     color: white;
     font-weight: bold;
     font-size: 14px;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     text-transform: uppercase;
+    cursor: default;
+}
+
+/* Add tooltip styling for the user name */
+.user-avatar:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
 }
 
 /* Active button */
@@ -79,13 +103,6 @@
     gap: 30px;
 }
 
-.history-avatar-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-}
-
 /* Add styles for category input */
 .task-category-input {
     width: 120px;
@@ -101,4 +118,12 @@
     cursor: not-allowed;
     color: #333;
     -webkit-text-fill-color: #333;
-} 
+}
+
+/* Add styles for the estimated effort display */
+.estimated-effort-display {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    padding: 6px 8px;
+}

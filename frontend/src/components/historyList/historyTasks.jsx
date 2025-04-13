@@ -1,16 +1,30 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateTask } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
 import "./historyTasks.css";
 
 const HistoryTasks = ({ task, sprint }) => {
     const dispatch = useDispatch();
+    const { developers } = useSelector((state) => state.projects);
 
     // Show task if either the sprint is completed OR the task status is "DONE"
     if (!sprint.is_completed && task.status !== "DONE") {
         return null;
     }
+
+    // Function to get initials from a name
+    const getInitials = (name) => {
+        if (!name) return "N/A";
+        const nameParts = name.split(" ");
+        return nameParts.length > 1
+            ? `${nameParts[0][0]}${nameParts[1][0]}`
+            : nameParts[0][0] || "N/A";
+    };
+
+    // Get assigned user info
+    const assignedUser = developers?.users?.find(dev => dev.id === task.user);
+    const userInitials = assignedUser ? getInitials(assignedUser.name) : "N/A";
 
     const handleReactivateTask = async () => {
         try {
@@ -75,20 +89,28 @@ const HistoryTasks = ({ task, sprint }) => {
                 <option value="DONE">Done</option>
             </select>
 
-            {/* User Avatar */}
+            {/* User Avatar with Name */}
             <div className="history-avatar-container">
-                <div className="user-avatar">
-                    {task.user_initials || "ZM"}
+                <div 
+                    className="user-avatar"
+                    title={assignedUser ? assignedUser.name : "Unassigned"}
+                >
+                    {userInitials}
                 </div>
             </div>
 
-            {/* Effort Input (Disabled) */}
+            {/* Actual Effort Input (Disabled) */}
             <input
                 type="number"
                 className="effort-input"
-                value={task.effort}
+                value={task.actual_effort || 0}
                 disabled
             />
+
+            {/* Estimated Effort Display */}
+            <div className="estimated-effort-display">
+                {task.estimated_effort != null ? `${task.estimated_effort.toFixed(1)} hrs` : "N/A"}
+            </div>
 
             {/* Active Button */}
             <button 
