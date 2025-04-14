@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './sidebar.css';
 
 const Sidebar = () => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <button className="hamburger-button" onClick={toggleSidebar}>
+        <span className="hamburger-icon">☰</span>
+      </button>
       <ul className="sidebar-menu">
         <li className="sidebar-item">
           <Link to="/eiscrum/timeline" className="sidebar-link" >

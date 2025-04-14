@@ -4,11 +4,13 @@
     background-color: #f8f9fa; /* Light background color */
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    height: 100vh; /* Full height of the viewport */
+    height: calc(100vh - 65px); /* Subtract navbar height */
     position: fixed; /* Fixed position to stay in place */
-    top: 0; /* Align to the top */
+    top: 65px; /* Start below navbar */
     left: 0; /* Align to the left */
     overflow-y: auto; /* Enable scrolling if content overflows */
+    transition: width 0.3s ease, transform 0.3s ease;
+    z-index: 100; /* Lower than navbar's z-index */
   }
   
   /* Sidebar Header */
@@ -61,4 +63,75 @@
   /* Sidebar Text */
   .sidebar-text {
     font-size: 16px;
+  }
+
+  /* Add new styles for collapsed state */
+  .sidebar.collapsed {
+    width: 60px;
+  }
+
+  .sidebar.collapsed .sidebar-text {
+    display: none;
+  }
+
+  .sidebar.collapsed .sidebar-link {
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .sidebar-icon {
+    margin-right: 0;
+  }
+
+  /* Hamburger button styles */
+  .hamburger-button {
+    position: absolute;
+    top: 20px;
+    right: 10px; /* Changed from -15px to -12px to be more visible */
+    width: 24px; /* Slightly smaller width */
+    height: 24px; /* Slightly smaller height */
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 101;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .hamburger-button:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.1); /* Slightly enlarge on hover */
+  }
+
+  .sidebar.collapsed .hamburger-button {
+    transform: rotate(180deg);
+    right: 10px; /* Adjust position when collapsed */
+  }
+
+  .hamburger-icon {
+    font-size: 16px; /* Slightly smaller font size */
+    color: #333;
+  }
+
+  /* Update container margins for collapsed state */
+  .backlog-container, .history-container {
+    padding: 30px;
+    margin-top: 65px; /* Add top margin to account for navbar */
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    transition: margin-left 0.3s ease, width 0.3s ease;
+  }
+
+  .sidebar.collapsed ~ .backlog-container,
+  .sidebar.collapsed ~ .history-container {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  /* Add transition for smooth movement */
+  .sidebar.collapsed .hamburger-button:hover {
+    transform: rotate(180deg) scale(1.1);
   }
