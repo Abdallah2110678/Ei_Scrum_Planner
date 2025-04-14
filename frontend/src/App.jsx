@@ -4,7 +4,7 @@ import Backlog from "./screens/backlog/backlog";
 import Board from "./screens/board/board";
 import Timeline from "./screens/timeline/timeline";
 import LoginForm from "./screens/login/login";
-import History from "./screens/history/History.jsx";
+import History from "./screens/history/history.jsx";
 import RegistrationForm from "./screens/registerationForm/registeration.jsx";
 import IntroductionPage from "./screens/Introduction/IntroductionPage.jsx";
 import Dashboard from "./screens/Dashboard/Dashboard";

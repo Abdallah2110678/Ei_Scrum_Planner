@@ -19,6 +19,18 @@ export const createNewProject = createAsyncThunk("projects/createProject", async
   }
 });
 
+export const updateProject = createAsyncThunk(
+  "projects/updateProject",
+  async ({ id, projectData }, thunkAPI) => {
+    try {
+      return await projectService.updateProject({ id, projectData });
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message || "Failed to update project");
+    }
+  }
+);
+
+
 export const fetchProjectParticipants = createAsyncThunk(
   "projects/fetchProjectParticipants",
   async (projectId, thunkAPI) => {
@@ -109,11 +121,18 @@ const projectSlice = createSlice({
           users: developers,
         };
       })
+      .addCase(updateProject.fulfilled, (state, action) => {
+        const index = state.projects.findIndex(p => p.id === action.payload.id);
+        if (index !== -1) {
+          state.projects[index] = action.payload;
+        }
+      })
       .addCase(fetchProjectParticipants.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
       });
+      
   },
 });
 

@@ -44,12 +44,21 @@ const getProjectParticipants = async (projectId) => {
   const response = await axios.get(`${API_URL_PARTICIPANTS}${projectId}/users/`, config);
   return response.data;
 };
+const updateProject = async ({ id, projectData }) => {
+  const response = await axios.patch(
+    `http://127.0.0.1:8000/api/projects/${id}/`,
+    projectData,
+    config
+  );
+  return response.data;
+};
 
 
 const projectService = {
   getProjects,
   createNewProject, // ✅ Renamed to prevent conflicts
-  getProjectParticipants
+  getProjectParticipants,
+  updateProject,
 };
 
 export default projectService;
