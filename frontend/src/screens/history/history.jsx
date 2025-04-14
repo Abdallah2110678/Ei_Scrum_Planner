@@ -8,7 +8,9 @@ import UserAvatars from '../../components/userAvatars/UserAvatars';
 const History = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-  const selectedProjectId = useSelector((state) => state.projects.selectedProjectId);
+  const { selectedProjectId, projects } = useSelector((state) => state.projects);
+
+
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -21,8 +23,8 @@ const History = () => {
   // Filter sprints that are either completed or have done tasks
   const getFilteredSprints = () => {
     let filteredSprints = sprints.filter(
-      (sprint) => 
-        sprint.project === selectedProjectId && 
+      (sprint) =>
+        sprint.project === selectedProjectId &&
         (sprint.is_completed || sprint.tasks?.some(task => task.status === "DONE"))
     );
 
@@ -30,7 +32,7 @@ const History = () => {
     if (searchQuery) {
       filteredSprints = filteredSprints.map(sprint => ({
         ...sprint,
-        tasks: sprint.tasks?.filter(task => 
+        tasks: sprint.tasks?.filter(task =>
           task.task_name.toLowerCase().includes(searchQuery.toLowerCase())
         )
       })).filter(sprint => sprint.tasks?.length > 0);
@@ -56,21 +58,26 @@ const History = () => {
       <div className="projects-school-links">
         <a href="/projects" className="project-link">Projects</a>
         <span className="separator"> / </span>
-        <a href="/school" className="school-link">School</a>
+        <span className="school-link">
+          {selectedProjectId
+            ? projects.find(p => p.id === selectedProjectId)?.name || "Unnamed Project"
+            : "No Project Selected"}
+        </span>
       </div>
+
 
       <h2>Completed Sprints & Tasks</h2>
 
       <div className="search-section">
         <div className="search-bar">
-          <input 
-            type="text" 
-            placeholder="Search" 
+          <input
+            type="text"
+            placeholder="Search"
             className="search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <UserAvatars 
+          <UserAvatars
             onUserSelect={handleUserSelect}
             selectedUserId={selectedUserId}
           />
@@ -94,9 +101,9 @@ const History = () => {
             {sprint.tasks && sprint.tasks.length > 0 ? (
               <div className="tasks-list">
                 {sprint.tasks.map((task) => (
-                  <HistoryTasks 
-                    key={task.id} 
-                    task={task} 
+                  <HistoryTasks
+                    key={task.id}
+                    task={task}
                     sprint={sprint}
                   />
                 ))}

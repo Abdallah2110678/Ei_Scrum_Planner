@@ -11,7 +11,7 @@ const Board = ({ toggleComponent }) => {
   const dispatch = useDispatch();
   const { tasks, isLoading } = useSelector((state) => state.tasks);
   const { sprints } = useSelector((state) => state.sprints);
-  const { selectedProjectId } = useSelector((state) => state.projects);
+  const { selectedProjectId, projects } = useSelector((state) => state.projects);
 
   // Local state for optimistic updates
   const [localTasks, setLocalTasks] = useState(tasks);
@@ -86,14 +86,13 @@ const Board = ({ toggleComponent }) => {
     <div className="board-container">
       {/* Projects / School as hyperlinks */}
       <div className="projects-school-links">
-        <Link to="/projects" className="project-link">
-          Projects
-        </Link>
+        <Link to="/projects" className="project-link">Projects</Link>
         <span className="separator"> / </span>
-        <Link to="/school" className="school-link">
-          School
-        </Link>
+        <span className="school-link">
+          {selectedProjectId ? projects.find((p) => p.id === selectedProjectId)?.name || "Unnamed Project" : "No Project Selected"}
+        </span>
       </div>
+
 
       <h2>Board</h2>
 

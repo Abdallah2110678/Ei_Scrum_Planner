@@ -9,9 +9,10 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 
 const Timeline = () => {
+
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-  const { selectedProjectId } = useSelector((state) => state.projects);
+  const { selectedProjectId, projects } = useSelector((state) => state.projects);
   const { tasks: allTasks } = useSelector((state) => state.tasks);
   const [selectedView, setSelectedView] = useState("months");
   const [currentDate] = useState(new Date());
@@ -40,14 +41,14 @@ const Timeline = () => {
     // Only proceed if we have a valid project ID
     if (selectedProjectId && selectedProjectId !== 'undefined') {
       // Normalize the project ID to ensure consistent comparison
-      const projectId = typeof selectedProjectId === 'string' 
-        ? parseInt(selectedProjectId, 10) 
+      const projectId = typeof selectedProjectId === 'string'
+        ? parseInt(selectedProjectId, 10)
         : selectedProjectId;
-      
+
       if (!isNaN(projectId)) {
         // Get sprints first
         dispatch(fetchSprints(projectId));
-        
+
         // Then fetch tasks for the selected project
         dispatch(fetchTasks({ project: projectId }));
       } else {
@@ -63,7 +64,7 @@ const Timeline = () => {
   useEffect(() => {
     if (allTasks && allTasks.length > 0) {
       const tasksBySprint = {};
-      
+
       // Group tasks by their sprint ID
       allTasks.forEach(task => {
         if (task.sprint) {
@@ -80,7 +81,7 @@ const Timeline = () => {
           tasksBySprint['unassigned'].push(task);
         }
       });
-      
+
       setTasks(tasksBySprint);
     } else {
       setTasks({});
@@ -140,9 +141,9 @@ const Timeline = () => {
     const sprintStart = parseISO(sprint.start_date);
     const sprintEnd = addDays(sprintStart, sprint.duration - 1);
     const timelineHeaders = generateTimelineHeaders();
-    
+
     const totalDays = timelineHeaders.reduce((sum, header) => sum + header.days, 0);
-    
+
     const viewStart = timelineHeaders[0].start;
     const viewEnd = timelineHeaders[timelineHeaders.length - 1].end;
 
@@ -184,7 +185,7 @@ const Timeline = () => {
           project: selectedProjectId
         }),
       });
-      
+
       if (response.ok) {
         // Reset form state
         setShowTaskForm(false);
@@ -197,7 +198,7 @@ const Timeline = () => {
           status: "TO DO",
           user_experience: 1
         });
-        
+
         // Refresh data
         dispatch(fetchSprints(selectedProjectId));
         dispatch(fetchTasks({ project: selectedProjectId }));
@@ -282,8 +283,8 @@ const Timeline = () => {
     return (
       <div className="sprint-bar">
         <span>{sprint.sprint_name}</span>
-        <FaEdit 
-          onClick={() => handleEditClick(sprint)} 
+        <FaEdit
+          onClick={() => handleEditClick(sprint)}
           className="edit-icon"
         />
       </div>
@@ -294,7 +295,7 @@ const Timeline = () => {
     const timelineHeaders = generateTimelineHeaders();
     const totalDays = timelineHeaders.reduce((sum, header) => sum + header.days, 0);
 
-    const filteredSprints = sprints.filter(sprint => 
+    const filteredSprints = sprints.filter(sprint =>
       sprint.sprint_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -305,11 +306,11 @@ const Timeline = () => {
             <tr>
               <th className="fixed-column">Sprint Name</th>
               {timelineHeaders.map((header, index) => (
-                <th 
-                  key={index} 
-                  style={{ 
+                <th
+                  key={index}
+                  style={{
                     width: `${(header.days / totalDays) * 100}%`,
-                    minWidth: selectedView === "weeks" ? "150px" : "200px" 
+                    minWidth: selectedView === "weeks" ? "150px" : "200px"
                   }}
                   className="timeline-header-cell"
                 >
@@ -327,14 +328,14 @@ const Timeline = () => {
             {filteredSprints.length > 0 ? (
               filteredSprints.map((sprint) => {
                 const barPosition = calculateGanttBar(sprint);
-                
+
                 return (
                   <React.Fragment key={sprint.id}>
                     <tr>
                       <td className="fixed-column sprint-name">
                         <div className="sprint-name-container">
                           {renderSprintBar(sprint)}
-                          <button 
+                          <button
                             className="add-task-button"
                             onClick={() => {
                               setShowTaskForm(true);
@@ -348,17 +349,17 @@ const Timeline = () => {
                       <td colSpan={timelineHeaders.length} className="gantt-chart-cell">
                         <div className="gantt-grid">
                           {timelineHeaders.map((header, index) => (
-                            <div 
-                              key={index} 
-                              className="gantt-grid-line" 
+                            <div
+                              key={index}
+                              className="gantt-grid-line"
                               style={{ width: `${(header.days / totalDays) * 100}%` }}
                             />
                           ))}
                         </div>
                         {barPosition && (
-                          <div 
+                          <div
                             className={`gantt-bar ${sprint.is_active ? 'active' : ''}`}
-                            style={barPosition} 
+                            style={barPosition}
                             title={`${sprint.sprint_name} (${format(parseISO(sprint.start_date), "MMM d")} - ${format(addDays(parseISO(sprint.start_date), sprint.duration - 1), "MMM d")})`}
                           >
                             <span className="sprint-bar-label">{sprint.sprint_name}</span>
@@ -369,11 +370,11 @@ const Timeline = () => {
                     {tasks[String(sprint.id)]?.map((task) => {
                       // Use default date if sprint isn't started
                       const sprintStart = sprint.start_date ? parseISO(sprint.start_date) : new Date();
-                      
+
                       // Use task duration or default to 1 day
                       const taskDuration = task.task_duration || 1;
                       const taskWidth = (taskDuration / totalDays) * 100;
-                      
+
                       // Calculate position relative to timeline start
                       const taskLeft = (differenceInDays(sprintStart, timelineHeaders[0].start) / totalDays) * 100;
 
@@ -393,14 +394,14 @@ const Timeline = () => {
                           <td colSpan={timelineHeaders.length} className="gantt-chart-cell">
                             <div className="gantt-grid">
                               {timelineHeaders.map((header, index) => (
-                                <div 
-                                  key={index} 
-                                  className="gantt-grid-line" 
+                                <div
+                                  key={index}
+                                  className="gantt-grid-line"
                                   style={{ width: `${(header.days / totalDays) * 100}%` }}
                                 />
                               ))}
                             </div>
-                            <div 
+                            <div
                               className={`task-bar ${task.status.toLowerCase().replace(' ', '-')}`}
                               style={taskBarPosition}
                               title={`${task.task_name} (${taskDuration} days)`}
@@ -424,7 +425,7 @@ const Timeline = () => {
                                 task_name: e.target.value
                               })}
                             />
-                            <button 
+                            <button
                               onClick={handleAddTask}
                               disabled={!taskFormData.task_name.trim()}
                             >
@@ -446,7 +447,7 @@ const Timeline = () => {
                             </button>
                           </div>
                         ) : (
-                          <button 
+                          <button
                             className="create-task-button"
                             onClick={() => {
                               setShowTaskForm(true);
@@ -476,18 +477,18 @@ const Timeline = () => {
 
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
-    
+
     if (!destination) return;
-    
+
     const sourceSprintId = source.droppableId;
     const destSprintId = destination.droppableId;
-    
+
     if (sourceSprintId === destSprintId) {
       // Reorder within same sprint
       const sprintTasks = Array.from(tasks[sourceSprintId]);
       const [removed] = sprintTasks.splice(source.index, 1);
       sprintTasks.splice(destination.index, 0, removed);
-      
+
       setTasks({
         ...tasks,
         [sourceSprintId]: sprintTasks
@@ -498,14 +499,14 @@ const Timeline = () => {
       const destTasks = Array.from(tasks[destSprintId] || []);
       const [movedTask] = sourceTasks.splice(source.index, 1);
       destTasks.splice(destination.index, 0, movedTask);
-      
+
       // Update task's sprint assignment
       const newSprintId = destSprintId === 'unassigned' ? null : destSprintId;
       await dispatch(updateTask({
         id: draggableId,
         sprint: newSprintId
       }));
-      
+
       setTasks({
         ...tasks,
         [sourceSprintId]: sourceTasks,
@@ -516,7 +517,7 @@ const Timeline = () => {
 
   const renderTaskList = (sprintId) => {
     const sprintTasks = tasks[sprintId] || [];
-    
+
     return (
       <Droppable droppableId={String(sprintId)}>
         {(provided) => (
@@ -559,14 +560,15 @@ const Timeline = () => {
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="timeline-container">
         <div className="projects-school-links">
-          <a href="/projects" className="projects-link">
-            Projects
-          </a>
+          <a href="/projects" className="projects-link">Projects</a>
           <span className="separator"> / </span>
-          <a href="/school" className="school-link">
-            School
-          </a>
+          <span className="school-link">
+            {selectedProjectId
+              ? projects.find((p) => p.id === selectedProjectId)?.name || "Unnamed Project"
+              : "No Project Selected"}
+          </span>
         </div>
+
 
         <div className="timeline-content">
           <div className="timeline-header-section">
@@ -587,20 +589,20 @@ const Timeline = () => {
 
           <div className="timeline-header">
             <div className="view-controls">
-              <button 
-                className={selectedView === "weeks" ? "active" : ""} 
+              <button
+                className={selectedView === "weeks" ? "active" : ""}
                 onClick={() => setSelectedView("weeks")}
               >
                 Weeks
               </button>
-              <button 
-                className={selectedView === "months" ? "active" : ""} 
+              <button
+                className={selectedView === "months" ? "active" : ""}
                 onClick={() => setSelectedView("months")}
               >
                 Months
               </button>
-              <button 
-                className={selectedView === "quarters" ? "active" : ""} 
+              <button
+                className={selectedView === "quarters" ? "active" : ""}
                 onClick={() => setSelectedView("quarters")}
               >
                 Quarters

@@ -19,7 +19,8 @@ import UserAvatars from '../../components/userAvatars/UserAvatars';
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-  const { selectedProjectId, projects } = useSelector((state) => state.projects);
+const { selectedProjectId, projects } = useSelector((state) => state.projects);
+
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
