@@ -109,10 +109,11 @@ const Navbar = () => {
           </NavLink>
         </div>
 
-
-        <div className="navbar-links">
-          <a href="/#" className="navbar-link">Assigned to Me</a>
-          <ProjectsDropdown /> {/* Projects Dropdown Component */}
+        <div className="navbar-links" style={{ display: 'flex !important', position: 'relative !important', flexDirection: 'row !important' }}>
+          <NavLink to="/eiscrum/assigned" className="navbar-link">Assigned to Me</NavLink>
+          <div className="project-selector">
+            <ProjectsDropdown />
+          </div>
           <NavLink to="/dashboard" className="navbar-link">Dashboard</NavLink>
           <NavLink to="/eiscrum/participant" className="navbar-link">Add User</NavLink>
         </div>

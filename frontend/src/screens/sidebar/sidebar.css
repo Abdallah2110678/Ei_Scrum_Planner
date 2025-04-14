@@ -9,7 +9,7 @@
     top: 65px; /* Start below navbar */
     left: 0; /* Align to the left */
     overflow-y: auto; /* Enable scrolling if content overflows */
-    transition: width 0.3s ease, transform 0.3s ease;
+    transition: all 0.3s ease;
     z-index: 100; /* Lower than navbar's z-index */
   }
   
@@ -84,11 +84,12 @@
 
   /* Hamburger button styles */
   .hamburger-button {
+    margin-top: 30px;
     position: absolute;
     top: 20px;
     right: 10px; /* Changed from -15px to -12px to be more visible */
-    width: 24px; /* Slightly smaller width */
-    height: 24px; /* Slightly smaller height */
+    width: 30px; /* Slightly smaller width */
+    height: 30px; /* Slightly smaller height */
     border-radius: 50%;
     background-color: #ffffff;
     border: 1px solid #e0e0e0;
@@ -134,4 +135,101 @@
   /* Add transition for smooth movement */
   .sidebar.collapsed .hamburger-button:hover {
     transform: rotate(180deg) scale(1.1);
+  }
+
+  /* Responsive styles */
+  @media screen and (max-width: 768px) {
+    .sidebar {
+        transform: translateX(0); /* Change this to make sidebar visible by default */
+        width: 60px; /* Start with collapsed width on mobile */
+        padding: 20px 10px; /* Reduce padding on mobile */
+    }
+
+    /* Hide text by default on mobile */
+    .sidebar-text {
+        display: none;
+    }
+
+    /* Center icons */
+    .sidebar-link {
+        justify-content: center;
+    }
+
+    .sidebar-icon {
+        margin-right: 0;
+    }
+
+    /* When expanded on mobile */
+    .sidebar:not(.collapsed) {
+        width: 200px; /* Expand to this width when opened */
+    }
+
+    .sidebar:not(.collapsed) .sidebar-text {
+        display: block; /* Show text when expanded */
+    }
+
+    .sidebar:not(.collapsed) .sidebar-link {
+        justify-content: flex-start; /* Left align when expanded */
+    }
+
+    .sidebar:not(.collapsed) .sidebar-icon {
+        margin-right: 10px; /* Add space between icon and text when expanded */
+    }
+
+    /* Adjust hamburger button */
+    .hamburger-button {
+        position: absolute;
+        top: 20px;
+        right: 10px;
+        left: auto; /* Reset left position */
+        transform: none !important;
+    }
+  }
+
+  /* Update the content margin for mobile */
+  @media screen and (max-width: 768px) {
+    .backlog-container,
+    .history-container,
+    .dashboard-container,
+    .board-container,
+    .timeline-container {
+        margin-left: 60px; /* Match the collapsed sidebar width */
+        width: calc(100% - 60px);
+    }
+
+    /* When sidebar is expanded */
+    .sidebar:not(.collapsed) ~ .backlog-container,
+    .sidebar:not(.collapsed) ~ .history-container,
+    .sidebar:not(.collapsed) ~ .dashboard-container,
+    .sidebar:not(.collapsed) ~ .board-container,
+    .sidebar:not(.collapsed) ~ .timeline-container {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+    }
+  }
+
+  /* Add overlay for mobile when sidebar is open */
+  .sidebar-overlay {
+    display: none;
+  }
+
+  @media screen and (max-width: 768px) {
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar:not(.collapsed) ~ .sidebar-overlay {
+        opacity: 1;
+        visibility: visible;
+    }
   }
