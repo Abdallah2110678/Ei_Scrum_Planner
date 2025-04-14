@@ -1,5 +1,6 @@
   .backlog-container {
     padding: 30px;
+    padding-top: 0px;
     font-family: Arial, sans-serif;
     flex-grow: 1;
     height: 100%;
@@ -408,4 +409,81 @@
 
   .start-button:hover {
     background: #0065FF;
+  }
+
+
+  @media (max-width: 1024px) {
+    .backlog-container {
+      padding-left: 260px;
+      padding-top: 0px;
+      font-family: Arial, sans-serif;
+      flex-grow: 1;
+      height: 100%;
+      box-sizing: border-box;
+      width: calc(100% - 220px);
+      margin-left: 220px;
+      border-radius: 8px;
+      background-color: #ffffff;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .backlog-container {
+      padding-left: 360px;
+      padding-top: 0px;
+      font-family: Arial, sans-serif;
+      flex-grow: 1;
+      height: 100%;
+      box-sizing: border-box;
+      width: calc(100% - 220px);
+      margin-left: 220px;
+      border-radius: 8px;
+      background-color: #ffffff;
+    }
+  }
+
+  /* Mobile responsiveness */
+  @media (max-width: 425px) {
+    .backlog-container {
+      margin-left: 420px;  /* Align with collapsed sidebar */
+      width: calc(100% - 60px);  /* Account for collapsed sidebar */
+    }
+  
+    .sprint-image img {
+      width: 60px;
+      height: 60px;
+      padding-left: 10px;  /* Reduce left padding */
+    }
+  
+    .search-section {
+      align-items: flex-start;
+    }
+  
+    .search-bar {
+      width: 100%;
+    }
+  
+    .search-input {
+      width: calc(100% - 24px);  /* Account for padding */
+    }
+  
+    .sprint-actions {
+      position: static;
+      margin-top: 10px;
+      justify-content: flex-start;
+    }
+  
+    .create-issue-button,
+    .create-issue-button2 {
+      width: 100%;
+    }
+  
+    .sprint-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .sprint-text {
+      width: 100%;
+    }
   }
