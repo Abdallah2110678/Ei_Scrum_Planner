@@ -3,11 +3,11 @@ import logging
 from .emotion_detection import detect_emotions
 from .models import DailyEmotion
 from django.utils import timezone
-from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.response import Response
+from datetime import timedelta
 # Set up logging
 logger = logging.getLogger(__name__)
 
@@ -104,3 +104,56 @@ def get_daily_emotions(request):
     except Exception as e:
         logger.error(f"Error in get_daily_emotions: {str(e)}")
         return JsonResponse({'error': f'Internal server error: {str(e)}'}, status=500)
+    
+    # Add this to your views.py in the emotion_detection app
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def team_emotions(request):
+    """
+    Get emotions for all team members (for dashboard display)
+    """
+    try:
+        # Get authenticated user
+        user = request.user
+        
+        # Admin or manager role check could be added here
+        
+        # Query for all daily emotions from the last 7 days 
+        # (you can adjust the timeframe as needed)
+        from_date = timezone.now().date() - timezone.timedelta(days=7)
+        
+        # Get emotions for all users
+        emotions = DailyEmotion.objects.filter(
+            date__gte=from_date
+        ).select_related('user')
+        
+        # Prepare response data
+        result = []
+        for emotion in emotions:
+            emotion_data = {
+                'date': emotion.date,
+                'first_emotion': emotion.first_emotion,
+                'second_emotion': emotion.second_emotion,
+                'third_emotion': emotion.third_emotion,
+                'average_emotion': emotion.average_emotion,
+            }
+            
+            # Add user information if available
+            if emotion.user:
+                emotion_data['user'] = {
+                    'id': emotion.user.id,
+                    'name': emotion.user.name,
+                    'email': emotion.user.email
+                }
+                emotion_data['user_email'] = emotion.user.email
+            else:
+                emotion_data['user_email'] = 'Anonymous'
+            
+            result.append(emotion_data)
+        
+        return Response(result)
+    except Exception as e:
+        logger.error(f"Error in team_emotions view: {str(e)}")
+        return Response({'error': f'Internal server error: {str(e)}'}, status=500)
