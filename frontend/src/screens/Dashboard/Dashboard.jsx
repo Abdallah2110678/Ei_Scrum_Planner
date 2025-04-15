@@ -49,6 +49,7 @@ const Dashboard = () => {
       const authToken = user?.access;
       
       if (!authToken) {
+        setError('Authentication required. Please log in again.');
         console.warn('No authentication token available for emotion data fetch');
         return [];
       }
@@ -61,7 +62,6 @@ const Dashboard = () => {
       };
       
       // Fetch all team members' emotion data
-      // Note: You might need to create a new endpoint for this in your backend
       const response = await axios.get('http://localhost:8000/emotion_detection/team_emotions/', config);
       
       if (response.data && Array.isArray(response.data)) {
@@ -71,7 +71,11 @@ const Dashboard = () => {
         return [];
       }
     } catch (err) {
-      setError(`Error fetching emotion data: ${err.message}`);
+      if (err.response && err.response.status === 401) {
+        setError('Session expired or unauthorized. Please log in again.');
+      } else {
+        setError(`Error fetching emotion data: ${err.message}`);
+      }
       console.error('Error fetching emotion data:', err);
       return [];
     }
