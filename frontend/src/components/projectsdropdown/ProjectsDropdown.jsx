@@ -88,7 +88,7 @@ const ProjectsDropdown = () => {
     return (
         <div className="projects-dropdown" ref={dropdownRef}>
             <button className="dropdown-toggle" onClick={() => setIsOpen(!isOpen)}>
-                {selectedProjectId ? projects.find(p => p.id === selectedProjectId)?.name : "Select a Project"}
+                {selectedProjectId ? projects.find(p => p.id === selectedProjectId)?.name : "Select a Project"} ▼
             </button>
             {isOpen && (
                 <div className="dropdown-menu">

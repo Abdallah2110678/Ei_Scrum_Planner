@@ -19,12 +19,12 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const [taskData, setTaskData] = useState(task);
 
   // Fetch tasks & sprints when component mounts
-useEffect(() => {
-  if (selectedProjectId) {
-    dispatch(fetchTasks());
-    dispatch(fetchProjectParticipants(selectedProjectId));
-  }
-}, [dispatch, selectedProjectId]);
+  useEffect(() => {
+    if (selectedProjectId) {
+      dispatch(fetchTasks());
+      dispatch(fetchProjectParticipants(selectedProjectId));
+    }
+  }, [dispatch, selectedProjectId]);
 
 
   // Handle Editing Task Name
@@ -46,12 +46,6 @@ useEffect(() => {
         .catch((error) => console.error("Error updating task:", error));
     }
     setEditTaskId(null);
-  };
-
-  // Handle Editing Story Points
-  const handleEditStoryPoints = () => {
-    setEditStoryId(task.id);
-    setEditStoryPoints(task.story_points);
   };
 
   // Handle Task Status Change
@@ -258,15 +252,32 @@ useEffect(() => {
       </select>
 
       {/* Effort Input Field */}
-      <input
-        type="number"
-        className="effort-input"
-        value={taskData.actual_effort || ""}
-        onChange={(e) => handleUpdateTask('actual_effort', parseFloat(e.target.value) || 0)}
-        min="0"
-        step="0.5"
-        placeholder="actual_effort"
-      />
+      {taskData.is_reactivated ? (
+        <input
+          type="number"
+          className="effort-input"
+          value={taskData.rework_effort || ""}
+          onChange={(e) =>
+            handleUpdateTask('rework_effort', parseFloat(e.target.value) || 0)
+          }
+          min="0"
+          step="0.5"
+          placeholder="Rework Effort"
+        />
+      ) : (
+        <input
+          type="number"
+          className="effort-input"
+          value={taskData.actual_effort || ""}
+          onChange={(e) =>
+            handleUpdateTask('actual_effort', parseFloat(e.target.value) || 0)
+          }
+          min="0"
+          step="0.5"
+          placeholder="Actual Effort"
+        />
+      )}
+
 
       {/* Estimate Button */}
       <button
