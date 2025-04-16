@@ -4,6 +4,7 @@ import { fetchSprints } from '../../features/sprints/sprintSlice';
 import { fetchTasks } from '../../features/tasks/taskSlice';
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import Navbar from '../navbar/navbar';
+import axios from 'axios';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,8 +37,49 @@ const Dashboard = () => {
   const { sprints } = useSelector((state) => state.sprints);
   const { tasks } = useSelector((state) => state.tasks);
   const { selectedProjectId } = useSelector((state) => state.projects);
+  const { user } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
   const [emotionData, setEmotionData] = useState([]);
+  const [error, setError] = useState(null);
+
+  // Function to fetch emotion data from backend
+  const fetchEmotionData = async () => {
+    try {
+      // Get auth token from user state or localStorage
+      const authToken = user?.access;
+      
+      if (!authToken) {
+        setError('Authentication required. Please log in again.');
+        console.warn('No authentication token available for emotion data fetch');
+        return [];
+      }
+      
+      // Set up headers with authentication token
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        }
+      };
+      
+      // Fetch all team members' emotion data
+      const response = await axios.get('http://localhost:8000/emotion_detection/team_emotions/', config);
+      
+      if (response.data && Array.isArray(response.data)) {
+        return response.data;
+      } else {
+        console.warn('Invalid emotion data format returned from API');
+        return [];
+      }
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        setError('Session expired or unauthorized. Please log in again.');
+      } else {
+        setError(`Error fetching emotion data: ${err.message}`);
+      }
+      console.error('Error fetching emotion data:', err);
+      return [];
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -46,9 +88,10 @@ const Dashboard = () => {
         if (selectedProjectId && selectedProjectId !== 'undefined') {
           await dispatch(fetchSprints(selectedProjectId)).unwrap();
           await dispatch(fetchTasks({ project: selectedProjectId })).unwrap();
-          // Fetch emotion data (mock data for now)
-          // In a real implementation, you would fetch this from your backend
-          setEmotionData(getMockEmotionData());
+          
+          // Fetch real emotion data
+          const emotionResults = await fetchEmotionData();
+          setEmotionData(emotionResults);
         } else {
           // If no project is selected, show a message or default data
           console.log('No project selected. Please select a project in the Backlog view.');
@@ -57,30 +100,14 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error("Error loading dashboard data:", error);
+        setError("Error loading dashboard data");
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [dispatch, selectedProjectId]);
-
-  // Mock emotion data
-  const getMockEmotionData = () => {
-    // Instead of emotions by sprint, we'll track emotions by developer
-    const developers = [...new Set(tasks.map(task => task.user_initials || 'Unassigned'))];
-
-    return developers.map(developer => ({
-      developer,
-      emotions: {
-        happy: Math.floor(Math.random() * 10),
-        sad: Math.floor(Math.random() * 5),
-        angry: Math.floor(Math.random() * 3),
-        neutral: Math.floor(Math.random() * 8),
-        surprised: Math.floor(Math.random() * 4)
-      }
-    }));
-  };
+  }, [dispatch, selectedProjectId, user]);
 
   // Calculate productivity by sprint (completed tasks / total tasks)
   const getProductivityBySprintData = () => {
@@ -213,23 +240,28 @@ const Dashboard = () => {
     };
   };
 
-  // Calculate emotions by developer (replacing emotions by sprint)
+  // Calculate emotions by developer using real fetched data
   const getEmotionsByDeveloperData = () => {
     if (!emotionData.length) return null;
 
     const emotionTypes = ['happy', 'sad', 'angry', 'neutral', 'surprised'];
-    const datasets = emotionTypes.map((emotion, index) => {
-      const colors = [
-        'rgba(75, 192, 192, 0.6)', // happy - teal
-        'rgba(54, 162, 235, 0.6)', // sad - blue
-        'rgba(255, 99, 132, 0.6)', // angry - red
-        'rgba(255, 205, 86, 0.6)', // neutral - yellow
-        'rgba(153, 102, 255, 0.6)', // surprised - purple
-      ];
+    const colors = [
+      'rgba(75, 192, 192, 0.6)', // happy - teal
+      'rgba(54, 162, 235, 0.6)', // sad - blue
+      'rgba(255, 99, 132, 0.6)', // angry - red
+      'rgba(255, 205, 86, 0.6)', // neutral - yellow
+      'rgba(153, 102, 255, 0.6)', // surprised - purple
+    ];
 
+    const datasets = emotionTypes.map((emotion, index) => {
       return {
         label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
-        data: emotionData.map(data => data.emotions[emotion]),
+        data: emotionData.map(data => {
+          // Count occurrences of this emotion type in user's emotions
+          const count = [data.first_emotion, data.second_emotion, data.third_emotion]
+            .filter(e => e === emotion).length;
+          return count;
+        }),
         backgroundColor: colors[index],
         borderColor: colors[index].replace('0.6', '1'),
         borderWidth: 1,
@@ -237,7 +269,7 @@ const Dashboard = () => {
     });
 
     return {
-      labels: emotionData.map(data => data.developer),
+      labels: emotionData.map(data => data.user?.name || data.user_email || 'Anonymous'),
       datasets,
     };
   };
@@ -265,6 +297,10 @@ const Dashboard = () => {
 
   if (loading) {
     return <div className="dashboard-loading">Loading dashboard data...</div>;
+  }
+
+  if (error) {
+    return <div className="dashboard-error">Error: {error}</div>;
   }
 
   return (
@@ -370,9 +406,8 @@ const Dashboard = () => {
                 }}
               />
             ) : (
-              <p>No emotion data available.</p>
+              <p>No emotion data available. {emotionData.length === 0 ? 'Try logging in with some team members to collect emotion data.' : ''}</p>
             )}
-
           </div>
         </div>
       </div>
