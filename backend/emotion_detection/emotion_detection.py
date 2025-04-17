@@ -23,9 +23,10 @@ def detect_emotions(request):
     if not video_capture.isOpened():
         logger.error("Could not open video capture device")
         return {'error': 'Could not open video.'}
+    
     detected_emotions = []
     start_time = time.time()
-    duration = 10  # 10 seconds
+    duration = 10
     while True:
         ret, frame = video_capture.read()
         if not ret:
@@ -42,6 +43,7 @@ def detect_emotions(request):
             break
     video_capture.release()
     cv2.destroyAllWindows()
+    
     if detected_emotions:
         emotion_counter = Counter(detected_emotions)
         most_common_emotion, count = emotion_counter.most_common(1)[0]
@@ -64,33 +66,39 @@ def detect_emotions(request):
                     }
                 )
                 
-                # Update the appropriate emotion field based on request type
+                # Update emotion and weight based on request type
                 if request_type == 'LOGIN' or (created and not daily_emotion.first_emotion):
-                    # For login or first detection of the day
                     if not daily_emotion.first_emotion:
                         daily_emotion.first_emotion = most_common_emotion
+                        daily_emotion.first_emotion_weight = DailyEmotion.EMOTION_WEIGHTS.get(most_common_emotion, 0.0)
                         daily_emotion.save()
                 elif request_type == 'LOGOUT':
                     # For logout, update the third emotion if empty, otherwise update second
                     if not daily_emotion.third_emotion:
                         daily_emotion.third_emotion = most_common_emotion
+                        daily_emotion.third_emotion_weight = DailyEmotion.EMOTION_WEIGHTS.get(most_common_emotion, 0.0)
                         daily_emotion.save()
                     elif not daily_emotion.second_emotion:
                         daily_emotion.second_emotion = most_common_emotion
+                        daily_emotion.second_emotion_weight = DailyEmotion.EMOTION_WEIGHTS.get(most_common_emotion, 0.0)
                         daily_emotion.save()
                 elif request_type == 'FOLLOWUP':
                     # For followup (scheduled detection), update second emotion if empty
                     if not daily_emotion.second_emotion:
                         daily_emotion.second_emotion = most_common_emotion
+                        daily_emotion.second_emotion_weight = DailyEmotion.EMOTION_WEIGHTS.get(most_common_emotion, 0.0)
                         daily_emotion.save()
                 else:
                     # Default behavior - fill in the first empty slot
                     if not daily_emotion.first_emotion:
                         daily_emotion.first_emotion = most_common_emotion
+                        daily_emotion.first_emotion_weight = DailyEmotion.EMOTION_WEIGHTS.get(most_common_emotion, 0.0)
                     elif not daily_emotion.second_emotion:
                         daily_emotion.second_emotion = most_common_emotion
+                        daily_emotion.second_emotion_weight = DailyEmotion.EMOTION_WEIGHTS.get(most_common_emotion, 0.0)
                     elif not daily_emotion.third_emotion:
                         daily_emotion.third_emotion = most_common_emotion
+                        daily_emotion.third_emotion_weight = DailyEmotion.EMOTION_WEIGHTS.get(most_common_emotion, 0.0)
                     daily_emotion.save()
             except Exception as e:
                 logger.error(f"Error saving emotion for user {user.email}: {str(e)}")
@@ -107,8 +115,7 @@ def detect_emotions(request):
         # Add daily average emotion if available
         if daily_emotion:
             response['daily_average'] = daily_emotion.average_emotion
-            
-            # Add user information to response if user exists
+            response['daily_average_weight'] = daily_emotion.average_emotion_weight
             if user:
                 response['user'] = {
                     'id': user.id,

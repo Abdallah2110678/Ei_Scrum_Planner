@@ -43,6 +43,10 @@ def emotion_detection_view(request):
                     'second_emotion': daily_emotion.second_emotion,
                     'third_emotion': daily_emotion.third_emotion,
                     'average_emotion': daily_emotion.average_emotion,
+                    'first_emotion_weight': daily_emotion.first_emotion_weight,
+                    'second_emotion_weight': daily_emotion.second_emotion_weight,
+                    'third_emotion_weight': daily_emotion.third_emotion_weight,
+                    'average_emotion_weight': daily_emotion.average_emotion_weight,
                     'request_type': request_type
                 }
             })
@@ -85,7 +89,11 @@ def get_daily_emotions(request):
                 'first_emotion': daily_emotion.first_emotion,
                 'second_emotion': daily_emotion.second_emotion,
                 'third_emotion': daily_emotion.third_emotion,
-                'average_emotion': daily_emotion.average_emotion
+                'average_emotion': daily_emotion.average_emotion,
+                'first_emotion_weight': daily_emotion.first_emotion_weight,
+                'second_emotion_weight': daily_emotion.second_emotion_weight,
+                'third_emotion_weight': daily_emotion.third_emotion_weight,
+                'average_emotion_weight': daily_emotion.average_emotion_weight
             }
             
             # Add user information if available
@@ -138,6 +146,10 @@ def team_emotions(request):
                 'second_emotion': emotion.second_emotion,
                 'third_emotion': emotion.third_emotion,
                 'average_emotion': emotion.average_emotion,
+                'first_emotion_weight': emotion.first_emotion_weight,
+                'second_emotion_weight': emotion.second_emotion_weight,
+                'third_emotion_weight': emotion.third_emotion_weight,
+                'average_emotion_weight': emotion.average_emotion_weight
             }
             
             # Add user information if available
