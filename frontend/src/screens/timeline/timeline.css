@@ -48,7 +48,6 @@
 }
 
 .timeline-header-section {
-  display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
@@ -646,4 +645,82 @@
 
 .tasks-icon {
   font-size: 14px;
+}
+
+
+
+@media screen and (max-width: 1024px) {
+  .timeline-container {
+    padding: 30px;
+    padding-left: 240px;
+    font-family: Arial, sans-serif;
+    flex-grow: 1;
+    height: 100%;
+    box-sizing: border-box;
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    border-radius: 8px;
+    background-color: #ffffff;
+  }
+
+  .gantt-chart-container {
+    background: #FFFFFF;
+    border: 1px solid #DFE1E6;
+    border-radius: 3px;
+    overflow: auto;
+    margin-bottom: 20px;
+    max-height: calc(100vh - 300px);
+    width: 950px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .timeline-container {
+    padding: 30px;
+    padding-left: 340px;
+    font-family: Arial, sans-serif;
+    flex-grow: 1;
+    height: 100%;
+    box-sizing: border-box;
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    border-radius: 8px;
+    background-color: #ffffff;
+  }
+
+  .gantt-chart-container {
+    background: #FFFFFF;
+    border: 1px solid #DFE1E6;
+    border-radius: 3px;
+    overflow: auto;
+    margin-bottom: 20px;
+    max-height: calc(100vh - 300px);
+    width: 780px;
+  }
+}
+
+
+@media screen and (max-width: 425px) {
+  .timeline-container {
+    padding: 30px;
+    padding-left: 560px;
+    font-family: Arial, sans-serif;
+    flex-grow: 1;
+    height: 100%;
+    box-sizing: border-box;
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    border-radius: 8px;
+    background-color: #ffffff;
+  }
+
+  .gantt-chart-container {
+    background: #FFFFFF;
+    border: 1px solid #DFE1E6;
+    border-radius: 3px;
+    overflow: auto;
+    margin-bottom: 20px;
+    max-height: calc(100vh - 300px);
+    width: 600px;
+  }
 }
