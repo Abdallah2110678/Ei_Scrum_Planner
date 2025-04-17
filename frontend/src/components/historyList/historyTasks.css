@@ -3,7 +3,7 @@
     grid-template-columns: minmax(200px, 2fr) minmax(80px, 100px) minmax(80px, 100px) 80px 100px 50px 60px 60px 90px;
     align-items: center;
     background-color: #fff;
-    padding: 8px;
+    padding: 10px;
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
@@ -62,13 +62,12 @@
     align-items: center;
     justify-content: center;
     text-transform: uppercase;
-    cursor: default;
 }
 
 /* Add tooltip styling for the user name */
 .user-avatar:hover::after {
     content: attr(title);
-    position: absolute;
+    position:static;
     bottom: -25px;
     left: 50%;
     transform: translateX(-50%);
