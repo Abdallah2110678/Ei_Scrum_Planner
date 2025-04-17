@@ -91,7 +91,7 @@ const HistoryTasks = ({ task, sprint }) => {
 
             {/* User Avatar with Name */}
             <div className="history-avatar-container">
-                <div 
+                <div
                     className="user-avatar"
                     title={assignedUser ? assignedUser.name : "Unassigned"}
                 >
@@ -113,7 +113,7 @@ const HistoryTasks = ({ task, sprint }) => {
             </div>
 
             {/* Active Button */}
-            <button 
+            <button
                 className="reactivate-button"
                 onClick={handleReactivateTask}
             >

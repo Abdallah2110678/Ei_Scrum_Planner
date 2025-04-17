@@ -38,12 +38,16 @@ class Task(models.Model):
     
     estimated_effort = models.FloatField(null=True, blank=True)
     actual_effort = models.FloatField(null=True, blank=True)
+    rework_effort = models.FloatField(null=True, blank=True, default=0.0)
+
+    rework_count = models.PositiveIntegerField(default=0)
 
     task_name = models.CharField(max_length=255)
     task_category = models.CharField(max_length=50, default="Frontend")
     task_complexity = models.CharField(max_length=10, choices=COMPLEXITY_CHOICES, default="MEDIUM") 
     priority = models.IntegerField(default=1)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="TO DO")
+    is_reactivated = models.BooleanField(default=False)
 
     @property
     def productivity_score(self):
@@ -55,6 +59,15 @@ class Task(models.Model):
     def __str__(self):
         return self.task_name
     
+def handle_task_reactivation(instance, old_status):
+    """
+    Marks task as reactivated if it moves from DONE to TO DO.
+    """
+    if old_status == "DONE" and instance.status == "TO DO":
+        instance.rework_count += 1
+        instance.is_reactivated = True
+        instance.save(update_fields=["rework_count", "is_reactivated"])
+        logger.info(f"Task {instance.id} marked as reactivated. Rework count: {instance.rework_count}")
 
 @receiver(pre_save, sender=Task)
 def cache_old_user(sender, instance, **kwargs):
@@ -62,11 +75,11 @@ def cache_old_user(sender, instance, **kwargs):
         try:
             old_instance = Task.objects.get(pk=instance.pk)
             _local.old_user = old_instance.user
+            _local.old_status = old_instance.status
         except Task.DoesNotExist:
             _local.old_user = None
     else:
         _local.old_user = None
-
 
 
 @receiver(post_save, sender=Task)
@@ -108,3 +121,7 @@ def send_task_assignment_email(sender, instance, created, **kwargs):
             logger.info(f"Email sent to {new_user.email} for task {instance.id}")
         except Exception as e:
             logger.error(f"Failed to send email to {new_user.email}: {str(e)}")
+
+    # ✅ This part was missing!
+    old_status = getattr(_local, 'old_status', None)
+    handle_task_reactivation(instance, old_status)
