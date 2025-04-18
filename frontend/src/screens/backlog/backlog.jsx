@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import "./backlog.css";
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import TaskItem from "../../components/taskList/taskItem";
+import TaskList from "../../components/taskList/taskList";
+import UserAvatars from '../../components/userAvatars/UserAvatars';
 import {
-  fetchSprints,
   addSprint,
   deleteSprint,
+  fetchSprints,
   updateSprint,
 } from "../../features/sprints/sprintSlice";
-import TaskList from "../../components/taskList/taskList";
-import projectService from "../../features/projects/projectService";
-import ProjectsDropdown from "./../../components/projectsdropdown/ProjectsDropdown";
 import { updateTask } from "../../features/tasks/taskSlice";
 import StartSprintModal from "./../../components/sprint/StartSprintModal";
-import UserAvatars from '../../components/userAvatars/UserAvatars';
+import "./backlog.css";
 
 const Backlog = () => {
   const dispatch = useDispatch();
@@ -125,6 +123,12 @@ const { selectedProjectId, projects } = useSelector((state) => state.projects);
     let filteredSprints = sprints.filter(sprint => 
       sprint.project === selectedProjectId && !sprint.is_completed
     );
+
+    // First filter out DONE tasks from each sprint
+    filteredSprints = filteredSprints.map(sprint => ({
+      ...sprint,
+      tasks: sprint.tasks?.filter(task => task.status !== "DONE")
+    }));
 
     // Filter by search query
     if (searchQuery) {

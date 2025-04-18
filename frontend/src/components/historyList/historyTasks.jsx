@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateTask } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
+import { updateTask } from "../../features/tasks/taskSlice";
 import "./historyTasks.css";
 
 const HistoryTasks = ({ task, sprint }) => {
@@ -33,7 +32,7 @@ const HistoryTasks = ({ task, sprint }) => {
                 taskData: {
                     ...task,
                     status: "TO DO",
-                    sprint: null  // Set sprint to null to move it back to backlog
+                    sprint: sprint.is_completed ? null : task.sprint  // Keep sprint assignment if sprint is not completed
                 }
             })).unwrap();
             await dispatch(fetchSprints());

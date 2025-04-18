@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateTask, deleteTask, fetchTasks, predictEffort } from "../../features/tasks/taskSlice";
 import { fetchProjectParticipants } from "../../features/projects/projectSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
+import { deleteTask, fetchTasks, predictEffort, updateTask } from "../../features/tasks/taskSlice";
 import './taskList.css';
 
 const TaskItem = ({ task, sprints, selectedProjectId }) => {
@@ -55,7 +55,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     dispatch(updateTask({ id: task.id, taskData: updatedTask }))
       .unwrap()
       .then(() => {
-
+        dispatch(fetchSprints(selectedProjectId));
         dispatch(fetchTasks());
       })
       .catch((error) => console.error("Error updating task:", error));
