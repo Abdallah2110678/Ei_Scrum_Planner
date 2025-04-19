@@ -55,7 +55,7 @@ const Dashboard = () => {
 
   const fetchMetaData = async () => {
     try {
-      const res = await axios.get(`http://localhost:8000/api/tasks/meta/?project_id=${selectedProjectId}`);
+      const res = await axios.get(`http://localhost:8000/api/v1/meta/?project_id=${selectedProjectId}`);
       setCategories(res.data.categories);
       setComplexities(res.data.complexities);
       setUsers(res.data.users);
@@ -110,7 +110,7 @@ const Dashboard = () => {
         ...(selectedUserId && { user_id: selectedUserId }),
         ...(selectedSprintId && { sprint_id: selectedSprintId })
       };
-      const res = await axios.get('http://localhost:8000/api/rework-effort/', { params });
+      const res = await axios.get('http://localhost:8000/api/v1/rework-effort/', { params });
       setReworkData(res.data);
     } catch (err) {
       console.error('Failed to fetch rework effort:', err);

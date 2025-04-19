@@ -24,7 +24,7 @@ urlpatterns = [
     path('', include('emotion_detection.urls')),
     path("api/v1/auth/", include('djoser.urls')),
     path("api/v1/auth/", include('djoser.urls.jwt')),
-    path('api/', include('tasks.urls')),
+    path('api/v1/', include('tasks.urls')),
     path('api/v1/sprints/', include('sprints.urls')),
     path('api/projects/', include('projects.urls')),
     path('', include('project_users.urls')),
