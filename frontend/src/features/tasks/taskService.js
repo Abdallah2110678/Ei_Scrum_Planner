@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_URL = "http://127.0.0.1:8000/api/tasks/";
+const API_URL = "http://127.0.0.1:8000/api/v1/tasks/";
+
 
 const config = {
   headers: {
@@ -57,7 +58,7 @@ const addTask = async (taskData) => {
 const predictEffort = async (taskData) => {
   try {
     const response = await axios.post(
-      "http://127.0.0.1:8000/api/predict/", // or whatever the new path is
+      "http://127.0.0.1:8000/api/v1/predict/", // or whatever the new path is
       taskData,
       config
     );

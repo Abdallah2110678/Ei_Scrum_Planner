@@ -1,7 +1,6 @@
-// Updated Dashboard.jsx with fixes for Chart.js errors and added filtering for rework chart
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Bar, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -15,17 +14,19 @@ import {
   Legend
 } from 'chart.js';
 import Navbar from '../navbar/navbar';
+import { fetchSprints } from '../../features/sprints/sprintSlice';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
+  const dispatch = useDispatch();
   const { selectedProjectId } = useSelector(state => state.projects);
+  const { sprints } = useSelector(state => state.sprints);
   const { user } = useSelector(state => state.auth);
 
   const [categories, setCategories] = useState([]);
   const [complexities, setComplexities] = useState([]);
   const [users, setUsers] = useState([]);
-  const [sprints, setSprints] = useState([]);
   const [reworkData, setReworkData] = useState(null);
   const [emotionData, setEmotionData] = useState([]);
 
@@ -40,6 +41,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!selectedProjectId) return;
+
+    dispatch(fetchSprints(selectedProjectId)); // ✅ Only for current project
     fetchMetaData();
   }, [selectedProjectId]);
 
@@ -52,14 +55,10 @@ const Dashboard = () => {
 
   const fetchMetaData = async () => {
     try {
-      const [metaRes, sprintsRes] = await Promise.all([
-        axios.get(`http://localhost:8000/api/tasks/meta/?project_id=${selectedProjectId}`),
-        axios.get(`http://localhost:8000/api/v1/sprints/?project_id=${selectedProjectId}`)
-      ]);
-      setCategories(metaRes.data.categories);
-      setComplexities(metaRes.data.complexities);
-      setUsers(metaRes.data.users);
-      setSprints(sprintsRes.data);
+      const res = await axios.get(`http://localhost:8000/api/v1/meta/?project_id=${selectedProjectId}`);
+      setCategories(res.data.categories);
+      setComplexities(res.data.complexities);
+      setUsers(res.data.users);
     } catch (err) {
       console.error('Meta fetch failed:', err);
       setError('Error loading metadata');
@@ -78,9 +77,11 @@ const Dashboard = () => {
       };
       const res = await axios.get('http://localhost:8000/api/developer-performance/', { params });
       const data = res.data;
+
       const getUserName = (userId) => users.find(u => u.id === userId)?.name || `User ${userId}`;
       const labels = data.map(item => `${getUserName(item.user)} (S${item.sprint || '-'})`);
       const productivity = data.map(item => parseFloat(item.productivity.toFixed(2)));
+
       setChartData({
         labels,
         datasets: [{
@@ -109,7 +110,7 @@ const Dashboard = () => {
         ...(selectedUserId && { user_id: selectedUserId }),
         ...(selectedSprintId && { sprint_id: selectedSprintId })
       };
-      const res = await axios.get('http://localhost:8000/api/rework-effort/', { params });
+      const res = await axios.get('http://localhost:8000/api/v1/rework-effort/', { params });
       setReworkData(res.data);
     } catch (err) {
       console.error('Failed to fetch rework effort:', err);
@@ -131,7 +132,10 @@ const Dashboard = () => {
   const getReworkChartData = () => {
     if (!reworkData || !reworkData.per_user) return null;
     return {
-      labels: reworkData.per_user.map(u => u.name),
+      labels: reworkData.per_user.map(u => {
+        const found = users.find(user => user.id === u.user_id);
+        return found?.name || `User ${u.getUserName}`;
+      }),
       datasets: [{
         label: 'Rework Effort (hrs)',
         data: reworkData.per_user.map(u => u.rework),
@@ -155,7 +159,9 @@ const Dashboard = () => {
     ];
     const datasets = emotionTypes.map((emotion, idx) => ({
       label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
-      data: emotionData.map(d => [d.first_emotion, d.second_emotion, d.third_emotion].filter(e => e === emotion).length),
+      data: emotionData.map(d =>
+        [d.first_emotion, d.second_emotion, d.third_emotion].filter(e => e === emotion).length
+      ),
       backgroundColor: colors[idx],
       borderColor: colors[idx].replace('0.6', '1'),
       borderWidth: 2
@@ -169,7 +175,7 @@ const Dashboard = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-100 p-8 mt-6">
+      <div className="min-h-screen bg-gray-100 p-8 mt-6 overflow-x-hidden">
         <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-bold mb-4">📊 Developer Productivity Dashboard</h2>
 
@@ -192,7 +198,7 @@ const Dashboard = () => {
             </select>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4 sm:p-6 mb-6 overflow-x-auto">
+          <div className="bg-gray-50 rounded-lg p-6 mb-6 overflow-x-auto">
             {loading ? <p className="text-center">Loading productivity...</p> : error ? <p className="text-red-500 text-center">{error}</p> : chartData ? (
               <Bar
                 key={'productivity-' + chartData?.labels?.join(',')}
