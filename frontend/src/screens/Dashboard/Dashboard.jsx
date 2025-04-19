@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchSprints } from '../../features/sprints/sprintSlice';
-import { fetchTasks } from '../../features/tasks/taskSlice';
-import { Bar, Line, Pie } from 'react-chartjs-2';
-import Navbar from '../navbar/navbar';
+// Updated Dashboard.jsx with fixes for Chart.js errors and added filtering for rework chart
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { Bar, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,406 +10,259 @@ import {
   BarElement,
   LineElement,
   PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import './Dashboard.css';
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
   Title,
   Tooltip,
   Legend
-);
+} from 'chart.js';
+import Navbar from '../navbar/navbar';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
-  const dispatch = useDispatch();
-  const { sprints } = useSelector((state) => state.sprints);
-  const { tasks } = useSelector((state) => state.tasks);
-  const { selectedProjectId } = useSelector((state) => state.projects);
-  const { user } = useSelector((state) => state.auth);
-  const [loading, setLoading] = useState(true);
+  const { selectedProjectId } = useSelector(state => state.projects);
+  const { user } = useSelector(state => state.auth);
+
+  const [categories, setCategories] = useState([]);
+  const [complexities, setComplexities] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [sprints, setSprints] = useState([]);
+  const [reworkData, setReworkData] = useState(null);
   const [emotionData, setEmotionData] = useState([]);
+
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedComplexity, setSelectedComplexity] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedSprintId, setSelectedSprintId] = useState('');
+
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Function to fetch emotion data from backend
-  const fetchEmotionData = async () => {
+  useEffect(() => {
+    if (!selectedProjectId) return;
+    fetchMetaData();
+  }, [selectedProjectId]);
+
+  useEffect(() => {
+    if (!selectedProjectId) return;
+    fetchPerformance();
+    fetchReworkEffort();
+    fetchEmotionData();
+  }, [selectedProjectId, selectedCategory, selectedComplexity, selectedUserId, selectedSprintId]);
+
+  const fetchMetaData = async () => {
     try {
-      // Get auth token from user state or localStorage
-      const authToken = user?.access;
-      
-      if (!authToken) {
-        setError('Authentication required. Please log in again.');
-        console.warn('No authentication token available for emotion data fetch');
-        return [];
-      }
-      
-      // Set up headers with authentication token
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        }
-      };
-      
-      // Fetch all team members' emotion data
-      const response = await axios.get('http://localhost:8000/emotion_detection/team_emotions/', config);
-      
-      if (response.data && Array.isArray(response.data)) {
-        return response.data;
-      } else {
-        console.warn('Invalid emotion data format returned from API');
-        return [];
-      }
+      const [metaRes, sprintsRes] = await Promise.all([
+        axios.get(`http://localhost:8000/api/tasks/meta/?project_id=${selectedProjectId}`),
+        axios.get(`http://localhost:8000/api/v1/sprints/?project_id=${selectedProjectId}`)
+      ]);
+      setCategories(metaRes.data.categories);
+      setComplexities(metaRes.data.complexities);
+      setUsers(metaRes.data.users);
+      setSprints(sprintsRes.data);
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        setError('Session expired or unauthorized. Please log in again.');
-      } else {
-        setError(`Error fetching emotion data: ${err.message}`);
-      }
-      console.error('Error fetching emotion data:', err);
-      return [];
+      console.error('Meta fetch failed:', err);
+      setError('Error loading metadata');
     }
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        if (selectedProjectId && selectedProjectId !== 'undefined') {
-          await dispatch(fetchSprints(selectedProjectId)).unwrap();
-          await dispatch(fetchTasks({ project: selectedProjectId })).unwrap();
-          
-          // Fetch real emotion data
-          const emotionResults = await fetchEmotionData();
-          setEmotionData(emotionResults);
-        } else {
-          // If no project is selected, show a message or default data
-          console.log('No project selected. Please select a project in the Backlog view.');
-          // Clear any existing data
-          setEmotionData([]);
-        }
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-        setError("Error loading dashboard data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [dispatch, selectedProjectId, user]);
-
-  // Calculate productivity by sprint (completed tasks / total tasks)
-  const getProductivityBySprintData = () => {
-    const sprintData = sprints.map(sprint => {
-      const sprintTasks = tasks.filter(task => task.sprint === sprint.id);
-      const completedTasks = sprintTasks.filter(task => task.status === 'DONE').length;
-      const totalTasks = sprintTasks.length || 1; // Avoid division by zero
-      const productivity = (completedTasks / totalTasks) * 100;
-
-      return {
-        sprintName: sprint.sprint_name,
-        productivity: productivity.toFixed(2)
+  const fetchPerformance = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        project_id: selectedProjectId,
+        ...(selectedCategory && { task_category: selectedCategory }),
+        ...(selectedComplexity && { task_complexity: selectedComplexity }),
+        ...(selectedUserId && { user_id: selectedUserId }),
+        ...(selectedSprintId && { sprint_id: selectedSprintId })
       };
-    });
-
-    return {
-      labels: sprintData.map(data => data.sprintName),
-      datasets: [
-        {
-          label: 'Productivity (%)',
-          data: sprintData.map(data => data.productivity),
+      const res = await axios.get('http://localhost:8000/api/developer-performance/', { params });
+      const data = res.data;
+      const getUserName = (userId) => users.find(u => u.id === userId)?.name || `User ${userId}`;
+      const labels = data.map(item => `${getUserName(item.user)} (S${item.sprint || '-'})`);
+      const productivity = data.map(item => parseFloat(item.productivity.toFixed(2)));
+      setChartData({
+        labels,
+        datasets: [{
+          label: 'Productivity',
+          data: productivity,
           backgroundColor: 'rgba(54, 162, 235, 0.6)',
           borderColor: 'rgba(54, 162, 235, 1)',
-          borderWidth: 1,
-        },
-      ],
-    };
+          borderWidth: 2,
+          borderRadius: 5
+        }]
+      });
+    } catch (err) {
+      console.error('Performance fetch failed:', err);
+      setError('Error loading performance data');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Calculate rework by sprint (tasks that moved from DONE back to other statuses)
-  const getReworkBySprintData = () => {
-    // In a real implementation, you would track task history
-    // For now, we'll use mock data
-    const sprintData = sprints.map(sprint => ({
-      sprintName: sprint.sprint_name,
-      rework: Math.floor(Math.random() * 30) // Mock rework percentage
-    }));
-
-    return {
-      labels: sprintData.map(data => data.sprintName),
-      datasets: [
-        {
-          label: 'Rework (%)',
-          data: sprintData.map(data => data.rework),
-          backgroundColor: 'rgba(255, 99, 132, 0.6)',
-          borderColor: 'rgba(255, 99, 132, 1)',
-          borderWidth: 1,
-        },
-      ],
-    };
-  };
-
-  // Calculate productivity by developer
-  const getProductivityByDeveloperData = () => {
-    // Group tasks by developer and calculate productivity
-    const developers = [...new Set(tasks.map(task => task.user_initials || 'Unassigned'))];
-
-    const developerData = developers.map(developer => {
-      const developerTasks = tasks.filter(task => (task.user_initials || 'Unassigned') === developer);
-      const completedTasks = developerTasks.filter(task => task.status === 'DONE').length;
-      const totalTasks = developerTasks.length || 1; // Avoid division by zero
-      const productivity = (completedTasks / totalTasks) * 100;
-
-      return {
-        developer,
-        productivity: productivity.toFixed(2)
+  const fetchReworkEffort = async () => {
+    try {
+      const params = {
+        project_id: selectedProjectId,
+        ...(selectedCategory && { task_category: selectedCategory }),
+        ...(selectedComplexity && { task_complexity: selectedComplexity }),
+        ...(selectedUserId && { user_id: selectedUserId }),
+        ...(selectedSprintId && { sprint_id: selectedSprintId })
       };
-    });
+      const res = await axios.get('http://localhost:8000/api/rework-effort/', { params });
+      setReworkData(res.data);
+    } catch (err) {
+      console.error('Failed to fetch rework effort:', err);
+    }
+  };
 
+  const fetchEmotionData = async () => {
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${user?.access}` }
+      };
+      const res = await axios.get('http://localhost:8000/emotion_detection/team_emotions/', config);
+      setEmotionData(res.data || []);
+    } catch (err) {
+      console.error('Emotion data fetch failed:', err);
+    }
+  };
+
+  const getReworkChartData = () => {
+    if (!reworkData || !reworkData.per_user) return null;
     return {
-      labels: developerData.map(data => data.developer),
-      datasets: [
-        {
-          label: 'Productivity (%)',
-          data: developerData.map(data => data.productivity),
-          backgroundColor: [
-            'rgba(54, 162, 235, 0.6)',
-            'rgba(75, 192, 192, 0.6)',
-            'rgba(153, 102, 255, 0.6)',
-            'rgba(255, 159, 64, 0.6)',
-            'rgba(255, 99, 132, 0.6)',
-          ],
-          borderColor: [
-            'rgba(54, 162, 235, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(153, 102, 255, 1)',
-            'rgba(255, 159, 64, 1)',
-            'rgba(255, 99, 132, 1)',
-          ],
-          borderWidth: 1,
-        },
-      ],
+      labels: reworkData.per_user.map(u => u.name),
+      datasets: [{
+        label: 'Rework Effort (hrs)',
+        data: reworkData.per_user.map(u => u.rework),
+        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 2,
+        borderRadius: 4
+      }]
     };
   };
 
-  // Calculate rework by developer
-  const getReworkByDeveloperData = () => {
-    // In a real implementation, you would track task history
-    // For now, we'll use mock data
-    const developers = [...new Set(tasks.map(task => task.user_initials || 'Unassigned'))];
-
-    const developerData = developers.map(developer => ({
-      developer,
-      rework: Math.floor(Math.random() * 30) // Mock rework percentage
-    }));
-
-    return {
-      labels: developerData.map(data => data.developer),
-      datasets: [
-        {
-          label: 'Rework (%)',
-          data: developerData.map(data => data.rework),
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.6)',
-            'rgba(255, 159, 64, 0.6)',
-            'rgba(255, 205, 86, 0.6)',
-            'rgba(75, 192, 192, 0.6)',
-            'rgba(54, 162, 235, 0.6)',
-          ],
-          borderColor: [
-            'rgba(255, 99, 132, 1)',
-            'rgba(255, 159, 64, 1)',
-            'rgba(255, 205, 86, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(54, 162, 235, 1)',
-          ],
-          borderWidth: 1,
-        },
-      ],
-    };
-  };
-
-  // Calculate emotions by developer using real fetched data
-  const getEmotionsByDeveloperData = () => {
+  const getEmotionChartData = () => {
     if (!emotionData.length) return null;
-
     const emotionTypes = ['happy', 'sad', 'angry', 'neutral', 'surprised'];
     const colors = [
-      'rgba(75, 192, 192, 0.6)', // happy - teal
-      'rgba(54, 162, 235, 0.6)', // sad - blue
-      'rgba(255, 99, 132, 0.6)', // angry - red
-      'rgba(255, 205, 86, 0.6)', // neutral - yellow
-      'rgba(153, 102, 255, 0.6)', // surprised - purple
+      'rgba(75, 192, 192, 0.6)',
+      'rgba(54, 162, 235, 0.6)',
+      'rgba(255, 99, 132, 0.6)',
+      'rgba(255, 205, 86, 0.6)',
+      'rgba(153, 102, 255, 0.6)'
     ];
-
-    const datasets = emotionTypes.map((emotion, index) => {
-      return {
-        label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
-        data: emotionData.map(data => {
-          // Count occurrences of this emotion type in user's emotions
-          const count = [data.first_emotion, data.second_emotion, data.third_emotion]
-            .filter(e => e === emotion).length;
-          return count;
-        }),
-        backgroundColor: colors[index],
-        borderColor: colors[index].replace('0.6', '1'),
-        borderWidth: 1,
-      };
-    });
-
+    const datasets = emotionTypes.map((emotion, idx) => ({
+      label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
+      data: emotionData.map(d => [d.first_emotion, d.second_emotion, d.third_emotion].filter(e => e === emotion).length),
+      backgroundColor: colors[idx],
+      borderColor: colors[idx].replace('0.6', '1'),
+      borderWidth: 2
+    }));
     return {
-      labels: emotionData.map(data => data.user?.name || data.user_email || 'Anonymous'),
-      datasets,
+      labels: emotionData.map(d => d.user?.name || d.user_email || 'Anonymous'),
+      datasets
     };
   };
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        font: {
-          size: 16,
-        },
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
-  };
-
-  if (loading) {
-    return <div className="dashboard-loading">Loading dashboard data...</div>;
-  }
-
-  if (error) {
-    return <div className="dashboard-error">Error: {error}</div>;
-  }
-
   return (
-    <div className="dashboard-container">
+    <>
       <Navbar />
-      <div className="dashboard-header">
-        <h2>Dashboard</h2>
-        <p>Project performance metrics and analytics</p>
-      </div>
+      <div className="min-h-screen bg-gray-100 p-8 mt-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold mb-4">📊 Developer Productivity Dashboard</h2>
 
-      <div className="dashboard-grid">
-        <div className="chart-container">
-          <h3>Productivity by Sprint</h3>
-          <div className="chart-wrapper">
-            <Bar
-              data={getProductivityBySprintData()}
-              options={{
-                ...chartOptions,
-                plugins: {
-                  ...chartOptions.plugins,
-                  title: {
-                    ...chartOptions.plugins.title,
-                    text: 'Percentage of Completed Tasks per Sprint',
-                  },
-                },
-              }}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <select onChange={e => setSelectedCategory(e.target.value)} className="p-2 border rounded">
+              <option value=''>All Categories</option>
+              {categories.map((c, i) => <option key={i} value={c}>{c}</option>)}
+            </select>
+            <select onChange={e => setSelectedComplexity(e.target.value)} className="p-2 border rounded">
+              <option value=''>All Complexities</option>
+              {complexities.map((c, i) => <option key={i} value={c}>{c}</option>)}
+            </select>
+            <select onChange={e => setSelectedUserId(e.target.value)} className="p-2 border rounded">
+              <option value=''>All Users</option>
+              {users.map((u, i) => <option key={i} value={u.id}>{u.name}</option>)}
+            </select>
+            <select onChange={e => setSelectedSprintId(e.target.value)} className="p-2 border rounded">
+              <option value=''>All Sprints</option>
+              {sprints.map((s, i) => <option key={i} value={s.id}>{s.sprint_name || `Sprint ${s.id}`}</option>)}
+            </select>
           </div>
-        </div>
 
-        <div className="chart-container">
-          <h3>Rework by Sprint</h3>
-          <div className="chart-wrapper">
-            <Bar
-              data={getReworkBySprintData()}
-              options={{
-                ...chartOptions,
-                plugins: {
-                  ...chartOptions.plugins,
-                  title: {
-                    ...chartOptions.plugins.title,
-                    text: 'Percentage of Tasks Requiring Rework per Sprint',
-                  },
-                },
-              }}
-            />
+          <div className="bg-gray-50 rounded-lg p-4 sm:p-6 mb-6 overflow-x-auto">
+            {loading ? <p className="text-center">Loading productivity...</p> : error ? <p className="text-red-500 text-center">{error}</p> : chartData ? (
+              <Bar
+                key={'productivity-' + chartData?.labels?.join(',')}
+                data={chartData}
+                options={{ responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Productivity Scores by User and Sprint' } }, scales: { y: { beginAtZero: true } } }}
+              />
+            ) : <p className="text-center">No productivity data available.</p>}
           </div>
-        </div>
 
-        <div className="chart-container">
-          <h3>Productivity by Developer</h3>
-          <div className="chart-wrapper">
-            <Pie
-              data={getProductivityByDeveloperData()}
-              options={{
-                ...chartOptions,
-                plugins: {
-                  ...chartOptions.plugins,
-                  title: {
-                    ...chartOptions.plugins.title,
-                    text: 'Productivity Rate by Team Member',
-                  },
-                },
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="chart-container">
-          <h3>Rework by Developer</h3>
-          <div className="chart-wrapper">
-            <Pie
-              data={getReworkByDeveloperData()}
-              options={{
-                ...chartOptions,
-                plugins: {
-                  ...chartOptions.plugins,
-                  title: {
-                    ...chartOptions.plugins.title,
-                    text: 'Rework Rate by Team Member',
-                  },
-                },
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="chart-container full-width">
-          <h3>Emotions Detected by Developer</h3>
-          <div className="chart-wrapper">
-            {getEmotionsByDeveloperData() ? (
-              <Line
-                data={getEmotionsByDeveloperData()}
+          {reworkData && (
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold mb-4">Rework Effort by Developer</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <select onChange={e => setSelectedCategory(e.target.value)} className="p-2 border rounded">
+                  <option value=''>All Categories</option>
+                  {categories.map((c, i) => <option key={i} value={c}>{c}</option>)}
+                </select>
+                <select onChange={e => setSelectedComplexity(e.target.value)} className="p-2 border rounded">
+                  <option value=''>All Complexities</option>
+                  {complexities.map((c, i) => <option key={i} value={c}>{c}</option>)}
+                </select>
+                <select onChange={e => setSelectedUserId(e.target.value)} className="p-2 border rounded">
+                  <option value=''>All Users</option>
+                  {users.map((u, i) => <option key={i} value={u.id}>{u.name}</option>)}
+                </select>
+                <select onChange={e => setSelectedSprintId(e.target.value)} className="p-2 border rounded">
+                  <option value=''>All Sprints</option>
+                  {sprints.map((s, i) => <option key={i} value={s.id}>{s.sprint_name || `Sprint ${s.id}`}</option>)}
+                </select>
+              </div>
+              {selectedSprintId && (
+                <p className="mb-4 text-sm text-gray-600">
+                  {reworkData?.per_user?.some(user => user.rework > 0)
+                    ? 'There was rework effort in this sprint.'
+                    : 'No rework effort recorded in this sprint.'}
+                </p>
+              )}
+              <Bar
+                key={'rework-' + reworkData?.per_user?.map(u => u.name).join(',')}
+                data={getReworkChartData()}
                 options={{
-                  ...chartOptions,
+                  responsive: true,
                   plugins: {
-                    ...chartOptions.plugins,
+                    legend: { position: 'top' },
                     title: {
-                      ...chartOptions.plugins.title,
-                      text: 'Team Member Emotional States',
-                    },
+                      display: true,
+                      text: `Total Rework Effort: ${reworkData.total} hrs`
+                    }
                   },
+                  scales: {
+                    y: { beginAtZero: true }
+                  }
                 }}
               />
-            ) : (
-              <p>No emotion data available. {emotionData.length === 0 ? 'Try logging in with some team members to collect emotion data.' : ''}</p>
-            )}
-          </div>
+            </div>
+          )}
+
+          {emotionData.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Emotional States by Developer</h3>
+              <Line
+                key={'emotion-' + emotionData?.map(d => d.user?.name || d.user_email).join(',')}
+                data={getEmotionChartData()}
+                options={{ responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Detected Emotions per Team Member' } }, scales: { y: { beginAtZero: true } } }}
+              />
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -10,10 +10,40 @@ from .serializers import TaskSerializer
 from sprints.models import Sprint
 from .ml import train_model, predict_effort
 from rest_framework.decorators import api_view
+from project_users.models import ProjectUsers
+from users.models import User
+from django.db.models import Sum
 
 
+@api_view(['GET'])
+def rework_effort_view(request):
+    project_id = request.query_params.get('project_id')
+    if not project_id:
+        return Response({"error": "project_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Total rework effort across all tasks
+    total_rework = Task.objects.filter(project_id=project_id).aggregate(total=Sum('rework_effort'))['total'] or 0
 
+    # Per-user rework effort
+    per_user_qs = Task.objects.filter(project_id=project_id, user__isnull=False) \
+        .values('user') \
+        .annotate(rework=Sum('rework_effort'))\
+        .order_by('-rework')
+
+    users = User.objects.in_bulk([item['user'] for item in per_user_qs])
+    per_user = [
+        {
+            'user_id': item['user'],
+            'name': users[item['user']].name if users.get(item['user']) else "Unknown",
+            'rework': round(item['rework'] or 0, 2)
+        }
+        for item in per_user_qs
+    ]
+
+    return Response({
+        "total": round(total_rework, 2),
+        "per_user": per_user
+    })
 @api_view(["GET"])
 def train_effort_model(request):
     try:
@@ -117,3 +147,23 @@ class TaskViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         print("Received data:", request.data)
         return super().create(request, *args, **kwargs)
+    
+    
+    
+@api_view(['GET'])
+def task_meta_view(request):
+    project_id = request.query_params.get('project_id')
+    if not project_id:
+        return Response({"error": "project_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    categories = Task.objects.filter(project_id=project_id).values_list('task_category', flat=True).distinct()
+    complexities = Task.objects.filter(project_id=project_id).values_list('task_complexity', flat=True).distinct()
+
+    user_ids = ProjectUsers.objects.filter(project_id=project_id).values_list('user_id', flat=True)
+    users = User.objects.filter(id__in=user_ids).values('id', 'name')
+
+    return Response({
+        "categories": list(categories),
+        "complexities": list(complexities),
+        "users": list(users)
+    })
