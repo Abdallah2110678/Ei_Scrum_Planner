@@ -1,4 +1,7 @@
+from venv import logger
 from django.db import models
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 from projects.models import Project
 from datetime import timedelta
 from django.utils.timezone import now
@@ -49,3 +52,13 @@ class Sprint(models.Model):
 
     def __str__(self):
         return f"{self.sprint_name} (Project: {self.project.name})"
+
+
+@receiver(post_save, sender=Sprint)
+def update_project_sprint_completion(sender, instance, **kwargs):
+    if instance.is_completed:
+        project = instance.project
+        completed_sprints_count = project.sprints.filter(is_completed=True).count()
+        project.enable_automation = completed_sprints_count >= 2
+        project.save(update_fields=['enable_automation'])
+        logger.info(f"Updated project {project.name}: enable_automation={project.enable_automation}")

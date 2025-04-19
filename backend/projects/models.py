@@ -10,6 +10,10 @@ class Project(models.Model):
         null=True,  # Optional: allows projects without a creator (e.g., for existing data)
         blank=True
     )
+    enable_automation = models.BooleanField(
+        default=False,
+        help_text="Indicates if at least two sprints in this project are completed."
+    )
     
     def __str__(self):
         return self.name
