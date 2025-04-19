@@ -17,10 +17,11 @@ import "./backlog.css";
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-const { selectedProjectId, projects } = useSelector((state) => state.projects);
+const { selectedProjectId, projects,  } = useSelector((state) => state.projects);
 
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
+  const [enableAutomation, setEnableAutomation] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,6 +30,7 @@ const { selectedProjectId, projects } = useSelector((state) => state.projects);
   useEffect(() => {
     if (selectedProjectId) {
       dispatch(fetchSprints(selectedProjectId));
+      setEnableAutomation(projects.find((p) => p.id === selectedProjectId)?.enable_automation)
     }
   }, [dispatch, selectedProjectId]);
 
@@ -314,6 +316,16 @@ const { selectedProjectId, projects } = useSelector((state) => state.projects);
                       >
                         {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
                       </button>
+                      <button
+                      className='start-sprint-button'
+                      onClick={() => {
+                      alert("wow!!");
+                      
+                      }}
+                      disabled = {!enableAutomation}
+                      >
+                        Automate Assignment
+                        </button>
                       <button
                         className="sprint-actions-button"
                         aria-haspopup="true"
