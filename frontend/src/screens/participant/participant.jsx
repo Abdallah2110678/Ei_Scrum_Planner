@@ -8,19 +8,16 @@ const ParticipantsPage = () => {
   const { selectedProjectId, participants, isLoading, isError, message } = useSelector((state) => state.projects);
   const projectId = localStorage.getItem("selectedProjectId");
 
-  // State for adding a new user
   const [email, setEmail] = useState("");
   const [addMessage, setAddMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(null);
 
-  // Fetch participants when the component mounts
   useEffect(() => {
     if (selectedProjectId) {
       dispatch(fetchProjectParticipants(selectedProjectId));
     }
   }, [dispatch, selectedProjectId]);
 
-  // Handle adding a new user
   const handleAddUser = async () => {
     if (!email) {
       setAddMessage("Please enter an email.");
@@ -36,9 +33,8 @@ const ParticipantsPage = () => {
 
       setAddMessage(response.data.message || "User added successfully!");
       setIsSuccess(true);
-      setEmail(""); // Clear input field on success
+      setEmail("");
 
-      // Refresh the participants list
       dispatch(fetchProjectParticipants(projectId));
     } catch (error) {
       setAddMessage(error.response?.data?.error || "An error occurred.");
@@ -51,17 +47,18 @@ const ParticipantsPage = () => {
   if (!participants) return <div className="text-gray-500 text-center">No participants data available.</div>;
 
   return (
-    <div className="w-[calc(100%-220px)] ml-[200px] p-8 bg-gray-50">
+    <div className="ml-0 md:ml-[220px] px-4 py-8 mt-6 bg-gray-50 overflow-x-hidden">
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Project: {participants.project_name}</h1>
         <h2 className="text-lg font-semibold text-gray-600">Participants</h2>
       </div>
 
-      {/* Add New Member Section */}
+      {/* Add New Member */}
       <div className="bg-white p-6 rounded-lg shadow-sm mb-6 border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">Add New Member</h3>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           <input
             type="email"
             placeholder="Enter user email"
@@ -89,7 +86,7 @@ const ParticipantsPage = () => {
         {participants.users.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
