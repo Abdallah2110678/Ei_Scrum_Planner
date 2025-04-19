@@ -237,7 +237,7 @@ const Dashboard = () => {
                 </p>
               )}
               <Bar
-                key={'rework-' + reworkData?.per_user?.map(u => u.user_id).join(',')}
+                key={'rework-' + reworkData?.per_user?.map(u => u.name).join(',')}
                 data={getReworkChartData()}
                 options={{
                   responsive: true,
