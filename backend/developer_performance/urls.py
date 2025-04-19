@@ -1,12 +1,16 @@
 from django.urls import path
 from .views import (
-    calculate_developer_productivity,
-    calculate_task_productivity,
-    calculate_sprint_productivity,
+    calculate_developer_productivity_single,
+    calculate_developer_productivity_all,
+    get_developer_productivity_list,
 )
 
 urlpatterns = [
-    path('developer-productivity/<int:user_id>/', calculate_developer_productivity),
-    path('task-productivity/<int:task_id>/', calculate_task_productivity),
-    path('sprint-productivity/<int:sprint_id>/', calculate_sprint_productivity),
+    # For one developer (requires ?project_id=)
+    path("developer-performance/calculate/<int:user_id>/", calculate_developer_productivity_single),
+
+    # For all developers in a project (requires ?project_id=)
+    path("developer-performance/calculate_all/", calculate_developer_productivity_all),
+    
+    path("developer-performance/", get_developer_productivity_list),
 ]

@@ -1,75 +1,120 @@
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import get_user_model
 from tasks.models import Task
-from collections import defaultdict
-from .models import DeveloperPerformance
+from developer_performance.models import DeveloperPerformance
+from developer_performance.serializers import DeveloperPerformanceSerializer
+from projects.models import Project
+from project_users.models import ProjectUsers
+from django.db.models import Sum, Count
 
-def calculate_developer_productivity(request, user_id):
-    tasks = Task.objects.filter(user_id=user_id, status="DONE")
+User = get_user_model()
 
-    if not tasks.exists():
-        return JsonResponse({"message": "No completed tasks found for this developer."}, status=404)
+# ------------------------------
+# Utility to calculate per-user productivity
+# ------------------------------
+def calculate_productivity_for_user(user, project_id):
+    tasks = Task.objects.filter(user=user, project_id=project_id)
 
-    grouped_effort = defaultdict(list)
+    grouped_data = tasks.values('sprint', 'task_category', 'task_complexity') \
+        .annotate(total_tasks=Count('id'), total_effort=Sum('actual_effort'))
 
-    for task in tasks:
-        key = task.task_category  # ✅ Only by category now
-        grouped_effort[key].append(task.actual_effort)
+    result_entries = []
 
-    results = {}
-    for category, efforts in grouped_effort.items():
-        total_effort = sum(efforts)
-        avg_effort = total_effort / len(efforts)
+    for item in grouped_data:
+        sprint_id = item['sprint']
+        category = item['task_category']
+        complexity = item['task_complexity']
+        total_tasks = item['total_tasks']
+        total_effort = item['total_effort'] or 0.0
+        productivity = total_effort / total_tasks if total_tasks else 0
 
-        results[category] = {
-            "total_tasks": len(efforts),
-            "total_effort": total_effort,
-            "avg_effort": round(avg_effort, 2)
-        }
+        try:
+            performance, _ = DeveloperPerformance.objects.update_or_create(
+                user=user,
+                project_id=project_id,
+                sprint_id=sprint_id,
+                category=category,
+                complexity=complexity,
+                defaults={
+                    'total_tasks': total_tasks,
+                    'total_actual_effort': total_effort,
+                    'productivity': productivity
+                }
+            )
+            result_entries.append(performance)
+        except Exception as e:
+            print(f"Error saving performance for {user} in sprint {sprint_id}: {e}")
 
-    return JsonResponse({
-        "developer_id": user_id,
-        "productivity_by_category": results
-    })
+    return result_entries
 
+# ------------------------------
+# All developers in a project
+# ------------------------------
+@api_view(['POST'])
+def calculate_developer_productivity_all(request):
+    project_id = request.query_params.get('project_id')
+    if not project_id:
+        return Response({"error": "project_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-def calculate_task_productivity(request, task_id):
     try:
-        task = Task.objects.get(id=task_id)
-        return JsonResponse({
-            "task_id": task.id,
-            "developer_id": task.user.id if task.user else None,
-            "category": task.task_category,
-            "complexity": task.task_complexity,
-            "actual_effort": task.actual_effort,
-        })
-    except Task.DoesNotExist:
-        return JsonResponse({"error": "Task not found"}, status=404)
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    user_ids = ProjectUsers.objects.filter(project_id=project_id).values_list('user_id', flat=True)
+    users = User.objects.filter(id__in=user_ids)
+
+    all_entries = []
+    for user in users:
+        entries = calculate_productivity_for_user(user, project_id)
+        all_entries.extend(entries)
+
+    serialized = DeveloperPerformanceSerializer(all_entries, many=True)
+    return Response(serialized.data, status=status.HTTP_200_OK)
+
+# ------------------------------
+# One developer in a project
+# ------------------------------
+@api_view(['POST'])
+def calculate_developer_productivity_single(request, user_id):
+    project_id = request.query_params.get('project_id')
+    if not project_id:
+        return Response({"error": "project_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    entries = calculate_productivity_for_user(user, project_id)
+    serialized = DeveloperPerformanceSerializer(entries, many=True)
+    return Response(serialized.data, status=status.HTTP_200_OK)
 
 
-def calculate_sprint_productivity(request, sprint_id):
-    tasks = Task.objects.filter(sprint_id=sprint_id, status="DONE")
+@api_view(['GET'])
+def get_developer_productivity_list(request):
+    project_id = request.query_params.get('project_id')
+    user_id = request.query_params.get('user_id')
+    category = request.query_params.get('task_category')
+    complexity = request.query_params.get('task_complexity')
+    sprint_id = request.query_params.get('sprint_id')
 
-    if not tasks.exists():
-        return JsonResponse({"message": "No completed tasks found for this sprint."}, status=404)
+    if not project_id:
+        return Response({"error": "project_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    from collections import defaultdict
-    grouped_effort = defaultdict(list)
+    filters = {'project_id': project_id}
 
-    for task in tasks:
-        key = (task.task_category, task.task_complexity)
-        grouped_effort[key].append(task.actual_effort)
+    if user_id:
+        filters['user_id'] = user_id
+    if category:
+        filters['category'] = category
+    if complexity:
+        filters['complexity'] = complexity
+    if sprint_id:
+        filters['sprint_id'] = sprint_id
 
-    results = {
-        f"{cat} - {comp}": {
-            "total_tasks": len(efforts),
-            "total_effort": sum(efforts),
-            "avg_effort": round(sum(efforts) / len(efforts), 2)
-        }
-        for (cat, comp), efforts in grouped_effort.items()
-    }
-
-    return JsonResponse({
-        "sprint_id": sprint_id,
-        "productivity_by_type": results
-    })
+    queryset = DeveloperPerformance.objects.filter(**filters)
+    serialized = DeveloperPerformanceSerializer(queryset, many=True)
+    return Response(serialized.data, status=status.HTTP_200_OK)
