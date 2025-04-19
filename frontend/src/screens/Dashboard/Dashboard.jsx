@@ -183,7 +183,7 @@ const Dashboard = () => {
               {complexities.map((c, i) => <option key={i} value={c}>{c}</option>)}
             </select>
             <select onChange={e => setSelectedUserId(e.target.value)} className="p-2 border rounded">
-              <option value=''>All Users</option>
+              <option value=''>All Developers</option>
               {users.map((u, i) => <option key={i} value={u.id}>{u.name}</option>)}
             </select>
             <select onChange={e => setSelectedSprintId(e.target.value)} className="p-2 border rounded">
@@ -215,7 +215,7 @@ const Dashboard = () => {
                   {complexities.map((c, i) => <option key={i} value={c}>{c}</option>)}
                 </select>
                 <select onChange={e => setSelectedUserId(e.target.value)} className="p-2 border rounded">
-                  <option value=''>All Users</option>
+                  <option value=''>All Developers</option>
                   {users.map((u, i) => <option key={i} value={u.id}>{u.name}</option>)}
                 </select>
                 <select onChange={e => setSelectedSprintId(e.target.value)} className="p-2 border rounded">
