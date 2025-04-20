@@ -61,13 +61,50 @@ class Task(models.Model):
     
 def handle_task_reactivation(instance, old_status):
     """
-    Marks task as reactivated if it moves from DONE to TO DO.
+    Marks task as reactivated if it moves from DONE to TO DO and sends a rework email.
     """
     if old_status == "DONE" and instance.status == "TO DO":
         instance.rework_count += 1
         instance.is_reactivated = True
         instance.save(update_fields=["rework_count", "is_reactivated"])
+
         logger.info(f"Task {instance.id} marked as reactivated. Rework count: {instance.rework_count}")
+
+        # Send rework email
+        if instance.user and instance.user.email:
+            subject = f"Task Reactivated for Rework"
+            from_email = f"Ei Scrum Team <{settings.DEFAULT_FROM_EMAIL}>"
+            to_email = [instance.user.email]
+
+            context = {
+                'user_name': getattr(instance.user, 'name', instance.user.email),
+                'task_name': instance.task_name,
+                'project_name': instance.project.name if instance.project else "No Project",
+                'sprint_name': instance.sprint.sprint_name if instance.sprint else "No Sprint",
+                'task_url': f"{settings.FRONTEND_URL}/tasks/{instance.id}",
+                'rework_count': instance.rework_count,
+            }
+
+            try:
+                html_content = render_to_string('email/task_rework.html', context)
+                text_content = (
+                    f"Hi {context['user_name']},\n\n"
+                    f"The task '{context['task_name']}' has been reactivated and marked for rework.\n"
+                    f"Project: {context['project_name']}\n"
+                    f"Sprint: {context['sprint_name']}\n"
+                    f"Rework Count: {context['rework_count']}\n"
+                    f"View it here: {context['task_url']}\n\n"
+                    f"Please check the required fixes.\n\n"
+                    f"Best,\nEi Scrum Team"
+                )
+
+                email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
+                email.attach_alternative(html_content, "text/html")
+                email.send(fail_silently=False)
+                logger.info(f"✅ Rework email sent to {instance.user.email} for task {instance.id}")
+            except Exception as e:
+                logger.error(f"❌ Failed to send rework email to {instance.user.email}: {str(e)}")
+
 
 @receiver(pre_save, sender=Task)
 def cache_old_user(sender, instance, **kwargs):
