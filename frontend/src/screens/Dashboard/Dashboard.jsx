@@ -167,12 +167,51 @@ const Dashboard = () => {
     };
   };
 
+  const handleGenerateReport = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/generates_report/generate_dashboard_pdf/?project_id=${selectedProjectId}`,
+        {
+          responseType: 'blob',
+          headers: {
+            Authorization: `Bearer ${user?.access}`,
+          },
+        }
+      );
+  
+      // Create a blob from the PDF stream
+      const file = new Blob([response.data], { type: 'application/pdf' });
+      
+      // Create a link and trigger download
+      const fileURL = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileURL;
+      link.download = `project-report-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(fileURL);
+    } catch (error) {
+      console.error('Error generating report:', error);
+      alert('Failed to generate report. Please try again.');
+    }
+  };
+
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100 p-8 mt-6 overflow-x-hidden">
         <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-4">📊 Developer Productivity Dashboard</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">📊 Developer Productivity Dashboard</h2>
+            <button
+              className="generate-report-button"
+              onClick={handleGenerateReport}
+              disabled={!selectedProjectId}
+            >
+              📄 Generate Report
+            </button>
+          </div>
 
           {/* Productivity Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
