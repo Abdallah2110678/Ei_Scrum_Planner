@@ -181,12 +181,38 @@ const Dashboard = () => {
             <select onChange={e => setSelectedUserId(e.target.value)} className="p-2 border rounded"><option value=''>All Developers</option>{users.map((u, i) => <option key={i} value={u.id}>{u.name}</option>)}</select>
             <select onChange={e => setSelectedSprintId(e.target.value)} className="p-2 border rounded"><option value=''>All Sprints</option>{sprints.map((s, i) => <option key={i} value={s.id}>{s.sprint_name || `Sprint ${s.id}`}</option>)}</select>
           </div>
-
           {/* Productivity Chart */}
-          <div className="bg-gray-50 rounded-lg p-6 mb-6 overflow-x-auto">
-            {loading ? <p className="text-center">Loading productivity...</p> : error ? <p className="text-red-500 text-center">{error}</p> : chartData ? (
-              <Bar data={chartData} options={{ responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Productivity Scores by User and Sprint' } }, scales: { y: { beginAtZero: true } } }} />
-            ) : <p className="text-center">No productivity data available.</p>}
+          <div className="bg-gray-50 rounded-lg p-6 mb-6 overflow-x-auto" style={{ height: '400px' }}>
+            {error && <p className="text-red-500 text-center">{error}</p>}
+            {chartData ? (
+              <Bar
+                data={chartData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  layout: {
+                    padding: {
+                      left: 30 // 👈 adjust as needed (e.g., 40, 50)
+                    }
+                  },
+                  plugins: {
+                    legend: { position: 'top' },
+                    title: {
+                      display: true,
+                      text: 'Productivity Scores by User and Sprint'
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true
+                    }
+                  }
+                }}
+              />
+
+            ) : (
+              <p className="text-center">No productivity data available.</p>
+            )}
           </div>
 
           {/* Rework Filters */}
