@@ -192,7 +192,7 @@ const Dashboard = () => {
                   maintainAspectRatio: false,
                   layout: {
                     padding: {
-                      left: 30 // 👈 adjust as needed (e.g., 40, 50)
+                      left: 5 // 👈 adjust as needed (e.g., 40, 50)
                     }
                   },
                   plugins: {
