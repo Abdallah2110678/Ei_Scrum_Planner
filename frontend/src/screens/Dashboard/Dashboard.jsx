@@ -68,6 +68,9 @@ const Dashboard = () => {
   const fetchPerformance = async () => {
     setLoading(true);
     try {
+      // ⏱️ First trigger backend to calculate
+      await axios.post(`http://localhost:8000/api/developer-performance/calculate_all/?project_id=${selectedProjectId}`);
+
       const params = {
         project_id: selectedProjectId,
         ...(selectedCategory && { task_category: selectedCategory }),
@@ -75,6 +78,7 @@ const Dashboard = () => {
         ...(selectedUserId && { user_id: selectedUserId }),
         ...(selectedSprintId && { sprint_id: selectedSprintId })
       };
+
       const res = await axios.get('http://localhost:8000/api/developer-performance/', { params });
       const data = res.data;
 
