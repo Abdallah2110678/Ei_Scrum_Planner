@@ -14,20 +14,35 @@ from project_users.models import ProjectUsers
 from users.models import User
 from django.db.models import Sum
 
-
 @api_view(['GET'])
 def rework_effort_view(request):
     project_id = request.query_params.get('project_id')
+    user_id = request.query_params.get('user_id')
+    sprint_id = request.query_params.get('sprint_id')
+    category = request.query_params.get('task_category')
+    complexity = request.query_params.get('task_complexity')
+
     if not project_id:
         return Response({"error": "project_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Total rework effort across all tasks
-    total_rework = Task.objects.filter(project_id=project_id).aggregate(total=Sum('rework_effort'))['total'] or 0
+    filters = {'project_id': project_id}
 
-    # Per-user rework effort
-    per_user_qs = Task.objects.filter(project_id=project_id, user__isnull=False) \
+    if user_id:
+        filters['user_id'] = user_id
+    if sprint_id:
+        filters['sprint_id'] = sprint_id
+    if category:
+        filters['task_category'] = category
+    if complexity:
+        filters['task_complexity'] = complexity
+
+    queryset = Task.objects.filter(**filters)
+
+    total_rework = queryset.aggregate(total=Sum('rework_effort'))['total'] or 0
+
+    per_user_qs = queryset.filter(user__isnull=False) \
         .values('user') \
-        .annotate(rework=Sum('rework_effort'))\
+        .annotate(rework=Sum('rework_effort')) \
         .order_by('-rework')
 
     users = User.objects.in_bulk([item['user'] for item in per_user_qs])
@@ -44,6 +59,7 @@ def rework_effort_view(request):
         "total": round(total_rework, 2),
         "per_user": per_user
     })
+
 @api_view(["GET"])
 def train_effort_model(request):
     try:
