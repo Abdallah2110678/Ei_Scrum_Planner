@@ -13,6 +13,7 @@ import {
 import { updateTask } from "../../features/tasks/taskSlice";
 import StartSprintModal from "./../../components/sprint/StartSprintModal";
 import "./backlog.css";
+import TaskAssignmentButton from '../../components/taskAssignmentButton';
 
 const Backlog = () => {
   const dispatch = useDispatch();
@@ -316,6 +317,7 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
                       >
                         {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
                       </button>
+                      <TaskAssignmentButton projectId={selectedProjectId} sprintId={sprint.id} />
                       <button
                       className='start-sprint-button'
                       onClick={() => {

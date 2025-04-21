@@ -11,6 +11,7 @@ from tasks.models import Task
 from developer_performance.models import DeveloperPerformance
 from project_users.models import ProjectUsers
 import logging
+from django.db.models import Sum
 
 
 # projects/views.py
@@ -183,7 +184,7 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                     task_category=task.task_category,
                     task_complexity=task.task_complexity,
                     rework_count__gt=0
-                ).aggregate(total_rework=sum('rework_count'))['total_rework'] or 0
+                ).aggregate(total_rework=Sum('rework_count'))['total_rework'] or 0
                 rework_penalty = rework_count * 0.2  # Adjust penalty weight as needed
 
                 # Calculate workload penalty
