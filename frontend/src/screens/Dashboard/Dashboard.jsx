@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useDispatch, useSelector } from 'react-redux';
-import { Bar, Line } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
   BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
   LineElement,
   PointElement,
   Title,
-  Tooltip,
-  Legend
+  Tooltip
 } from 'chart.js';
-import Navbar from '../navbar/navbar';
+import React, { useEffect, useState } from 'react';
+import { Bar, Line } from 'react-chartjs-2';
+import { useDispatch, useSelector } from 'react-redux';
 import { fetchSprints } from '../../features/sprints/sprintSlice';
+import Navbar from '../navbar/navbar';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
 
@@ -76,7 +76,6 @@ const Dashboard = () => {
   };
 
   const fetchPerformance = async () => {
-    setLoading(true);
     try {
       await axios.post(`http://localhost:8000/api/developer-performance/calculate_all/?project_id=${selectedProjectId}`);
       const params = {
@@ -87,13 +86,28 @@ const Dashboard = () => {
         ...(selectedSprintId && { sprint_id: selectedSprintId })
       };
       const res = await axios.get('http://localhost:8000/api/developer-performance/', { params });
-      const data = res.data;
-      const getUserName = (userId) => users.find(u => u.id === userId)?.name || `User ${userId}`;
+
+      const grouped = {};
+      res.data.forEach(item => {
+        if (!grouped[item.user]) grouped[item.user] = [];
+        grouped[item.user].push(item.productivity);
+      });
+
+      const labels = Object.keys(grouped).map(userId => {
+        const user = users.find(u => u.id === parseInt(userId));
+        return user ? user.name : `User ${userId}`;
+      });
+
+      const data = Object.values(grouped).map(productivities => {
+        const avg = productivities.reduce((sum, val) => sum + val, 0) / productivities.length;
+        return parseFloat(avg.toFixed(2));
+      });
+
       setChartData({
-        labels: data.map(item => `${getUserName(item.user)} (S${item.sprint || '-'})`),
+        labels,
         datasets: [{
-          label: 'Productivity',
-          data: data.map(item => parseFloat(item.productivity.toFixed(2))),
+          label: 'Average Productivity',
+          data,
           backgroundColor: 'rgba(54, 162, 235, 0.6)',
           borderColor: 'rgba(54, 162, 235, 1)',
           borderWidth: 2,
@@ -101,9 +115,7 @@ const Dashboard = () => {
         }]
       });
     } catch (err) {
-      setError('Error loading performance data');
-    } finally {
-      setLoading(false);
+      setError('Error loading productivity data');
     }
   };
 
@@ -178,10 +190,10 @@ const Dashboard = () => {
           },
         }
       );
-  
+
       // Create a blob from the PDF stream
       const file = new Blob([response.data], { type: 'application/pdf' });
-      
+
       // Create a link and trigger download
       const fileURL = URL.createObjectURL(file);
       const link = document.createElement('a');
