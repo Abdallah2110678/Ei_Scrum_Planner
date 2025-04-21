@@ -54,10 +54,11 @@ const Dashboard = () => {
   }, [selectedProjectId]);
 
   useEffect(() => {
-    if (!selectedProjectId) return;
+    if (!selectedProjectId || users.length === 0) return;
     fetchPerformance();
     fetchEmotionData();
-  }, [selectedProjectId, selectedCategory, selectedComplexity, selectedUserId, selectedSprintId]);
+  }, [selectedProjectId, selectedCategory, selectedComplexity, selectedUserId, selectedSprintId, users]);
+
 
   useEffect(() => {
     if (!selectedProjectId) return;
@@ -87,14 +88,21 @@ const Dashboard = () => {
       };
       const res = await axios.get('http://localhost:8000/api/developer-performance/', { params });
 
+      // Wait until users are loaded before building chart
+      if (!users.length) {
+        console.warn("User list not ready");
+        return;
+      }
+
       const grouped = {};
       res.data.forEach(item => {
-        if (!grouped[item.user]) grouped[item.user] = [];
-        grouped[item.user].push(item.productivity);
+        const key = String(item.user); // Normalize key
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(item.productivity);
       });
 
       const labels = Object.keys(grouped).map(userId => {
-        const user = users.find(u => u.id === parseInt(userId));
+        const user = users.find(u => String(u.id) === userId); // Match types correctly
         return user ? user.name : `User ${userId}`;
       });
 

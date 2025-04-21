@@ -24,6 +24,9 @@ def calculate_productivity_for_user(user, project_id):
 
     for item in grouped_data:
         sprint_id = item['sprint']
+        if not sprint_id:
+            continue  # ✅ Skip if task has no sprint
+
         category = item['task_category']
         complexity = item['task_complexity']
         total_tasks = item['total_tasks']
