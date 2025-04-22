@@ -15,24 +15,23 @@ from .models import Task
 MODEL_PATH = "best_effort_model.pkl"
 BEST_ALGO_PATH = "best_effort_algo.txt"
 
-def train_model():
-    tasks = Task.objects.values("task_complexity", "task_category", "actual_effort")
+def train_model(project_id):
+    tasks = Task.objects.filter(project_id=project_id).values("task_complexity", "task_category", "actual_effort")
     df = pd.DataFrame(tasks)
 
     if df.empty:
-        raise ValueError("No task data found for training.")
+        raise ValueError(f"No task data found for training in project ID {project_id}.")
 
-    # Drop rows with missing values
     df = df.dropna(subset=["actual_effort", "task_complexity", "task_category"])
 
     if df.empty:
         raise ValueError("All task records have missing or invalid values.")
 
-    # Encode complexity
+    print(f"📦 Training on {len(df)} tasks for project ID {project_id}")
+
+
     complexity_map = {"EASY": 1, "MEDIUM": 2, "HARD": 3}
     df["task_complexity"] = df["task_complexity"].map(complexity_map)
-
-    # One-hot encode category
     df = pd.get_dummies(df, columns=["task_category"], drop_first=True)
 
     feature_cols = ["task_complexity"] + [col for col in df.columns if "task_category" in col]
@@ -55,7 +54,7 @@ def train_model():
 
     best_model, best_mape, best_algo = None, float("inf"), None
 
-    print("\n Model Evaluation:")
+    print(f"\n📊 Model Evaluation for Project {project_id}:")
     for name, model in models.items():
         model.fit(X_train, y_train)
         mape = mean_absolute_percentage_error(y_test, model.predict(X_test)) * 100
@@ -66,21 +65,26 @@ def train_model():
             best_model = model
             best_algo = name
 
-    # Save best model
-    with open(MODEL_PATH, "wb") as f:
+    # Save best model per project
+    model_path = f"best_effort_model_{project_id}.pkl"
+    algo_path = f"best_effort_algo_{project_id}.txt"
+
+    with open(model_path, "wb") as f:
         pickle.dump(best_model, f)
-    with open(BEST_ALGO_PATH, "w") as f:
+    with open(algo_path, "w") as f:
         f.write(best_algo)
 
-    print(f"\nBest Model: {best_algo} with Accuracy = {100 - best_mape:.2f}% (MAPE = {best_mape:.2f}%)")
+    print(f"\n✅ Best Model for Project {project_id}: {best_algo} with Accuracy = {100 - best_mape:.2f}% (MAPE = {best_mape:.2f}%)")
     return best_algo, best_mape
 
 
-def predict_effort(task_complexity, task_category):
-    if not os.path.exists(MODEL_PATH):
-        train_model()
+def predict_effort(project_id, task_complexity, task_category):
+    model_path = f"best_effort_model_{project_id}.pkl"
 
-    with open(MODEL_PATH, "rb") as f:
+    if not os.path.exists(model_path):
+        train_model(project_id)
+
+    with open(model_path, "rb") as f:
         model = pickle.load(f)
 
     expected_features = model.feature_names_in_.tolist()
@@ -98,5 +102,5 @@ def predict_effort(task_complexity, task_category):
             input_df[col] = task_category_encoded[col].iloc[0]
 
     prediction = model.predict(input_df)[0]
-    print(f"\n🔮 Prediction done using model: {type(model).__name__}")
+    print(f"\n🔮 Prediction done for project {project_id} using model: {type(model).__name__}")
     return prediction
