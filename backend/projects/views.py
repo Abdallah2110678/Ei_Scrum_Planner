@@ -1,3 +1,5 @@
+from datetime import timezone
+from emotion_detection.models import DailyEmotion
 from rest_framework import viewsets
 from .models import Project
 from .serializers import ProjectSerializer
@@ -12,6 +14,7 @@ from developer_performance.models import DeveloperPerformance
 from project_users.models import ProjectUsers
 import logging
 from django.db.models import Sum
+from django.utils import timezone
 
 
 # projects/views.py
@@ -124,30 +127,36 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 class TaskAssignmentViewSet(viewsets.ViewSet):
     """
-    ViewSet for automating task assignments based on developer performance,
-    task category, complexity, and rework count.
+    ViewSet for automating task assignments based on productivity, rework, emotion, and capacity.
     """
     def assign_tasks(self, project, sprint):
         """
         Assign unassigned tasks in the sprint to developers based on:
-        - Productivity in task category and complexity (DeveloperPerformance)
+        - Productivity (DeveloperPerformance)
         - Rework count penalty (Task.rework_count)
-        - Workload balance
+        - Emotion weight (DailyEmotion.average_emotion_weight)
+        - Capacity (max 7 hours)
         Returns a list of assignments for logging/response.
         """
+        logger.info(f"Starting task assignment for project '{project.name}' (ID: {project.id}), sprint '{sprint.sprint_name}' (ID: {sprint.id})")
+
         # Fetch developers in the project
+        logger.info("Retrieving developers from ProjectUsers")
         project_user_ids = ProjectUsers.objects.filter(project=project).values_list('user_id', flat=True)
         developers = User.objects.filter(id__in=project_user_ids)
         
         if not developers.exists():
-            logger.warning(f"No developers found for project {project.name}")
+            logger.warning(f"No developers found for project '{project.name}'")
             return []
+        logger.info(f"Found {developers.count()} developers: {[d.email for d in developers]}")
 
         # Fetch unassigned tasks in the sprint
+        logger.info("Retrieving unassigned tasks for sprint")
         tasks = Task.objects.filter(sprint=sprint, user__isnull=True)
         if not tasks.exists():
-            logger.warning(f"No unassigned tasks found for sprint {sprint.sprint_name}")
+            logger.warning(f"No unassigned tasks found for sprint '{sprint.sprint_name}'")
             return []
+        logger.info(f"Found {tasks.count()} unassigned tasks: {[t.task_name for t in tasks]}")
 
         # Map complexity to weight for workload penalty
         complexity_weights = {
@@ -156,15 +165,40 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
             "HARD": 1.5
         }
 
+        # Track assigned hours per developer
+        developer_hours = {dev.id: 0 for dev in developers}
+        max_capacity = 7.0  # Max hours per developer
+        logger.info(f"Initialized capacity tracking: max {max_capacity} hours per developer")
+
         assignments = []
         
         for task in tasks:
+            logger.info(
+                f"Processing task '{task.task_name}' (ID: {task.id}, Category: {task.task_category}, "
+                f"Complexity: {task.task_complexity}, Estimated Effort: {task.estimated_effort or 'None'}h)"
+            )
+            
+            if not task.estimated_effort:
+                logger.warning(f"Task '{task.task_name}' has no estimated_effort, skipping")
+                continue
+
             best_developer = None
             best_score = float('-inf')
             assignment_details = []
 
             for developer in developers:
-                # Get performance data for this developer in the task's category and complexity
+                logger.debug(f"Evaluating developer '{developer.email}' for task '{task.task_name}'")
+
+                # Check capacity
+                if developer_hours[developer.id] + task.estimated_effort > max_capacity:
+                    logger.warning(
+                        f"Skipping developer '{developer.email}' for task '{task.task_name}': "
+                        f"would exceed capacity ({developer_hours[developer.id]} + {task.estimated_effort} > {max_capacity})"
+                    )
+                    continue
+
+                # Productivity score
+                logger.debug(f"Calculating productivity score for '{developer.email}'")
                 performance = DeveloperPerformance.objects.filter(
                     user=developer,
                     project=project,
@@ -172,40 +206,73 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                     category=task.task_category,
                     complexity=task.task_complexity
                 ).order_by('-productivity').first()
-
-                # Calculate productivity score (invert productivity for higher-is-better)
-                productivity = performance.productivity if performance else 1.0  # Default to neutral
-                productivity_score = 1.0 / max(productivity, 0.1)  # Avoid division by zero
-
-                # Calculate rework penalty
-                rework_count = Task.objects.filter(
-                    user=developer,
-                    project=project,
-                    task_category=task.task_category,
-                    task_complexity=task.task_complexity,
-                    rework_count__gt=0
-                ).aggregate(total_rework=Sum('rework_count'))['total_rework'] or 0
-                rework_penalty = rework_count * 0.2  # Adjust penalty weight as needed
-
-                # Calculate workload penalty
-                current_tasks = Task.objects.filter(
-                    sprint=sprint,
-                    user=developer,
-                    status__in=["TO DO", "IN PROGRESS"]
+                productivity = performance.productivity if performance else 1.0
+                productivity_score = 1.0 / max(productivity, 0.1)  # Invert for higher-is-better
+                productivity_score = min(productivity_score / 2.0, 1.0)  # Normalize to 0-1
+                logger.debug(
+                    f"Productivity: raw={productivity:.2f}, score={productivity_score:.2f} "
+                    f"({'from performance' if performance else 'default'})"
                 )
-                workload_score = 0
-                for t in current_tasks:
-                    weight = complexity_weights.get(t.task_complexity, 1.0)
-                    workload_score += weight
-                workload_penalty = workload_score * 0.1  # Adjust penalty weight
+
+                # Rework penalty
+                logger.debug(f"Calculating rework penalty for '{developer.email}'")
+                try:
+                    rework_count = Task.objects.filter(
+                        user=developer,
+                        project=project,
+                        task_category=task.task_category,
+                        task_complexity=task.task_complexity,
+                        rework_count__gt=0
+                    ).aggregate(total_rework=Sum('rework_count'))['total_rework'] or 0
+                    logger.debug(f"Rework count: {rework_count}")
+                except Exception as e:
+                    logger.error(
+                        f"Error calculating rework_count for '{developer.email}', "
+                        f"task '{task.task_name}': {str(e)}"
+                    )
+                    rework_count = 0
+                rework_penalty = min(rework_count * 0.2, 1.0)  # Normalize to 0-1
+                logger.debug(f"Rework penalty: {rework_penalty:.2f}")
+
+                # Emotion score
+                logger.debug(f"Calculating emotion score for '{developer.email}'")
+                latest_emotion = DailyEmotion.objects.filter(
+                    user=developer,
+                    date__lte=timezone.now().date()
+                ).order_by('-date').first()
+                emotion_weight = latest_emotion.average_emotion_weight if latest_emotion else 0.5
+                if emotion_weight >= 0.9:
+                    emotion_score = 1.0
+                elif emotion_weight >= 0.8:
+                    emotion_score = 0.8
+                elif emotion_weight >= 0.7:
+                    emotion_score = 0.6
+                else:
+                    emotion_score = 0.4
+                logger.debug(
+                    f"Emotion: weight={emotion_weight:.2f}, score={emotion_score:.2f} "
+                    f"({'from DailyEmotion' if latest_emotion else 'default'})"
+                )
+
+                # Workload penalty
+                logger.debug(f"Calculating workload penalty for '{developer.email}'")
+                workload_score = developer_hours[developer.id] * complexity_weights.get(task.task_complexity, 1.0)
+                workload_penalty = min(workload_score * 0.1, 1.0)  # Normalize to 0-1
+                logger.debug(f"Workload: hours={developer_hours[developer.id]:.2f}, penalty={workload_penalty:.2f}")
 
                 # Total score
-                score = productivity_score - rework_penalty - workload_penalty
+                score = (0.4 * productivity_score) - (0.3 * rework_penalty) + (0.3 * emotion_score) - (0.1 * workload_penalty)
+                logger.debug(
+                    f"Total score for '{developer.email}': "
+                    f"(0.4 * {productivity_score:.2f}) - (0.3 * {rework_penalty:.2f}) + "
+                    f"(0.3 * {emotion_score:.2f}) - (0.1 * {workload_penalty:.2f}) = {score:.2f}"
+                )
 
                 assignment_details.append({
                     'developer': developer.email,
                     'productivity_score': productivity_score,
                     'rework_penalty': rework_penalty,
+                    'emotion_score': emotion_score,
                     'workload_penalty': workload_penalty,
                     'total_score': score
                 })
@@ -214,26 +281,31 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                     best_score = score
                     best_developer = developer
 
-            if best_developer and best_score > 0:  # Only assign if score is positive
+            if best_developer and best_score > 0:
                 # Assign the task
+                logger.info(
+                    f"Assigning task '{task.task_name}' to '{best_developer.email}' "
+                    f"with score {best_score:.2f}"
+                )
                 task.user = best_developer
                 task.save()
+                developer_hours[best_developer.id] += task.estimated_effort
+                logger.info(
+                    f"Updated capacity for '{best_developer.email}': "
+                    f"{developer_hours[best_developer.id]:.2f}/{max_capacity} hours"
+                )
                 assignments.append({
                     'task_id': task.id,
                     'task_name': task.task_name,
                     'developer': best_developer.email,
                     'category': task.task_category,
                     'complexity': task.task_complexity,
+                    'estimated_effort': task.estimated_effort,
                     'score': best_score
                 })
-                logger.info(
-                    f"Assigned task {task.task_name} (Category: {task.task_category}, "
-                    f"Complexity: {task.task_complexity}) to {best_developer.email} "
-                    f"with score {best_score:.2f}"
-                )
             else:
                 logger.warning(
-                    f"No suitable developer found for task {task.task_name} "
+                    f"No suitable developer found for task '{task.task_name}' "
                     f"(Category: {task.task_category}, Complexity: {task.task_complexity})"
                 )
                 assignments.append({
@@ -242,12 +314,14 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                     'developer': None,
                     'category': task.task_category,
                     'complexity': task.task_complexity,
+                    'estimated_effort': task.estimated_effort,
                     'score': None
                 })
 
-            # Log assignment details for debugging
-            logger.debug(f"Assignment details for task {task.task_name}: {assignment_details}")
+            # Log assignment details
+            logger.debug(f"Assignment details for task '{task.task_name}': {assignment_details}")
 
+        logger.info(f"Completed task assignment: {len([a for a in assignments if a['developer']])} tasks assigned")
         return assignments
 
     @action(detail=False, methods=['post'], url_path='auto-assign-tasks')
@@ -256,6 +330,7 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
         API endpoint to trigger automatic task assignment.
         Expects project_id and sprint_id in the request body.
         """
+        logger.info("Received auto-assign-tasks request")
         project_id = request.data.get('project_id')
         sprint_id = request.data.get('sprint_id')
 
@@ -266,6 +341,7 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        logger.debug(f"Processing request: project_id={project_id}, sprint_id={sprint_id}")
         try:
             project = Project.objects.get(id=project_id)
             sprint = Sprint.objects.get(id=sprint_id, project=project)
@@ -277,23 +353,32 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
             return Response({"error": "Sprint not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if not project.enable_automation:
-            logger.warning(f"Automation disabled for project {project.name}")
+            logger.warning(f"Automation disabled for project '{project.name}'")
             return Response(
                 {"error": "Automation is disabled. At least two sprints must be completed."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        if not sprint.is_active:
+            logger.warning(f"Sprint '{sprint.sprint_name}' is not active")
+            return Response(
+                {"error": "Cannot assign tasks to an inactive sprint"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Perform task assignments
+        logger.info("Initiating task assignment process")
         assignments = self.assign_tasks(project, sprint)
         
         if not assignments:
+            logger.info("No tasks assigned (no unassigned tasks or developers available)")
             return Response(
                 {"message": "No tasks were assigned (no unassigned tasks or developers available)"},
                 status=status.HTTP_200_OK
             )
 
         assigned_count = sum(1 for a in assignments if a['developer'] is not None)
+        logger.info(f"Request completed: assigned {assigned_count} of {len(assignments)} tasks")
         return Response(
             {
                 "message": f"Assigned {assigned_count} of {len(assignments)} tasks successfully",
