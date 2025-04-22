@@ -13,7 +13,7 @@ from tasks.models import Task
 from developer_performance.models import DeveloperPerformance
 from project_users.models import ProjectUsers
 import logging
-from django.db.models import Sum
+from django.db.models import Sum, Avg
 from django.utils import timezone
 
 
@@ -124,7 +124,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 
 
-
 class TaskAssignmentViewSet(viewsets.ViewSet):
     """
     ViewSet for automating task assignments based on productivity, rework, emotion, and capacity.
@@ -134,7 +133,7 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
         Assign unassigned tasks in the sprint to developers based on:
         - Productivity (DeveloperPerformance)
         - Rework count penalty (Task.rework_count)
-        - Emotion weight (DailyEmotion.average_emotion_weight)
+        - Emotion weight (DailyEmotion.average_emotion_weight, with complexity restriction)
         - Capacity (max 7 hours)
         Returns a list of assignments for logging/response.
         """
@@ -149,6 +148,35 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
             logger.warning(f"No developers found for project '{project.name}'")
             return []
         logger.info(f"Found {developers.count()} developers: {[d.email for d in developers]}")
+
+        # Fetch the last completed sprint for emotion data
+        logger.info("Retrieving last completed sprint for emotion data")
+        last_sprint = Sprint.objects.filter(
+            project=project, 
+            is_completed=True
+        ).order_by('-end_date').first()
+        
+        developer_emotions = {}
+        if last_sprint and last_sprint.start_date and last_sprint.end_date:
+            logger.info(
+                f"Last sprint '{last_sprint.sprint_name}' (ID: {last_sprint.id}) "
+                f"from {last_sprint.start_date.date()} to {last_sprint.end_date.date()}"
+            )
+            emotion_data = DailyEmotion.objects.filter(
+                user__in=developers,
+                date__range=[last_sprint.start_date.date(), last_sprint.end_date.date()]
+            ).values('user_id').annotate(avg_emotion=Avg('average_emotion_weight'))
+            
+            for entry in emotion_data:
+                developer_emotions[entry['user_id']] = entry['avg_emotion'] or 0.5
+                logger.debug(
+                    f"Developer ID {entry['user_id']}: "
+                    f"average emotion weight={entry['avg_emotion']:.2f}"
+                )
+        else:
+            logger.warning("No completed sprint found or missing date range, using default emotion weight 0.5")
+            for developer in developers:
+                developer_emotions[developer.id] = 0.5
 
         # Fetch unassigned tasks in the sprint
         logger.info("Retrieving unassigned tasks for sprint")
@@ -188,6 +216,15 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
 
             for developer in developers:
                 logger.debug(f"Evaluating developer '{developer.email}' for task '{task.task_name}'")
+
+                # Check emotion-based complexity restriction
+                emotion_weight = developer_emotions.get(developer.id, 0.5)
+                if emotion_weight < 0.7 and task.task_complexity == "HARD":
+                    logger.warning(
+                        f"Skipping developer '{developer.email}' for task '{task.task_name}' "
+                        f"(HARD): low emotion weight ({emotion_weight:.2f} < 0.7)"
+                    )
+                    continue
 
                 # Check capacity
                 if developer_hours[developer.id] + task.estimated_effort > max_capacity:
@@ -236,11 +273,6 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
 
                 # Emotion score
                 logger.debug(f"Calculating emotion score for '{developer.email}'")
-                latest_emotion = DailyEmotion.objects.filter(
-                    user=developer,
-                    date__lte=timezone.now().date()
-                ).order_by('-date').first()
-                emotion_weight = latest_emotion.average_emotion_weight if latest_emotion else 0.5
                 if emotion_weight >= 0.9:
                     emotion_score = 1.0
                 elif emotion_weight >= 0.8:
@@ -251,7 +283,7 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                     emotion_score = 0.4
                 logger.debug(
                     f"Emotion: weight={emotion_weight:.2f}, score={emotion_score:.2f} "
-                    f"({'from DailyEmotion' if latest_emotion else 'default'})"
+                    f"({'from last sprint' if developer.id in developer_emotions else 'default'})"
                 )
 
                 # Workload penalty
