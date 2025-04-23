@@ -7,13 +7,13 @@
 /* Dropdown Toggle Button */
 .dropdown-toggle {
     width: 100%;
-        padding: 8px 12px;
+    padding: 8px 12px;
         background: white;
         border: 1px solid #ddd;
         border-radius: 4px;
     cursor: pointer;
     text-align: left;
-        display: flex;
+    display: flex;
         justify-content: space-between;
         align-items: center;
 }
@@ -27,11 +27,11 @@
     position: absolute;
     top: 100%;
     left: 0;
-        width: 100%;
+    width: 100%;
     background: white;
     border: 1px solid #ddd;
     border-radius: 4px;
-        margin-top: 4px;
+    margin-top: 4px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     z-index: 1000;
 }
@@ -50,28 +50,156 @@
     padding: 8px 12px;
     cursor: pointer;
     border-bottom: 1px solid #eee;
-    }
-    
-    .dropdown-menu li:last-child {
-        border-bottom: none;
+}
+
+.dropdown-menu li:last-child {
+    border-bottom: none;
 }
 
 .dropdown-menu li:hover {
     background-color: #f8f9fa;
+}
+.project-list-item {
+    position: relative;
+    padding: 4px 8px;
+    margin: 0;
+    border-bottom: 1px solid #eee;
+}
+
+.project-list-item:last-child {
+    border-bottom: none;
+}
+
+.project-list-item:hover {
+    background-color: #f8f9fa;
+}
+
+.project-name-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 4px 0;
+}
+
+.edit-icon-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.project-list-item:hover .edit-icon-btn {
+    opacity: 1;
+}
+
+.edit-icon-btn:hover {
+    color: #1976d2;
+    background-color: rgba(25, 118, 210, 0.08);
+}
+
+.edit-project-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 4px 0;
+}
+
+.edit-project-input {
+    flex: 1;
+    padding: 6px 8px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+.edit-project-input:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 1px #1976d2;
+}
+
+.edit-project-input.error {
+    border-color: #dc3545;
+    background-color: #fff8f8;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.edit-action-btn {
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.edit-action-btn.save {
+    color: #28a745;
+}
+
+.edit-action-btn.save:hover {
+    background-color: rgba(40, 167, 69, 0.08);
+}
+
+.edit-action-btn.cancel {
+    color: #dc3545;
+}
+
+.edit-action-btn.cancel:hover {
+    background-color: rgba(220, 53, 69, 0.08);
+}
+.project-name {
+    flex: 1;
+    display: block;
+    padding: 6px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
     
-    .project-name {
-        display: block;
-        width: 100%;
-        padding: 4px 0;
+    .project-name:hover {
+        background-color: #f0f7ff;
+        color: #1976d2;
     }
     
     .project-name.selected {
         background-color: #e3f2fd;
-        font-weight: bold;
+    font-weight: 500;
         color: #1976d2;
 }
 
+.edit-error-message {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    color: #dc3545;
+    font-size: 12px;
+    background: white;
+    padding: 4px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    margin-top: 4px;
+}
 /* Create Project Button */
 .create-project-btn {
     width: 100%;
@@ -82,17 +210,11 @@
     border-radius: 0 0 4px 4px;
     cursor: pointer;
     text-align: center;
+    transition: background-color 0.2s ease;
 }
 
 .create-project-btn:hover {
     background: #0056b3;
-}
-
-.edit-project-input {
-    width: 100%;
-    padding: 4px 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
 }
 
 /* Loading and error states */
@@ -105,13 +227,14 @@
 .error-message {
     color: #dc3545;
 }
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-        bottom: 0;
+    bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
@@ -124,7 +247,7 @@
     padding: 20px;
     border-radius: 8px;
     width: 90%;
-        max-width: 500px;
+    max-width: 500px;
 }
 
 .modal-content h2 {
@@ -142,7 +265,7 @@
 .modal-actions {
     display: flex;
     justify-content: flex-end;
-        gap: 10px;
+    gap: 10px;
         margin-top: 20px;
 }
 
@@ -157,7 +280,7 @@
 
 .modal-cancel {
     background: #dc3545;
-        color: white;
+    color: white;
     border: none;
     padding: 8px 16px;
     border-radius: 4px;
