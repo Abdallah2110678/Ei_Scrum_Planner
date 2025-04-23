@@ -14,7 +14,6 @@ import { updateTask } from "../../features/tasks/taskSlice";
 import StartSprintModal from "./../../components/sprint/StartSprintModal";
 import "./backlog.css";
 import TaskAssignmentButton from '../../components/taskAssignmentButton';
-import { axios } from 'axios';
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
