@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import './board.css';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import TaskCard from '../../components/taskCard/taskCard';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchTasks, updateTask } from '../../features/tasks/taskSlice';
 import { fetchSprints } from '../../features/sprints/sprintSlice';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { fetchTasks, updateTask } from '../../features/tasks/taskSlice';
+import './board.css';
 
 const Board = ({ toggleComponent }) => {
   const dispatch = useDispatch();
@@ -15,19 +15,49 @@ const Board = ({ toggleComponent }) => {
 
   // Local state for optimistic updates
   const [localTasks, setLocalTasks] = useState(tasks);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Sync localTasks with Redux tasks when tasks change
   useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
 
+  // Track previous project ID to detect changes
+  const prevProjectIdRef = useRef(selectedProjectId);
+
   // Fetch tasks and sprints when selectedProjectId changes
   useEffect(() => {
-    if (selectedProjectId) {
-      dispatch(fetchTasks());
-      dispatch(fetchSprints(selectedProjectId));
-    }
+    const fetchData = async () => {
+      if (selectedProjectId) {
+        // Check if this is a project switch
+        if (prevProjectIdRef.current !== selectedProjectId) {
+          setIsTransitioning(true);
+          // Clear local state
+          setLocalTasks([]);
+        }
+
+        try {
+          // Fetch data in parallel
+          await Promise.all([
+            dispatch(fetchTasks()).unwrap(),
+            dispatch(fetchSprints(selectedProjectId)).unwrap()
+          ]);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        } finally {
+          setIsTransitioning(false);
+        }
+      }
+    };
+
+    fetchData();
+    prevProjectIdRef.current = selectedProjectId;
   }, [dispatch, selectedProjectId]);
+
+  // Show loading state during transitions
+  if (isTransitioning) {
+    return <div className="loading-message">Loading project data...</div>;
+  }
 
   // Filter tasks from active sprints
   const activeSprints = sprints.filter((sprint) => sprint.is_active);

@@ -81,19 +81,11 @@ const Backlog = () => {
     }
   };
 
-  const handleProjectSelect = (projectId) => {
-    // Make sure we're working with an integer project ID
-    const numericProjectId = parseInt(projectId, 10);
-    console.log("Selected Project ID:", numericProjectId);
-    setSelectedProjectId(numericProjectId);
-  };
-
   const handleCreateSprint = async () => {
     if (!selectedProjectId) {
       alert("Please select a project first.");
       return;
     }
-
     const newSprintData = {
       sprint_name: `Sprint ${sprints.filter(s => s.project === selectedProjectId).length + 1}`,
       project: selectedProjectId,

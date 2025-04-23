@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProjects, createNewProject, setSelectedProjectId, updateProject } from "../../features/projects/projectSlice";
+import { createNewProject, fetchProjects, resetProjectState, setSelectedProjectId, updateProject } from "../../features/projects/projectSlice";
 import "./ProjectsDropdown.css";
 
 const ProjectsDropdown = () => {
@@ -16,11 +16,18 @@ const ProjectsDropdown = () => {
     const { userInfo } = useSelector((state) => state.auth);
     const userId = userInfo?.id;
 
+    // Debug logging for state
+    useEffect(() => {
+        console.log('Current selectedProjectId:', selectedProjectId);
+        console.log('Available projects:', projects);
+    }, [selectedProjectId, projects]);
+
     useEffect(() => {
         if (userId && Number.isInteger(userId)) {
             dispatch(fetchProjects(userId));
         }
     }, [dispatch, userId]);
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -34,10 +41,45 @@ const ProjectsDropdown = () => {
         };
     }, []);
 
-    const handleProjectSelect = (project) => {
-        dispatch(setSelectedProjectId(project.id)); // Save in Redux + localStorage
-        setIsOpen(false);
+    const handleProjectSelect = async (project) => {
+        try {
+            console.log('Attempting to select project:', project);
+            console.log('Current selectedProjectId:', selectedProjectId);
+
+            // If we're already on this project, don't do anything
+            if (selectedProjectId === project.id) {
+                console.log('Already on this project, no action needed');
+                setIsOpen(false);
+                return;
+            }
+
+            console.log('Resetting project state...');
+            // First reset any existing project data
+            dispatch(resetProjectState());
+
+            // Small delay to ensure cleanup is complete
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            console.log('Setting new project ID:', project.id);
+            // Set the new project ID
+            await dispatch(setSelectedProjectId(project.id));
+
+            // Close dropdown
+            setIsOpen(false);
+
+            // Force a refresh of project-related data
+            if (userId) {
+                console.log('Fetching updated project data...');
+                await dispatch(fetchProjects(userId));
+            }
+
+            // Force a page reload if needed
+            window.location.reload();
+        } catch (error) {
+            console.error("Failed to select project:", error);
+        }
     };
+
     const handleSaveProjectName = async (projectId) => {
         if (!editedProjectName.trim()) return;
 
@@ -59,7 +101,6 @@ const ProjectsDropdown = () => {
             alert("Could not update project name.");
         }
     };
-
 
     const handleCreateProject = async (e) => {
         e.preventDefault();
@@ -87,12 +128,24 @@ const ProjectsDropdown = () => {
 
     return (
         <div className="projects-dropdown" ref={dropdownRef}>
-            <button className="dropdown-toggle" onClick={() => setIsOpen(!isOpen)}>
-                {selectedProjectId ? projects.find(p => p.id === selectedProjectId)?.name : "Select a Project"} ▼
+            <button
+                className="dropdown-toggle"
+                onClick={() => {
+                    console.log('Toggle dropdown. Current state:', !isOpen);
+                    setIsOpen(!isOpen);
+                }}
+            >
+                {selectedProjectId
+                    ? (projects.find(p => p.id === selectedProjectId)?.name || "Loading...")
+                    : "Select a Project"} ▼
             </button>
             {isOpen && (
                 <div className="dropdown-menu">
-                    {isLoading ? <p>Loading...</p> : isError ? <p className="error-message">Error: {message}</p> : (
+                    {isLoading ? (
+                        <p>Loading...</p>
+                    ) : isError ? (
+                        <p className="error-message">Error: {message}</p>
+                    ) : (
                         <ul>
                             {projects.map((project) => (
                                 <li key={project.id}>
@@ -111,12 +164,15 @@ const ProjectsDropdown = () => {
                                         />
                                     ) : (
                                         <span
-                                            onClick={() => handleProjectSelect(project)}
+                                                onClick={() => {
+                                                    console.log('Clicked project:', project);
+                                                    handleProjectSelect(project);
+                                                }}
                                             onDoubleClick={() => {
                                                 setEditingProjectId(project.id);
                                                 setEditedProjectName(project.name);
                                             }}
-                                            className="project-name"
+                                                className={`project-name ${selectedProjectId === project.id ? 'selected' : ''}`}
                                         >
                                             {project.name}
                                         </span>
@@ -125,8 +181,9 @@ const ProjectsDropdown = () => {
                             ))}
                         </ul>
                     )}
-
-                    <button className="create-project-btn" onClick={() => setShowForm(true)}>+ Create Project</button>
+                    <button className="create-project-btn" onClick={() => setShowForm(true)}>
+                        + Create Project
+                    </button>
                 </div>
             )}
 
