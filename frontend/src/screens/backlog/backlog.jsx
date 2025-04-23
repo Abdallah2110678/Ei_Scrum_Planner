@@ -1,9 +1,12 @@
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import axios from 'axios';
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import TaskAssignmentButton from '../../components/taskAssignmentButton';
 import TaskItem from "../../components/taskList/taskItem";
 import TaskList from "../../components/taskList/taskList";
 import UserAvatars from '../../components/userAvatars/UserAvatars';
+import { fetchProjectParticipants } from '../../features/projects/projectSlice';
 import {
   addSprint,
   deleteSprint,
@@ -13,7 +16,7 @@ import {
 import { updateTask } from "../../features/tasks/taskSlice";
 import StartSprintModal from "./../../components/sprint/StartSprintModal";
 import "./backlog.css";
-import TaskAssignmentButton from '../../components/taskAssignmentButton';
+
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
@@ -173,6 +176,9 @@ const Backlog = () => {
       try {
         await axios.post(`http://localhost:8000/gamification/calculate-rewards/?project_id=${selectedProjectId}&sprint_id=${sprintId}`);
         console.log("✅ Rewards calculation triggered.");
+
+        // Refresh team data to update points and badges
+        await dispatch(fetchProjectParticipants(selectedProjectId));
       } catch (error) {
         console.error("❌ Reward calculation failed:", error.response?.data || error.message);
       }
