@@ -13,6 +13,7 @@ import {useSelector} from 'react-redux';
 import AcceptInvitation from "./components/acceptInvitation.jsx";
 import GamificationPaga from "./screens/gamification/gamification.jsx";
 import ParticipantsPage from "./screens/participant/participant.jsx";
+import Profile from "./screens/profile/profile.jsx";
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   return user ? children : <Navigate to="/login" />;
@@ -44,6 +45,7 @@ const App = () => {
         {/* Dashboard moved to standalone route */}
         <Route path="history" element={<History />} />
         <Route path="gamification" element={<GamificationPaga />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="participant" element={<ParticipantsPage />} />
       </Route>
 
