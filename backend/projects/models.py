@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 class Project(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -17,3 +17,5 @@ class Project(models.Model):
     
     def __str__(self):
         return self.name
+    class Meta:
+        unique_together = ('name', 'created_by')  # Enforce uniqueness per user

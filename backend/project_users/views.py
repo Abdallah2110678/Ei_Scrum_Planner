@@ -12,7 +12,22 @@ from project_users.serializers import ProjectUsersSerializer, InvitationSerializ
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from rest_framework.generics import ListAPIView
+from .utils import calculate_rewards_for_sprint  # assuming it's in utils.py
+from rest_framework.decorators import api_view
 
+@api_view(['POST'])
+def calculate_rewards_view(request):
+    project_id = request.query_params.get('project_id')
+    sprint_id = request.query_params.get('sprint_id')
+
+    if not project_id or not sprint_id:
+        return Response({'error': 'project_id and sprint_id are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        calculate_rewards_for_sprint(project_id=int(project_id), sprint_id=int(sprint_id))
+        return Response({'message': 'Rewards calculated successfully'}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class ProjectUsersByProjectID(ListAPIView):
     serializer_class = ProjectUsersSerializer
 
@@ -106,14 +121,14 @@ class AcceptInvitation(APIView):
         user = User.objects.filter(email=invitation.email).first()
         if not user:
             return Response({"error": "No user found with this email. Please register first."}, 
-                          status=status.HTTP_404_NOT_FOUND)
+                        status=status.HTTP_404_NOT_FOUND)
 
         # Check if user is already in project
         if ProjectUsers.objects.filter(user=user, project=invitation.project).exists():
             invitation.accepted = True
             invitation.save()
             return Response({"message": "User is already in this project"}, 
-                          status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)
 
         # Add user to project
         project_user = ProjectUsers.objects.create(

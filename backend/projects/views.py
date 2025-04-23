@@ -54,7 +54,7 @@ class CreateProject(APIView):
             return Response({"error": "A valid user ID (integer) is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if project name is unique
-        if Project.objects.filter(name=name).exists():
+        if Project.objects.filter(name=name, created_by_id=user_id).exists():
             return Response({"error": "A project with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Find the user by ID

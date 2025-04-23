@@ -62,11 +62,14 @@ def rework_effort_view(request):
 
 @api_view(["GET"])
 def train_effort_model(request):
+    project_id = request.query_params.get("project_id")
+    if not project_id:
+        return Response({"error": "project_id is required"}, status=400)
     try:
-        algo, mae = train_model()
+        algo, mae = train_model(project_id=int(project_id))
         return Response({"message": "Model trained", "algorithm": algo, "mae": mae})
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error": str(e)}, status=500)
 
 @api_view(["POST"])
 def predict_effort_view(request):
@@ -76,9 +79,9 @@ def predict_effort_view(request):
         task_category = data.get("task_category")
         task_complexity = data.get("task_complexity")
 
-        predicted = predict_effort(task_complexity, task_category)
-        
         task = Task.objects.get(id=task_id)
+        predicted = predict_effort(task.project_id, task_complexity, task_category)
+
         task.estimated_effort = predicted
         task.save()
 
@@ -92,6 +95,7 @@ def predict_effort_view(request):
         return Response({"error": "Task not found"}, status=404)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer

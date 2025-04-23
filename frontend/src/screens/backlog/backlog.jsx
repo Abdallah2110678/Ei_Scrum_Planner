@@ -14,11 +14,11 @@ import { updateTask } from "../../features/tasks/taskSlice";
 import StartSprintModal from "./../../components/sprint/StartSprintModal";
 import "./backlog.css";
 import TaskAssignmentButton from '../../components/taskAssignmentButton';
-
+import { axios } from 'axios';
 const Backlog = () => {
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
-const { selectedProjectId, projects,  } = useSelector((state) => state.projects);
+  const { selectedProjectId, projects, } = useSelector((state) => state.projects);
 
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
@@ -81,19 +81,11 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
     }
   };
 
-  const handleProjectSelect = (projectId) => {
-    // Make sure we're working with an integer project ID
-    const numericProjectId = parseInt(projectId, 10);
-    console.log("Selected Project ID:", numericProjectId);
-    setSelectedProjectId(numericProjectId);
-  };
-
   const handleCreateSprint = async () => {
     if (!selectedProjectId) {
       alert("Please select a project first.");
       return;
     }
-
     const newSprintData = {
       sprint_name: `Sprint ${sprints.filter(s => s.project === selectedProjectId).length + 1}`,
       project: selectedProjectId,
@@ -122,8 +114,8 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
   // Modify the getFilteredSprints function to include search functionality
   const getFilteredSprints = () => {
     if (!selectedProjectId) return [];
-    
-    let filteredSprints = sprints.filter(sprint => 
+
+    let filteredSprints = sprints.filter(sprint =>
       sprint.project === selectedProjectId && !sprint.is_completed
     );
 
@@ -137,7 +129,7 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
     if (searchQuery) {
       filteredSprints = filteredSprints.map(sprint => ({
         ...sprint,
-        tasks: sprint.tasks?.filter(task => 
+        tasks: sprint.tasks?.filter(task =>
           task.task_name.toLowerCase().includes(searchQuery.toLowerCase())
         )
       })).filter(sprint => sprint.tasks?.length > 0);
@@ -156,27 +148,21 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
 
   const handleCompleteSprint = async (sprintId) => {
     try {
-      // Get the sprint's tasks
       const sprintToComplete = sprints.find(sprint => sprint.id === sprintId);
 
-      // Move incomplete tasks back to backlog
-      const incompleteTasks = sprintToComplete.tasks.filter(
-        task => task.status !== "DONE"
-      );
+      const incompleteTasks = sprintToComplete.tasks.filter(task => task.status !== "DONE");
 
-      // First move incomplete tasks out of the sprint
       for (const task of incompleteTasks) {
         await dispatch(updateTask({
           id: task.id,
           taskData: {
             ...task,
-            sprint: null,  // Remove from sprint
-            status: "TO DO" // Reset status to TO DO
+            sprint: null,
+            status: "TO DO"
           }
         })).unwrap();
       }
 
-      // Then complete the sprint
       await dispatch(updateSprint({
         id: sprintId,
         sprintData: {
@@ -185,9 +171,14 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
         }
       })).unwrap();
 
-      // Refresh the sprints to update the UI
-      dispatch(fetchSprints(selectedProjectId));
+      try {
+        await axios.post(`http://localhost:8000/gamification/calculate-rewards/?project_id=${selectedProjectId}&sprint_id=${sprintId}`);
+        console.log("✅ Rewards calculation triggered.");
+      } catch (error) {
+        console.error("❌ Reward calculation failed:", error.response?.data || error.message);
+      }
 
+      dispatch(fetchSprints(selectedProjectId));
     } catch (error) {
       console.error("Failed to complete sprint:", error);
     }
@@ -216,14 +207,14 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
 
         <div className="search-section">
           <div className="search-bar">
-            <input 
-              type="text" 
-              placeholder="Search" 
+            <input
+              type="text"
+              placeholder="Search"
               className="search-input"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <UserAvatars 
+            <UserAvatars
               onUserSelect={handleUserSelect}
               selectedUserId={selectedUserId}
             />
@@ -240,7 +231,7 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
               getFilteredSprints().map((sprint) => {
                 // Filter tasks if they exist
                 const filteredTasks = sprint.tasks ? filterTasksByUser(sprint.tasks) : [];
-                
+
                 return (
                   <div key={sprint.id} className="sprint-info">
                     <strong>{sprint.sprint_name}</strong>
@@ -282,10 +273,10 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
                                     >
-                                      <TaskItem 
-                                        task={task} 
-                                        sprints={sprints} 
-                                        selectedProjectId={selectedProjectId} 
+                                      <TaskItem
+                                        task={task}
+                                        sprints={sprints}
+                                        selectedProjectId={selectedProjectId}
                                       />
                                     </div>
                                   )}
@@ -301,15 +292,15 @@ const { selectedProjectId, projects,  } = useSelector((state) => state.projects)
                     <div className="sprint-actions">
                       <TaskAssignmentButton projectId={selectedProjectId} sprintId={sprint.id} />
                       <button
-                      className='start-sprint-button'
-                      onClick={() => {
-                      alert("wow!!");
-                      
-                      }}
-                      disabled = {!enableAutomation}
+                        className='start-sprint-button'
+                        onClick={() => {
+                          alert("wow!!");
+
+                        }}
+                        disabled={!enableAutomation}
                       >
                         Automate Assignment
-                        </button>
+                      </button>
                       <button
                         className="sprint-actions-button"
                         aria-haspopup="true"

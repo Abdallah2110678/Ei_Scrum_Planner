@@ -24,6 +24,9 @@ def calculate_productivity_for_user(user, project_id):
 
     for item in grouped_data:
         sprint_id = item['sprint']
+        if not sprint_id:
+            continue  # ✅ Skip if task has no sprint
+
         category = item['task_category']
         complexity = item['task_complexity']
         total_tasks = item['total_tasks']
@@ -118,3 +121,24 @@ def get_developer_productivity_list(request):
     queryset = DeveloperPerformance.objects.filter(**filters)
     serialized = DeveloperPerformanceSerializer(queryset, many=True)
     return Response(serialized.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_sprint_overall_productivity(request):
+    project_id = request.query_params.get('project_id')
+    sprint_id = request.query_params.get('sprint_id')
+
+    if not project_id or not sprint_id:
+        return Response({"error": "project_id and sprint_id are required"}, status=400)
+
+    queryset = DeveloperPerformance.objects.filter(project_id=project_id, sprint_id=sprint_id)
+    total_effort = queryset.aggregate(Sum('total_actual_effort'))['total_actual_effort__sum'] or 0
+    total_tasks = queryset.aggregate(Sum('total_tasks'))['total_tasks__sum'] or 0
+    overall_productivity = total_effort / total_tasks if total_tasks else 0
+
+    return Response({
+        "sprint_id": sprint_id,
+        "overall_productivity": round(overall_productivity, 2),
+        "total_effort": total_effort,
+        "total_tasks": total_tasks
+    })

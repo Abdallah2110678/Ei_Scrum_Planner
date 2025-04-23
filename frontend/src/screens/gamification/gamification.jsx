@@ -138,14 +138,14 @@ const GamificationPage = () => {
   if (!teamData) return <div className="text-gray-500 text-center">Loading...</div>;
 
   const chartData = prepareChartData();
-// Filter developers for the team overview (exclude Scrum Master)
-const developers = teamData.users.filter((user) => user.role === 'Developer');
+  // Filter developers for the team overview (exclude Scrum Master)
+  const developers = teamData.users.filter((user) => user.role === 'Developer');
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-10">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-4xl">
         {/* Header */}
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-        Project:  {teamData.project_name}
+          Project:  {teamData.project_name}
         </h1>
         <h2 className="text-xl font-semibold text-gray-600 mb-6">
           Gamification Dashboard
@@ -171,12 +171,12 @@ const developers = teamData.users.filter((user) => user.role === 'Developer');
             {developers.map((user) => (
               <div
                 key={user.id}
-                className={`p-4 rounded-lg shadow-md 
-                     bg-green-50 border-l-4 border-green-500
+                className={`p-4 rounded-lg shadow-md
+                  bg-green-50 border-l-4 border-green-500
                 `}
               >
                 <p className="text-gray-800 font-medium">
-                  {user.name} 
+                  {user.name}
                 </p>
                 <p className="text-gray-600 text-sm">
                   Specialist: {user.specialist}
