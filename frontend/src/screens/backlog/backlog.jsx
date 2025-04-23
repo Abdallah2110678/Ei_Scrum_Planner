@@ -290,17 +290,26 @@ const Backlog = () => {
                     </div>
 
                     <div className="sprint-actions">
-                      <TaskAssignmentButton projectId={selectedProjectId} sprintId={sprint.id} />
-                      <button
-                        className='start-sprint-button'
-                        onClick={() => {
-                          alert("wow!!");
-
+                    <button
+                        className={sprint.is_active ? "complete-sprint-button" : "start-sprint-button"}
+                        onClick={async () => {
+                          if (sprint.is_active) {
+                            try {
+                              await handleCompleteSprint(sprint.id);
+                            } catch (error) {
+                              console.error("Error completing sprint:", error);
+                              alert("Failed to complete sprint: " + error.message);
+                            }
+                          } else {
+                            setSelectedSprint(sprint);
+                            setIsStartSprintModalOpen(true);
+                          }
                         }}
-                        disabled={!enableAutomation}
                       >
-                        Automate Assignment
+                        {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
                       </button>
+                      <TaskAssignmentButton projectId={selectedProjectId} sprintId={sprint.id} />
+                    
                       <button
                         className="sprint-actions-button"
                         aria-haspopup="true"
