@@ -147,10 +147,37 @@ const Dashboard = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user?.access}` } };
       const res = await axios.get('http://localhost:8000/emotion_detection/team_emotions/', config);
+      
+      // Group emotions by sprint
+      const sprintEmotions = {};
+      res.data.forEach(emotion => {
+        const sprintId = emotion.sprint_id;
+        if (!sprintEmotions[sprintId]) {
+          sprintEmotions[sprintId] = [];
+        }
+        sprintEmotions[sprintId].push(emotion);
+      });
+      
       setEmotionData(res.data || []);
     } catch (err) {
       console.error('Emotion data fetch failed:', err);
     }
+  };
+
+  const getEmotionChartData = () => {
+    if (!emotionData.length) return null;
+    const emotionTypes = ['happy', 'sad', 'angry', 'neutral', 'surprised'];
+    const colors = ['rgba(75, 192, 192, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(255, 205, 86, 0.6)', 'rgba(153, 102, 255, 0.6)'];
+    return {
+      labels: emotionData.map(d => d.user?.name || d.user_email || 'Anonymous'),
+      datasets: emotionTypes.map((emotion, idx) => ({
+        label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
+        data: emotionData.map(d => [d.first_emotion, d.second_emotion, d.third_emotion].filter(e => e === emotion).length),
+        backgroundColor: colors[idx],
+        borderColor: colors[idx].replace('0.6', '1'),
+        borderWidth: 2
+      }))
+    };
   };
 
   const getReworkChartData = () => {
@@ -171,32 +198,26 @@ const Dashboard = () => {
     };
   };
 
-  const getEmotionChartData = () => {
-    if (!emotionData.length) return null;
-    const emotionTypes = ['happy', 'sad', 'angry', 'neutral', 'surprised'];
-    const colors = ['rgba(75, 192, 192, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(255, 205, 86, 0.6)', 'rgba(153, 102, 255, 0.6)'];
-    return {
-      labels: emotionData.map(d => d.user?.name || d.user_email || 'Anonymous'),
-      datasets: emotionTypes.map((emotion, idx) => ({
-        label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
-        data: emotionData.map(d => [d.first_emotion, d.second_emotion, d.third_emotion].filter(e => e === emotion).length),
-        backgroundColor: colors[idx],
-        borderColor: colors[idx].replace('0.6', '1'),
-        borderWidth: 2
-      }))
-    };
-  };
+  // Remove the duplicate getEmotionChartData function here
 
   const handleGenerateReport = async () => {
     try {
+      if (!user?.access) {
+        alert('Please log in to generate reports');
+        return;
+      }
+
+      setLoading(true);
+      const config = {
+        responseType: 'blob',
+        headers: {
+          'Authorization': `Bearer ${user.access}`,
+        },
+      };
+
       const response = await axios.get(
         `http://localhost:8000/generates_report/generate_dashboard_pdf/?project_id=${selectedProjectId}`,
-        {
-          responseType: 'blob',
-          headers: {
-            Authorization: `Bearer ${user?.access}`,
-          },
-        }
+        config
       );
 
       // Create a blob from the PDF stream
@@ -214,6 +235,8 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error generating report:', error);
       alert('Failed to generate report. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
