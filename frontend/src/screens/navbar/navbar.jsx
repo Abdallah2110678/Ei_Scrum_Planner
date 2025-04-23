@@ -143,8 +143,7 @@ const Navbar = () => {
                 </div>
               </div>
 
-              <a href="/manage-account" className="dropdown-item">Manage account</a>
-              <a href="/profile" className="dropdown-item">Profile</a>
+              <NavLink to="/eiscrum/profile" className="dropdown-item">Profile</NavLink>
               <a href="/personal-settings" className="dropdown-item">Personal settings</a>
               <a href="/notifications" className="dropdown-item">Notifications <span className="new-badge">NEW</span></a>
               <a href="/theme" className="dropdown-item">Theme</a>
