@@ -32,6 +32,8 @@
     align-items: center;
     gap: 24px;
     margin-right: auto;
+    position: relative;
+        flex-direction: row;
 }
 
 .navbar-link {
@@ -90,20 +92,19 @@
     cursor: pointer;
 }
 
-/* Profile Dropdown Menu - specific class to avoid conflicts */
+/* Profile Dropdown Menu */
 .profile-dropdown-menu {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
     background: white;
-        border: 1px solid #ddd;
+    border: 1px solid #ddd;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         width: 220px;
         z-index: 10000;
 }
 
-/* Add arrow to dropdown */
 .profile-dropdown-menu::before {
     content: '';
     position: absolute;
@@ -121,7 +122,7 @@
     padding: 12px;
     border-bottom: 1px solid #e0e0e0;
     background: white;
-        border-radius: 8px 8px 0 0;
+    border-radius: 8px 8px 0 0;
         position: relative;
 }
 
@@ -133,7 +134,7 @@
 
 .profile-initials {
     width: 36px;
-        height: 36px;
+    height: 36px;
     border-radius: 50%;
     background: #0052cc;
     color: white;
@@ -141,7 +142,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 500;
-        font-size: 14px;
+    font-size: 14px;
         flex-shrink: 0;
 }
 
@@ -153,7 +154,7 @@
 .profile-name {
     font-weight: 500;
     font-size: 13px;
-        color: #172b4d;
+    color: #172b4d;
         margin-bottom: 2px;
         white-space: nowrap;
         overflow: hidden;
@@ -162,7 +163,7 @@
 
 .profile-email {
     font-size: 11px;
-        color: #5e6c84;
+    color: #5e6c84;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -174,7 +175,7 @@
     padding: 8px 12px;
     text-decoration: none;
     color: #172b4d;
-        font-size: 13px;
+    font-size: 13px;
         transition: background 0.2s;
         cursor: pointer;
         border: none;
@@ -235,7 +236,7 @@
 @media screen and (max-width: 768px) {
     .navbar {
         padding: 0 10px;
-        height: auto; /* Allow navbar to expand if needed */
+        height: auto;
         min-height: 65px;
     }
 
@@ -244,79 +245,29 @@
     }
 
     .navbar-links {
-        position: relative; /* Change from absolute to relative */
-        top: 0;
-        flex-wrap: wrap; /* Allow items to wrap */
-        gap: 8px;
-        padding: 10px 0;
-        background-color: white;
-        width: 100%;
-        display: flex !important; /* Force display */
-        flex-direction: row; /* Keep horizontal layout */
-    }
-
-    .navbar-link {
-        padding: 8px 12px;
-        font-size: 12px; /* Slightly smaller font for mobile */
-        white-space: nowrap;
-        width: auto; /* Allow natural width */
-    }
-
-    
-
-    /* Adjust project selector for mobile */
-    .project-selector {
-        margin: 0;
-        flex-shrink: 0;
-    }
-
-    /* Profile section adjustments */
-    .navbar-profile {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-    }
-
-    /* Container for main navigation items */
-    .main-nav-items {
-        display: flex;
         flex-wrap: wrap;
         gap: 8px;
+        padding: 8px 0;
+    }
+
+        .navbar-search {
+            width: 100%;
+            margin: 8px 0;
+    }
+
+        .navbar-search input {
         width: 100%;
-        justify-content: flex-start;
-        padding: 5px 0;
-    }
-
-    .mobile-menu-button {
-        display: block;
-        margin-left: auto;
-        margin-right: 10px;
-    }
-
-    .profile-picture {
-        width: 32px;
-        height: 32px;
-    }
-
-    /* Adjust ProjectsDropdown for mobile */
-    .projects-dropdown {
-        margin: 0 10px;
     }
 }
 
-/* Additional styles for extra small screens or high zoom levels */
 @media screen and (max-width: 480px) {
-    .navbar {
-        padding: 10px;
-    }
-
     .navbar-links {
-        padding: 5px 0;
+        flex-direction: column;
+            align-items: flex-start;
     }
 
-    .navbar-link {
-        padding: 6px 8px;
-        font-size: 11px;
+        .project-selector {
+            width: 100%;
     }
 }
 

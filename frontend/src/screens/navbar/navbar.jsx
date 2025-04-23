@@ -108,7 +108,7 @@ const Navbar = () => {
           </NavLink>
         </div>
 
-        <div className="navbar-links" style={{ display: 'flex !important', position: 'relative !important', flexDirection: 'row !important' }}>
+        <div className="navbar-links">
           <NavLink to="/eiscrum/assigned" className="navbar-link">Assigned to Me</NavLink>
           <div className="project-selector">
             <ProjectsDropdown />
@@ -144,14 +144,11 @@ const Navbar = () => {
                 </div>
               </div>
 
-
+              <NavLink to="/eiscrum/profile" className="profile-dropdown-item">Profile</NavLink>
+              <a href="/personal-settings" className="profile-dropdown-item">Personal settings</a>
+              <a href="/notifications" className="profile-dropdown-item">Notifications <span className="new-badge">NEW</span></a>
               <a href="/theme" className="profile-dropdown-item">Theme</a>
               <div className="profile-dropdown-divider"></div>
-              <NavLink to="/eiscrum/profile" className="dropdown-item">Profile</NavLink>
-              <a href="/personal-settings" className="dropdown-item">Personal settings</a>
-              <a href="/notifications" className="dropdown-item">Notifications <span className="new-badge">NEW</span></a>
-              <a href="/theme" className="dropdown-item">Theme</a>
-              <div className="dropdown-divider"></div>
               <NavLink
                 className="profile-dropdown-item"
                 to="/"
