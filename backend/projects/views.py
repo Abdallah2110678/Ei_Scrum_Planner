@@ -152,7 +152,7 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
         # Fetch the last completed sprint for emotion data
         logger.info("Retrieving last completed sprint for emotion data")
         last_sprint = Sprint.objects.filter(
-            project=project, 
+            project=project,
             is_completed=True
         ).order_by('-end_date').first()
         

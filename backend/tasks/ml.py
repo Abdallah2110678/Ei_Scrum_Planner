@@ -1,6 +1,8 @@
 import pandas as pd  # type: ignore
 import pickle
 import os
+import warnings
+from sklearn.exceptions import ConvergenceWarning  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
 from sklearn.metrics import mean_absolute_percentage_error  # type: ignore
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor  # type: ignore
@@ -11,6 +13,8 @@ from sklearn.neighbors import KNeighborsRegressor  # type: ignore
 from sklearn.neural_network import MLPRegressor  # type: ignore
 from xgboost import XGBRegressor  # type: ignore
 from .models import Task
+
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 MODEL_PATH = "best_effort_model.pkl"
 BEST_ALGO_PATH = "best_effort_algo.txt"
@@ -23,12 +27,10 @@ def train_model(project_id):
         raise ValueError(f"No task data found for training in project ID {project_id}.")
 
     df = df.dropna(subset=["actual_effort", "task_complexity", "task_category"])
-
     if df.empty:
         raise ValueError("All task records have missing or invalid values.")
 
     print(f"📦 Training on {len(df)} tasks for project ID {project_id}")
-
 
     complexity_map = {"EASY": 1, "MEDIUM": 2, "HARD": 3}
     df["task_complexity"] = df["task_complexity"].map(complexity_map)
@@ -65,14 +67,16 @@ def train_model(project_id):
             best_model = model
             best_algo = name
 
-    # Save best model per project
     model_path = f"best_effort_model_{project_id}.pkl"
     algo_path = f"best_effort_algo_{project_id}.txt"
+    mape_path = f"best_effort_mape_{project_id}.txt"
 
     with open(model_path, "wb") as f:
         pickle.dump(best_model, f)
     with open(algo_path, "w") as f:
         f.write(best_algo)
+    with open(mape_path, "w") as f:
+        f.write(str(best_mape))
 
     print(f"\n✅ Best Model for Project {project_id}: {best_algo} with Accuracy = {100 - best_mape:.2f}% (MAPE = {best_mape:.2f}%)")
     return best_algo, best_mape
@@ -80,8 +84,24 @@ def train_model(project_id):
 
 def predict_effort(project_id, task_complexity, task_category):
     model_path = f"best_effort_model_{project_id}.pkl"
+    mape_path = f"best_effort_mape_{project_id}.txt"
 
-    if not os.path.exists(model_path):
+    retrain = False
+
+    if not os.path.exists(model_path) or not os.path.exists(mape_path):
+        retrain = True
+    else:
+        with open(mape_path, "r") as f:
+            try:
+                mape = float(f.read())
+                accuracy = 100 - mape
+                if accuracy < 90:
+                    retrain = True
+            except ValueError:
+                retrain = True
+
+    if retrain:
+        print(f"\n⚙️ Retraining model for project {project_id} due to missing file or low accuracy.")
         train_model(project_id)
 
     with open(model_path, "rb") as f:
