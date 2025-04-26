@@ -110,7 +110,7 @@ def predict_effort(project_id, task_complexity, task_category, sprint_id=None):
 
     # Check for significant task count change
     task_count_changed = (
-        last_task_count is None or abs(current_task_count - last_task_count) >= 10
+        last_task_count is None or abs(current_task_count - last_task_count) >= 100
     )
 
     # Determine if retraining is needed
