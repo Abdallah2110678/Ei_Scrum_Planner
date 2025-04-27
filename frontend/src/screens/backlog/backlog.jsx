@@ -1,9 +1,12 @@
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import axios from 'axios';
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import TaskAssignmentButton from '../../components/taskAssignmentButton';
 import TaskItem from "../../components/taskList/taskItem";
 import TaskList from "../../components/taskList/taskList";
 import UserAvatars from '../../components/userAvatars/UserAvatars';
+import { fetchProjectParticipants } from '../../features/projects/projectSlice';
 import {
   addSprint,
   deleteSprint,
@@ -13,7 +16,6 @@ import {
 import { updateTask } from "../../features/tasks/taskSlice";
 import StartSprintModal from "./../../components/sprint/StartSprintModal";
 import "./backlog.css";
-import axios from "axios";
 
 const Backlog = () => {
   const dispatch = useDispatch();
@@ -31,6 +33,7 @@ const Backlog = () => {
   useEffect(() => {
     if (selectedProjectId) {
       dispatch(fetchSprints(selectedProjectId));
+      dispatch(fetchProjectParticipants(selectedProjectId));
       setEnableAutomation(projects.find((p) => p.id === selectedProjectId)?.enable_automation)
     }
   }, [dispatch, selectedProjectId]);
@@ -81,19 +84,11 @@ const Backlog = () => {
     }
   };
 
-  const handleProjectSelect = (projectId) => {
-    // Make sure we're working with an integer project ID
-    const numericProjectId = parseInt(projectId, 10);
-    console.log("Selected Project ID:", numericProjectId);
-    setSelectedProjectId(numericProjectId);
-  };
-
   const handleCreateSprint = async () => {
     if (!selectedProjectId) {
       alert("Please select a project first.");
       return;
     }
-
     const newSprintData = {
       sprint_name: `Sprint ${sprints.filter(s => s.project === selectedProjectId).length + 1}`,
       project: selectedProjectId,
@@ -182,6 +177,9 @@ const Backlog = () => {
       try {
         await axios.post(`http://localhost:8000/gamification/calculate-rewards/?project_id=${selectedProjectId}&sprint_id=${sprintId}`);
         console.log("✅ Rewards calculation triggered.");
+
+        // Refresh team data to update points and badges
+        await dispatch(fetchProjectParticipants(selectedProjectId));
       } catch (error) {
         console.error("❌ Reward calculation failed:", error.response?.data || error.message);
       }
@@ -298,7 +296,7 @@ const Backlog = () => {
                     </div>
 
                     <div className="sprint-actions">
-                      <button
+                    <button
                         className={sprint.is_active ? "complete-sprint-button" : "start-sprint-button"}
                         onClick={async () => {
                           if (sprint.is_active) {
@@ -316,16 +314,8 @@ const Backlog = () => {
                       >
                         {sprint.is_active ? "Complete Sprint" : "Start Sprint"}
                       </button>
-                      <button
-                        className='start-sprint-button'
-                        onClick={() => {
-                          alert("wow!!");
-
-                        }}
-                        disabled={!enableAutomation}
-                      >
-                        Automate Assignment
-                      </button>
+                      <TaskAssignmentButton projectId={selectedProjectId} sprintId={sprint.id} />
+                    
                       <button
                         className="sprint-actions-button"
                         aria-haspopup="true"

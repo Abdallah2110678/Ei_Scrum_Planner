@@ -45,12 +45,31 @@ const getProjectParticipants = async (projectId) => {
   return response.data;
 };
 const updateProject = async ({ id, projectData }) => {
-  const response = await axios.patch(
-    `http://127.0.0.1:8000/api/projects/${id}/`,
-    projectData,
-    config
-  );
-  return response.data;
+  try {
+    if (!id) {
+      throw new Error("Project ID is required");
+    }
+
+    const response = await axios.patch(
+      `http://127.0.0.1:8000/api/projects/${id}/`,
+      projectData,
+      config
+    );
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error updating project:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.error || error.message || "Failed to update project"
+    );
+  }
 };
 
 

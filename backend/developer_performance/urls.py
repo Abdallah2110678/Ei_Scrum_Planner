@@ -4,6 +4,7 @@ from .views import (
     calculate_developer_productivity_all,
     get_developer_productivity_list,
     get_sprint_overall_productivity,
+    generate_dashboard_pdf,
 )
 
 urlpatterns = [
@@ -16,4 +17,6 @@ urlpatterns = [
     path("developer-performance/overall_sprint_productivity/", get_sprint_overall_productivity),
 
     path("developer-performance/", get_developer_productivity_list),
+    
+    path('generate_dashboard_pdf/', generate_dashboard_pdf),
 ]

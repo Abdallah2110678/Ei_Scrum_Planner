@@ -1,15 +1,21 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import taskService from "./taskService";
 
+// Predict Effort
 export const predictEffort = createAsyncThunk(
   "tasks/predictEffort",
-  async ({ taskId, taskData }, thunkAPI) => {
+  async ({ taskId, taskData, sprintId }, thunkAPI) => {
     if (!taskData || !taskData.task_id) {
       return thunkAPI.rejectWithValue("❌ task_id is missing");
     }
 
     try {
-      const predictedEffort = await taskService.predictEffort(taskData);
+      const payload = {
+        ...taskData,
+        sprint_id: sprintId || null,
+      };
+
+      const predictedEffort = await taskService.predictEffort(payload);
       return { id: taskId, estimated_effort: predictedEffort };
     } catch (error) {
       return thunkAPI.rejectWithValue(
@@ -25,7 +31,7 @@ export const fetchTasks = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { projects } = getState();
-      const selectedProjectId = projects.selectedProjectId; // ✅ Get selected project ID
+      const selectedProjectId = projects.selectedProjectId;
 
       if (!selectedProjectId) {
         return [];
@@ -38,6 +44,7 @@ export const fetchTasks = createAsyncThunk(
     }
   }
 );
+
 // Add Task
 export const addTask = createAsyncThunk(
   "tasks/addTask",
@@ -50,7 +57,6 @@ export const addTask = createAsyncThunk(
         return rejectWithValue("No project selected");
       }
 
-      // Ensure all required fields are present
       const completeTaskData = {
         ...taskData,
         project: selectedProjectId,
@@ -64,10 +70,7 @@ export const addTask = createAsyncThunk(
 
       return await taskService.addTask(completeTaskData);
     } catch (error) {
-      console.error(
-        "Error adding task:",
-        error.response?.data || error.message
-      );
+      console.error("Error adding task:", error.response?.data || error.message);
       return rejectWithValue(error.response?.data || "Failed to add task");
     }
   }
@@ -104,13 +107,22 @@ const initialState = {
   message: null,
 };
 
-// Task Slice
 const taskSlice = createSlice({
   name: "tasks",
   initialState,
   reducers: {
     clearTasks(state) {
       state.tasks = [];
+    },
+    updateTaskInState(state, action) {
+      const { id, updatedFields } = action.payload;
+      const index = state.tasks.findIndex((task) => task.id === id);
+      if (index !== -1) {
+        state.tasks[index] = {
+          ...state.tasks[index],
+          ...updatedFields,
+        };
+      }
     },
   },
   extraReducers: (builder) => {
@@ -140,9 +152,7 @@ const taskSlice = createSlice({
 
       // Update Task
       .addCase(updateTask.fulfilled, (state, action) => {
-        const index = state.tasks.findIndex(
-          (task) => task.id === action.payload.id
-        );
+        const index = state.tasks.findIndex((task) => task.id === action.payload.id);
         if (index !== -1) {
           state.tasks[index] = action.payload;
         }
@@ -161,15 +171,13 @@ const taskSlice = createSlice({
         state.message = action.payload;
       })
 
-      //: Predict Effort
+      // Predict Effort
       .addCase(predictEffort.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(predictEffort.fulfilled, (state, action) => {
         state.isLoading = false;
-        const index = state.tasks.findIndex(
-          (task) => task.id === action.payload.id
-        );
+        const index = state.tasks.findIndex((task) => task.id === action.payload.id);
         if (index !== -1) {
           state.tasks[index].estimated_effort = action.payload.estimated_effort;
         }
@@ -182,5 +190,5 @@ const taskSlice = createSlice({
   },
 });
 
-export const { clearTasks } = taskSlice.actions;
+export const { clearTasks, updateTaskInState } = taskSlice.actions;
 export default taskSlice.reducer;

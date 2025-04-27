@@ -67,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+
 ]
 
 ROOT_URLCONF = 'EI_SCRUM_PLANNER.urls'
@@ -202,6 +204,13 @@ EMAIL_USE_SSL = False
 DEFAULT_FROM_EMAIL = 'abdulrahmanabdalmoniem@gmail.com'
 FRONTEND_URL = 'http://localhost:3000'
 
+# Sessions Settings
+
+SESSION_COOKIE_AGE = 24 * 60 * 60
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -217,3 +226,5 @@ TEMPLATES = [
         },
     },
 ]
+
+

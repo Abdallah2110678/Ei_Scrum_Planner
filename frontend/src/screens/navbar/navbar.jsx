@@ -1,21 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
-import './navbar.css';
-import RegistrationForm from '../registerationForm/registeration.jsx';
-import LoginForm from '../login/login.jsx';
-import { useDispatch, useSelector } from 'react-redux';
-import { logout, reset, setLoading } from '../../features/auth/authSlice';
-import { toast } from 'react-toastify';
 import axios from 'axios';
-import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
+import { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import AddUserModal from '../../components/addUserModal';
+import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
+import { logout, reset, setLoading } from '../../features/auth/authSlice';
+import LoginForm from '../login/login.jsx';
+import RegistrationForm from '../registerationForm/registeration.jsx';
+import './navbar.css';
 
 const Navbar = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isRegistrationFormVisible, setIsRegistrationFormVisible] = useState(false);
   const [isLoginFormVisible, setIsLoginFormVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false); // State for Add User Modal
+  const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false);
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
   const { userInfo, user } = useSelector((state) => state.auth);
@@ -91,7 +91,6 @@ const Navbar = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-
   }, []);
 
   const openLoginForm = (e) => {
@@ -109,7 +108,7 @@ const Navbar = () => {
           </NavLink>
         </div>
 
-        <div className="navbar-links" style={{ display: 'flex !important', position: 'relative !important', flexDirection: 'row !important' }}>
+        <div className="navbar-links">
           <NavLink to="/eiscrum/assigned" className="navbar-link">Assigned to Me</NavLink>
           <div className="project-selector">
             <ProjectsDropdown />
@@ -131,26 +130,27 @@ const Navbar = () => {
           />
 
           {isDropdownVisible && (
-            <div className="dropdown-menu">
-              <div className="dropdown-header">
+            <div className="profile-dropdown-menu">
+              <div className="profile-dropdown-header">
                 <div className="profile-info">
-                  <div className="profile-initials">AH</div>
+                  <div className="profile-initials">
+                    {userInfo?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
                   <div className="profile-details">
-                    <div className="profile-name">{userInfo.name}</div>
-                    <div className="profile-email">{userInfo.email}</div>
-                    <div className="profile-email">{userInfo.specialist}</div>
+                    <div className="profile-name">{userInfo?.name || 'User'}</div>
+                    <div className="profile-email">{userInfo?.email}</div>
+                    <div className="profile-email">{userInfo?.specialist}</div>
                   </div>
                 </div>
               </div>
 
-              <a href="/manage-account" className="dropdown-item">Manage account</a>
-              <a href="/profile" className="dropdown-item">Profile</a>
-              <a href="/personal-settings" className="dropdown-item">Personal settings</a>
-              <a href="/notifications" className="dropdown-item">Notifications <span className="new-badge">NEW</span></a>
-              <a href="/theme" className="dropdown-item">Theme</a>
-              <div className="dropdown-divider"></div>
+              <NavLink to="/eiscrum/profile" className="profile-dropdown-item">Profile</NavLink>
+              <a href="/personal-settings" className="profile-dropdown-item">Personal settings</a>
+              <a href="/notifications" className="profile-dropdown-item">Notifications <span className="new-badge">NEW</span></a>
+              <a href="/theme" className="profile-dropdown-item">Theme</a>
+              <div className="profile-dropdown-divider"></div>
               <NavLink
-                className="dropdown-item"
+                className="profile-dropdown-item"
                 to="/"
                 onClick={handleLogout}
                 style={{ pointerEvents: isLoggingOut ? 'none' : 'auto' }}
