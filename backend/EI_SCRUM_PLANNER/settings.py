@@ -67,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+
 ]
 
 ROOT_URLCONF = 'EI_SCRUM_PLANNER.urls'
@@ -163,11 +165,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    "AUTH_HEADER_TYPES": (
-        "Bearer",
-        "JWT"),
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=120),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=60),             # Blacklist old refresh tokens
+    "AUTH_HEADER_TYPES": ("Bearer", "JWT"),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),  # 12 hour access token
     "SIGNING_KEY": "SwDVCKtVxAAbiEshTkjhVoQNaTju3lC7",
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
@@ -202,6 +201,12 @@ EMAIL_USE_SSL = False
 DEFAULT_FROM_EMAIL = 'abdulrahmanabdalmoniem@gmail.com'
 FRONTEND_URL = 'http://localhost:3000'
 
+# Sessions Settings
+SESSION_COOKIE_AGE = 12 * 60 * 60  # 12 hours in seconds
+SESSION_SAVE_EVERY_REQUEST = True  # Update the session expiry on every request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists even after browser closes
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Store sessions in the database
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -217,3 +222,5 @@ TEMPLATES = [
         },
     },
 ]
+
+

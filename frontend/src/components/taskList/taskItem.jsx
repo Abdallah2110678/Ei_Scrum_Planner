@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProjectParticipants } from "../../features/projects/projectSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
-import { deleteTask, fetchTasks, predictEffort, updateTask } from "../../features/tasks/taskSlice";
+import { deleteTask, fetchTasks, predictEffort, updateTask, updateTaskInState } from "../../features/tasks/taskSlice";
+
 import './taskList.css';
 
 const TaskItem = ({ task, sprints, selectedProjectId }) => {
@@ -18,15 +19,6 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [taskData, setTaskData] = useState(task);
 
-  // Fetch tasks & sprints when component mounts
-  useEffect(() => {
-    if (selectedProjectId) {
-      dispatch(fetchTasks());
-      dispatch(fetchProjectParticipants(selectedProjectId));
-    }
-  }, [dispatch, selectedProjectId]);
-
-
   // Handle Editing Task Name
   const handleEditTask = () => {
     setEditTaskId(task.id);
@@ -40,8 +32,12 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       dispatch(updateTask({ id: task.id, taskData: updatedTask }))
         .unwrap()
         .then(() => {
-          dispatch(fetchSprints(selectedProjectId))
-          dispatch(fetchTasks());
+          dispatch(fetchSprints(selectedProjectId));
+          dispatch(updateTaskInState({
+            id: task.id,
+            updatedFields: { task_name: editTaskName }
+          }));
+
         })
         .catch((error) => console.error("Error updating task:", error));
     }
@@ -56,7 +52,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       .unwrap()
       .then(() => {
         dispatch(fetchSprints(selectedProjectId));
-        dispatch(fetchTasks());
+        dispatch(updateTaskInState({ id: task.id, updatedFields: { status: newStatus } }));
       })
       .catch((error) => console.error("Error updating task:", error));
   };
@@ -84,15 +80,20 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
             task_complexity: task.task_complexity,
             task_category: task.task_category,
           },
+          sprintId: task.sprint ? Number(task.sprint) : null,
         })
       ).unwrap();
+
 
       if (response?.estimated_effort !== undefined) {
         const updatedTask = { ...taskData, estimated_effort: response.estimated_effort };
         setTaskData(updatedTask);
 
-        await dispatch(updateTask({ id: task.id, taskData: updatedTask }));
-        dispatch(fetchTasks());
+        dispatch(updateTaskInState({
+          id: task.id,
+          updatedFields: { estimated_effort: response.estimated_effort }
+        }));
+
       }
     } catch (error) {
       console.error("Error estimating effort:", error);
@@ -173,7 +174,10 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
     dispatch(updateTask({ id: task.id, taskData: updatedTask }))
       .unwrap()
       .then(() => {
-        dispatch(fetchTasks()); // Refresh tasks after update
+        dispatch(updateTaskInState({
+          id: task.id,
+          updatedFields: { user: userId }
+        }));
       })
       .catch((error) => console.error("Error assigning user to task:", error));
     setUserDropdownOpen(false); // Close dropdown after selection

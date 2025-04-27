@@ -216,7 +216,7 @@ const Dashboard = () => {
       };
 
       const response = await axios.get(
-        `http://localhost:8000/generates_report/generate_dashboard_pdf/?project_id=${selectedProjectId}`,
+        `http://localhost:8000/api/generate_dashboard_pdf/?project_id=${selectedProjectId}`,
         config
       );
 

@@ -33,6 +33,7 @@ const Backlog = () => {
   useEffect(() => {
     if (selectedProjectId) {
       dispatch(fetchSprints(selectedProjectId));
+      dispatch(fetchProjectParticipants(selectedProjectId));
       setEnableAutomation(projects.find((p) => p.id === selectedProjectId)?.enable_automation)
     }
   }, [dispatch, selectedProjectId]);

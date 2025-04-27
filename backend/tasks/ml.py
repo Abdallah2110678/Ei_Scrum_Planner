@@ -81,29 +81,59 @@ def train_model(project_id):
     print(f"\n✅ Best Model for Project {project_id}: {best_algo} with Accuracy = {100 - best_mape:.2f}% (MAPE = {best_mape:.2f}%)")
     return best_algo, best_mape
 
+def predict_effort(project_id, task_complexity, task_category, sprint_id=None):
+    import pickle
+    from .models import Task
 
-def predict_effort(project_id, task_complexity, task_category):
     model_path = f"best_effort_model_{project_id}.pkl"
     mape_path = f"best_effort_mape_{project_id}.txt"
+    sprint_path = f"last_trained_sprint_{project_id}.txt"
+    task_count_path = f"last_trained_task_count_{project_id}.txt"
 
     retrain = False
+    current_task_count = Task.objects.filter(project_id=project_id).count()
 
-    if not os.path.exists(model_path) or not os.path.exists(mape_path):
-        retrain = True
-    else:
-        with open(mape_path, "r") as f:
+    # Load last sprint ID
+    last_sprint_id = None
+    if os.path.exists(sprint_path):
+        with open(sprint_path, "r") as f:
+            last_sprint_id = f.read().strip()
+
+    # Load last task count
+    last_task_count = None
+    if os.path.exists(task_count_path):
+        with open(task_count_path, "r") as f:
             try:
-                mape = float(f.read())
-                accuracy = 100 - mape
-                if accuracy < 90:
-                    retrain = True
+                last_task_count = int(f.read().strip())
             except ValueError:
-                retrain = True
+                last_task_count = None
+
+    # Check for significant task count change
+    task_count_changed = (
+        last_task_count is None or abs(current_task_count - last_task_count) >= 100
+    )
+
+    # Determine if retraining is needed
+    if (
+        not os.path.exists(model_path)
+        or not os.path.exists(mape_path)
+        or (sprint_id is not None and str(sprint_id) != last_sprint_id)
+        or task_count_changed
+    ):
+        retrain = True
 
     if retrain:
-        print(f"\n⚙️ Retraining model for project {project_id} due to missing file or low accuracy.")
+        print(f"\n⚙️ Retraining model for project {project_id} (reason: {'new sprint' if str(sprint_id) != last_sprint_id else 'task count changed' if task_count_changed else 'missing model'}).")
         train_model(project_id)
 
+        if sprint_id is not None:
+            with open(sprint_path, "w") as f:
+                f.write(str(sprint_id))
+
+        with open(task_count_path, "w") as f:
+            f.write(str(current_task_count))
+
+    # Load trained model
     with open(model_path, "rb") as f:
         model = pickle.load(f)
 

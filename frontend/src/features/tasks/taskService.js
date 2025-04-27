@@ -55,6 +55,7 @@ const addTask = async (taskData) => {
     throw error;
   }
 };
+
 const predictEffort = async (taskData) => {
   try {
     const response = await axios.post(
