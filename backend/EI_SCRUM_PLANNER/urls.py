@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from users.views import SignInView, SignUpView
+from users.views import SignInView, SignUpView, LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,4 +29,7 @@ urlpatterns = [
     path('api/projects/', include('projects.urls')),
     path('', include('project_users.urls')),
     path('api/', include('developer_performance.urls')),
+    path('api/auth/login/', SignInView.as_view(), name='login'),
+    path('api/auth/signup/', SignUpView.as_view(), name='signup'),
+    path('api/auth/logout/', LogoutView.as_view(), name='logout'),
 ]

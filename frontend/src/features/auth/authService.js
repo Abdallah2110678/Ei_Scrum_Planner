@@ -7,8 +7,8 @@ import axios from "axios";
 
 const BACKEND_DOMAIN = "http://localhost:8000";
 
-const REGISTER_URL = `${BACKEND_DOMAIN}/api/v1/auth/users/`;
-const LOGIN_URL = `${BACKEND_DOMAIN}/api/v1/auth/jwt/create/`;
+const REGISTER_URL = `${BACKEND_DOMAIN}/api/auth/signup/`;
+const LOGIN_URL = `${BACKEND_DOMAIN}/api/auth/login/`;
 const GET_USER_INFO = `${BACKEND_DOMAIN}/api/v1/auth/users/me/`
 
 // Register user
