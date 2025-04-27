@@ -1,5 +1,5 @@
 import logging
-from datetime import timezone
+from datetime import datetime, timedelta  #
 
 from developer_performance.models import DeveloperPerformance
 from django.contrib.auth import get_user_model
@@ -17,7 +17,6 @@ from rest_framework.views import APIView
 from sprints.models import Sprint
 from tasks.models import Task
 from users.models import User
-from datetime import timezone
 from copy import deepcopy
 
 from .models import Project
@@ -263,8 +262,36 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
         Assign tasks using Constraint Satisfaction Problem approach with backtracking
         Returns the best assignment found
         """
+        # Calculate max capacity based on sprint duration
+        max_capacity = 0
+        if sprint.start_date and sprint.end_date:
+            # Calculate business days between start and end date
+            current_date = sprint.start_date.date()
+            end_date = sprint.end_date.date()
+            business_days = 0
+            
+            while current_date <= end_date:
+                # Skip weekends (5=Saturday, 6=Sunday)
+                if current_date.weekday() < 5:
+                    business_days += 1
+                current_date += timedelta(days=1)
+            
+            # Each business day has 7 working hours
+            max_capacity = business_days * 7.0
+        else:
+            # Fallback: use duration field
+            if sprint.duration:
+                # Convert duration to weeks and calculate business days (5 per week)
+                weeks = sprint.duration / 7
+                business_days = weeks * 5
+                max_capacity = business_days * 7.0
+            else:
+                # Default to 35 hours (1 week) if no duration information
+                max_capacity = 35.0
+        
         logger.info(f"Starting CSP assignment with backtracking for {len(tasks)} tasks and {len(developers)} developers")
-        max_capacity = 60.0  # Max hours per developer
+        logger.info(f"Maximum capacity per developer: {max_capacity} hours based on sprint duration")
+    
         
         # Sort tasks by complexity (more complex first) and estimated effort
         sorted_tasks = sorted(
