@@ -29,8 +29,7 @@ def calculate_rewards_for_sprint(project_id, sprint_id):
 
         # Reward logic
         base_points = 5
-        bonus = 10 if avg_productivity >= 1.5 and rework < 2 else (
-                5 if avg_productivity >= 1.0 else 0)
+        bonus = total_productivity
         penalty = int(rework)
 
         points = max(0, base_points + bonus - penalty)
