@@ -475,6 +475,25 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                     developer_hours[best_dev_id] += task.estimated_effort
                     developer_task_count[best_dev_id] += 1
         
+        
+        # Fourth pass: Force assign remaining tasks to anyone with enough space
+        if unassigned_tasks:
+            logger.warning(f"⚠️ Fourth pass: Forcing assignment of {len(unassigned_tasks)} unassigned tasks")
+
+            for task in list(unassigned_tasks):
+                # Prioritize developers below min_tasks even if they are slightly over max_hours
+                for dev in developers:
+                    remaining = max_hours - developer_hours[dev.id]
+                    is_below_min = developer_task_count[dev.id] < min_tasks
+
+                    if task.estimated_effort <= remaining or is_below_min:
+                        assignments[task.id] = dev.id
+                        developer_hours[dev.id] += task.estimated_effort
+                        developer_task_count[dev.id] += 1
+                        unassigned_tasks.remove(task)
+                        break
+
+
         # Create detailed assignment information
         assignment_details = []
         developer_dict = {dev.id: dev for dev in developers}
@@ -626,8 +645,8 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
             for assignment in assignments:
                 safe_assignment = {}
                 for key, value in assignment.items():
-                    if key == 'score' and (value == float('inf') or value == float('-inf') or 
-                                          (isinstance(value, float) and math.isnan(value))):
+                    if key == 'score' and (value == float('inf') or value == float('-inf') or
+                                        (isinstance(value, float) and math.isnan(value))):
                         safe_assignment[key] = None
                     else:
                         safe_assignment[key] = value
