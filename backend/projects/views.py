@@ -18,6 +18,7 @@ from sprints.models import Sprint
 from tasks.models import Task
 from users.models import User
 from copy import deepcopy
+import math
 
 from .models import Project
 from .serializers import ProjectSerializer
@@ -117,12 +118,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
 
 
-
-
 class TaskAssignmentViewSet(viewsets.ViewSet):
     """
     ViewSet for automating task assignments based on productivity, rework, emotion, and capacity.
-    Uses a Constraint Satisfaction Problem (CSP) approach with backtracking to optimize assignments.
+    Uses a Constraint Satisfaction Problem (CSP) approach with backtracking to optimize assignments,
+    ensuring fair distribution of tasks among developers.
     """
     
     def get_performance_data(self, project, developers):
@@ -225,47 +225,122 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
         emotion_weight = emotion_data.get(developer_id, 0.5)
         complexity_weights = {"EASY": 0.5, "MEDIUM": 1.0, "HARD": 1.5}
         
-        # Check emotion-based complexity restriction
-        if emotion_weight < 0.7 and task.task_complexity == "HARD":
-            return float('-inf')  # Disqualify this assignment
+        # Hard constraint: Don't assign hard tasks to developers with low emotional state
+        if emotion_weight < 0.6 and task.task_complexity == "HARD":
+            return -100.0  # Use a very low score instead of -infinity
         
-        # Productivity score
+        # Productivity score (higher is better)
         productivity = performance_data.get(developer_id, {}).get(key, 1.0)
-        productivity_score = 1.0 / max(productivity, 0.1)  # Invert for higher-is-better
-        productivity_score = min(productivity_score / 2.0, 1.0)  # Normalize to 0-1
         
-        # Rework penalty
+        # Ensure productivity is a valid number
+        if not isinstance(productivity, (int, float)) or math.isnan(productivity) or math.isinf(productivity):
+            productivity = 1.0
+            
+        productivity_score = productivity  # Higher productivity gives higher score directly
+        productivity_score = min(productivity_score, 2.0) / 2.0  # Normalize to 0-1
+        
+        # Rework penalty (more rework means lower score)
         rework_count = rework_data.get(developer_id, {}).get(key, 0)
-        rework_penalty = min(rework_count * 0.2, 1.0)  # Normalize to 0-1
+        rework_penalty = min(rework_count * 0.2, 0.8)  # Cap at 0.8
         
         # Emotion score
         if emotion_weight >= 0.9:
             emotion_score = 1.0
         elif emotion_weight >= 0.8:
-            emotion_score = 0.8
+            emotion_score = 0.9
         elif emotion_weight >= 0.7:
-            emotion_score = 0.6
+            emotion_score = 0.8
+        elif emotion_weight >= 0.6:
+            emotion_score = 0.7
         else:
-            emotion_score = 0.4
+            emotion_score = 0.5
         
-        # Workload penalty
-        workload_score = current_hours * complexity_weights.get(task.task_complexity, 1.0)
-        workload_penalty = min(workload_score * 0.1, 1.0)  # Normalize to 0-1
+        # Workload balance factor (penalize assigning to already busy developers)
+        complexity_factor = complexity_weights.get(task.task_complexity, 1.0)
         
-        # Total score
-        score = (0.4 * productivity_score) - (0.3 * rework_penalty) + (0.3 * emotion_score) - (0.1 * workload_penalty)
+        # Ensure current_hours is a valid number
+        if not isinstance(current_hours, (int, float)) or math.isnan(current_hours) or math.isinf(current_hours):
+            current_hours = 0
+            
+        workload_factor = max(0, 1.0 - (current_hours / 35.0))  # Decreases as hours increase
         
+        # Category specialization bonus (encourage matching developer to their specialty)
+        specialization_bonus = 0.0
+        if key in performance_data.get(developer_id, {}):
+            if performance_data[developer_id][key] > 1.2:  # Developer has high productivity in this category
+                specialization_bonus = 0.2
+        
+        # Total score - weights should sum to 1.0
+        score = (
+            (0.3 * productivity_score) +
+            (0.2 * emotion_score) +
+            (0.2 * workload_factor) +
+            (0.1 * specialization_bonus) -
+            (0.2 * rework_penalty)
+        )
+        
+        # Ensure the score is a valid number for JSON serialization
+        if math.isnan(score) or math.isinf(score):
+            return 0.0
+            
         return score
     
-    def csp_assignment_with_backtracking(self, project, sprint, tasks, developers, performance_data, rework_data, emotion_data):
+    def enforce_fair_distribution(self, tasks, developers, max_capacity):
         """
-        Assign tasks using Constraint Satisfaction Problem approach with backtracking
-        Returns the best assignment found
+        Calculate minimum and maximum task count/hours per developer to ensure fair distribution
+        Returns min_tasks_per_dev, max_tasks_per_dev, min_hours_per_dev, max_hours_per_dev
         """
+        total_tasks = len(tasks)
+        total_estimated_hours = sum(task.estimated_effort or 0 for task in tasks)
+        num_developers = len(developers)
+        
+        # Calculate fair distribution targets
+        avg_tasks_per_dev = total_tasks / num_developers
+        min_tasks_per_dev = max(1, int(avg_tasks_per_dev * 0.5))  # At least half the average
+        max_tasks_per_dev = min(int(avg_tasks_per_dev * 1.5) + 1, total_tasks)  # At most 1.5x the average
+        
+        avg_hours_per_dev = total_estimated_hours / num_developers
+        min_hours_per_dev = max(1, avg_hours_per_dev * 0.4)  # At least 40% of average hours
+        max_hours_per_dev = min(avg_hours_per_dev * 1.6, max_capacity)  # At most 160% of average, up to max capacity
+        
+        logger.info(f"Fair distribution targets: {min_tasks_per_dev}-{max_tasks_per_dev} tasks per dev, "
+                   f"{min_hours_per_dev:.1f}-{max_hours_per_dev:.1f} hours per dev")
+        
+        return min_tasks_per_dev, max_tasks_per_dev, min_hours_per_dev, max_hours_per_dev
+    
+    def get_developer_skills(self, project, developers):
+        """
+        Identify developer skills/specialties based on past performance
+        Returns {developer_id: [top_categories]}
+        """
+        dev_skills = {dev.id: [] for dev in developers}
+        
+        # Get completed tasks data
+        for dev in developers:
+            # Get categories where developer performed well
+            perf_data = DeveloperPerformance.objects.filter(
+                user=dev,
+                project=project,
+                productivity__gt=1.1  # Good performance threshold
+            ).values('category').annotate(
+                avg_prod=Avg('productivity')
+            ).order_by('-avg_prod')
+            
+            # Store top 3 categories
+            for item in perf_data[:3]:
+                dev_skills[dev.id].append(item['category'])
+        
+        return dev_skills
+    
+    def csp_assignment_with_fairness(self, project, sprint, tasks, developers, performance_data, rework_data, emotion_data):
+        """
+        Assign tasks using CSP approach with fairness constraints
+        """
+        logger.info(f"Starting CSP assignment with fairness for {len(tasks)} tasks and {len(developers)} developers")
+        
         # Calculate max capacity based on sprint duration
         max_capacity = 0
         if sprint.start_date and sprint.end_date:
-            # Calculate business days between start and end date
             current_date = sprint.start_date.date()
             end_date = sprint.end_date.date()
             business_days = 0
@@ -279,183 +354,191 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
             # Each business day has 7 working hours
             max_capacity = business_days * 7.0
         else:
-            # Fallback: use duration field
+            # Fallback: use duration field or default to 35 hours
+            max_capacity = 35.0
             if sprint.duration:
-                # Convert duration to weeks and calculate business days (5 per week)
                 weeks = sprint.duration / 7
                 business_days = weeks * 5
                 max_capacity = business_days * 7.0
-            else:
-                # Default to 35 hours (1 week) if no duration information
-                max_capacity = 35.0
         
-        logger.info(f"Starting CSP assignment with backtracking for {len(tasks)} tasks and {len(developers)} developers")
         logger.info(f"Maximum capacity per developer: {max_capacity} hours based on sprint duration")
-    
         
-        # Sort tasks by complexity (more complex first) and estimated effort
+        # Get developer skills/specialties
+        dev_skills = self.get_developer_skills(project, developers)
+        
+        # Calculate fairness thresholds
+        min_tasks, max_tasks, min_hours, max_hours = self.enforce_fair_distribution(tasks, developers, max_capacity)
+        
+        # Get tasks with valid estimated effort
+        valid_tasks = [task for task in tasks if task.estimated_effort]
+        if len(valid_tasks) < len(tasks):
+            logger.warning(f"Skipping {len(tasks) - len(valid_tasks)} tasks with no estimated effort")
+        
+        # Sort tasks by complexity and category (to group similar tasks)
         sorted_tasks = sorted(
-            tasks, 
+            valid_tasks, 
             key=lambda t: (
                 2 if t.task_complexity == "HARD" else 1 if t.task_complexity == "MEDIUM" else 0,
+                t.task_category,
                 t.estimated_effort or 0
             ), 
             reverse=True
         )
         
-        # Create initial domains for each task (eligible developers)
-        domains = {}
+        # Start assignment process
+        assignments = {}
+        developer_hours = {dev.id: 0 for dev in developers}
+        developer_task_count = {dev.id: 0 for dev in developers}
+        
+        # First pass: Assign tasks to developers based on specialization and score
         for task in sorted_tasks:
-            if not task.estimated_effort:
-                logger.warning(f"Task '{task.task_name}' has no estimated effort, skipping")
-                continue
-                
-            domains[task.id] = []
-            for developer in developers:
-                # Check emotion-based complexity restriction
-                emotion_weight = emotion_data.get(developer.id, 0.5)
-                if emotion_weight < 0.7 and task.task_complexity == "HARD":
+            # Find best developer for this task
+            best_dev_id = None
+            best_score = float('-inf')
+            
+            for dev in developers:
+                # Skip if already at maximum tasks or hours
+                if developer_task_count[dev.id] >= max_tasks:
                     continue
-                    
-                # Calculate score
+                if developer_hours[dev.id] + task.estimated_effort > max_hours:
+                    continue
+                
+                # Calculate score for this assignment
                 score = self.calculate_task_score(
-                    task, developer.id, performance_data, rework_data, 
-                    emotion_data, 0  # Initial hours = 0
+                    task, dev.id, performance_data, rework_data, 
+                    emotion_data, developer_hours[dev.id]
                 )
                 
-                if score > 0:
-                    domains[task.id].append((developer.id, score))
-            
-            # Sort domains by score (highest first)
-            domains[task.id].sort(key=lambda x: x[1], reverse=True)
-        
-        # Function for recursive backtracking
-        def backtrack(assignment, remaining_tasks, developer_hours):
-            if not remaining_tasks:
-                return assignment  # Solution found
+                # Add bonus for specialization
+                if task.task_category in dev_skills.get(dev.id, []):
+                    score += 0.1
                 
-            # Choose task with fewest remaining eligible developers (MRV heuristic)
-            task_id = min(
-                remaining_tasks,
-                key=lambda tid: len([d for d, s in domains[tid] if developer_hours[d] + next((t.estimated_effort for t in sorted_tasks if t.id == tid), 0) <= max_capacity])
+                if score > best_score:
+                    best_score = score
+                    best_dev_id = dev.id
+            
+            # If found a suitable developer, assign the task
+            if best_dev_id is not None:
+                assignments[task.id] = best_dev_id
+                developer_hours[best_dev_id] += task.estimated_effort
+                developer_task_count[best_dev_id] += 1
+        
+        # Second pass: Ensure minimum tasks per developer
+        unassigned_tasks = [t for t in sorted_tasks if t.id not in assignments]
+        dev_below_min = [dev.id for dev in developers if developer_task_count[dev.id] < min_tasks]
+        
+        if dev_below_min and unassigned_tasks:
+            logger.info(f"Second pass: Ensuring minimum tasks for {len(dev_below_min)} developers below threshold")
+            
+            # Sort unassigned tasks by complexity (easier first)
+            unassigned_tasks.sort(
+                key=lambda t: (
+                    0 if t.task_complexity == "EASY" else 1 if t.task_complexity == "MEDIUM" else 2,
+                    t.estimated_effort or 0
+                )
             )
-            task = next(t for t in sorted_tasks if t.id == task_id)
             
-            # Try each developer in order of descending score
-            for dev_id, score in domains[task_id]:
-                # Check capacity constraint
-                if developer_hours[dev_id] + task.estimated_effort > max_capacity:
-                    continue
+            # For each developer below minimum, try to assign tasks
+            for dev_id in dev_below_min:
+                needed_tasks = min_tasks - developer_task_count[dev_id]
+                remaining_capacity = max_hours - developer_hours[dev_id]
+                
+                for task in list(unassigned_tasks):
+                    if needed_tasks <= 0:
+                        break
                     
-                # Try this assignment
-                new_assignment = assignment.copy()
-                new_assignment[task_id] = dev_id
-                
-                new_developer_hours = developer_hours.copy()
-                new_developer_hours[dev_id] += task.estimated_effort
-                
-                new_remaining = remaining_tasks.copy()
-                new_remaining.remove(task_id)
-                
-                # Recalculate scores for remaining tasks based on updated hours
-                new_domains = deepcopy(domains)
-                for tid in new_remaining:
-                    remaining_task = next(t for t in sorted_tasks if t.id == tid)
-                    new_domains[tid] = []
-                    for developer in developers:
-                        # Skip if already at capacity
-                        if new_developer_hours[developer.id] + remaining_task.estimated_effort > max_capacity:
-                            continue
-                            
-                        # Recalculate score with updated hours
-                        score = self.calculate_task_score(
-                            remaining_task, developer.id, performance_data, rework_data,
-                            emotion_data, new_developer_hours[developer.id]
-                        )
-                        
-                        if score > 0:
-                            new_domains[tid].append((developer.id, score))
-                    
-                    # Sort domains by score (highest first)
-                    new_domains[tid].sort(key=lambda x: x[1], reverse=True)
-                
-                # Recursive call
-                result = backtrack(new_assignment, new_remaining, new_developer_hours)
-                if result:
-                    return result
+                    if task.estimated_effort <= remaining_capacity:
+                        assignments[task.id] = dev_id
+                        developer_hours[dev_id] += task.estimated_effort
+                        developer_task_count[dev_id] += 1
+                        remaining_capacity -= task.estimated_effort
+                        needed_tasks -= 1
+                        unassigned_tasks.remove(task)
+        
+        # Third pass: Assign any remaining tasks based on capacity
+        if unassigned_tasks:
+            logger.info(f"Third pass: Assigning {len(unassigned_tasks)} remaining tasks")
             
-            return None  # No solution found for this path
-        
-        # Start backtracking
-        initial_assignment = {}
-        initial_developer_hours = {dev.id: 0 for dev in developers}
-        task_ids = [task.id for task in sorted_tasks if task.id in domains]
-        
-        result = backtrack(initial_assignment, set(task_ids), initial_developer_hours)
-        
-        if not result:
-            logger.warning("No complete solution found, falling back to greedy approach")
-            # Fall back to greedy approach
-            greedy_assignment = {}
-            greedy_hours = {dev.id: 0 for dev in developers}
-            
-            for task in sorted_tasks:
-                if task.id not in domains:
-                    continue
-                    
+            for task in unassigned_tasks:
+                # Find developer with most remaining capacity
                 best_dev_id = None
-                best_score = float('-inf')
+                best_remaining = -1
                 
-                for dev_id, score in domains[task.id]:
-                    if greedy_hours[dev_id] + task.estimated_effort <= max_capacity and score > best_score:
-                        best_dev_id = dev_id
-                        best_score = score
+                for dev in developers:
+                    remaining = max_hours - developer_hours[dev.id]
+                    if remaining >= task.estimated_effort and remaining > best_remaining:
+                        best_dev_id = dev.id
+                        best_remaining = remaining
                 
-                if best_dev_id:
-                    greedy_assignment[task.id] = best_dev_id
-                    greedy_hours[best_dev_id] += task.estimated_effort
-            
-            result = greedy_assignment
+                if best_dev_id is not None:
+                    assignments[task.id] = best_dev_id
+                    developer_hours[best_dev_id] += task.estimated_effort
+                    developer_task_count[best_dev_id] += 1
         
-        # Convert result to assignments list
-        assignments = []
+        # Create detailed assignment information
+        assignment_details = []
         developer_dict = {dev.id: dev for dev in developers}
         
+        # Check fairness achievement
+        below_min_devs = [dev_id for dev_id, count in developer_task_count.items() if count < min_tasks]
+        above_max_devs = [dev_id for dev_id, count in developer_task_count.items() if count > max_tasks]
+        
+        if below_min_devs:
+            logger.warning(f"{len(below_min_devs)} developers still below minimum task threshold")
+        if above_max_devs:
+            logger.warning(f"{len(above_max_devs)} developers above maximum task threshold")
+        
+        # Log workload distribution
+        logger.info("Task distribution per developer:")
+        for dev_id, count in developer_task_count.items():
+            dev_email = developer_dict[dev_id].email if dev_id in developer_dict else 'Unknown'
+            logger.info(f"  {dev_email}: {count} tasks, {developer_hours[dev_id]:.1f} hours")
+        
+        # Create assignment details for response
         for task in sorted_tasks:
-            dev_id = result.get(task.id)
+            dev_id = assignments.get(task.id)
             if dev_id:
-                assignments.append({
+                score = self.calculate_task_score(
+                    task, dev_id, performance_data, rework_data, 
+                    emotion_data, developer_hours[dev_id] - task.estimated_effort  # Hours before this task
+                )
+                
+                assignment_details.append({
                     'task_id': task.id,
                     'task_name': task.task_name,
                     'developer': developer_dict[dev_id].email,
+                    'developer_id': dev_id,
                     'category': task.task_category,
                     'complexity': task.task_complexity,
                     'estimated_effort': task.estimated_effort,
-                    'score': next((s for d, s in domains[task.id] if d == dev_id), None)
+                    'score': float(score) if isinstance(score, (int, float)) and score != float('-inf') and score != float('inf') and not (isinstance(score, float) and math.isnan(score)) else None
                 })
                 
                 # Update the actual task in the database
                 task.user = developer_dict[dev_id]
                 task.save()
             else:
-                assignments.append({
+                assignment_details.append({
                     'task_id': task.id,
                     'task_name': task.task_name,
                     'developer': None,
+                    'developer_id': None,
                     'category': task.task_category,
                     'complexity': task.task_complexity,
                     'estimated_effort': task.estimated_effort,
                     'score': None
                 })
+                
+                logger.warning(f"Could not assign task {task.id} ({task.task_name}) to any developer")
         
-        return assignments
+        return assignment_details
     
     def assign_tasks(self, project, sprint):
         """
-        Assign unassigned tasks in the sprint to developers using CSP with backtracking.
+        Assign unassigned tasks in the sprint to developers using CSP with fairness constraints.
         Returns a list of assignments for logging/response.
         """
-        logger.info(f"Starting CSP task assignment for project '{project.name}', sprint '{sprint.sprint_name}'")
+        logger.info(f"Starting task assignment for project '{project.name}', sprint '{sprint.sprint_name}'")
         
         # Fetch developers in the project
         project_user_ids = ProjectUsers.objects.filter(project=project).values_list('user_id', flat=True)
@@ -476,8 +559,8 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
         rework_data = self.get_rework_data(project, developers)
         emotion_data = self.get_emotion_data(project, developers)
         
-        # Run CSP assignment algorithm
-        assignments = self.csp_assignment_with_backtracking(
+        # Run CSP assignment algorithm with fairness constraints
+        assignments = self.csp_assignment_with_fairness(
             project, sprint, tasks, developers,
             performance_data, rework_data, emotion_data
         )
@@ -526,22 +609,62 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Perform task assignments
-        assignments = self.assign_tasks(project, sprint)
-        
-        if not assignments:
-            logger.info("No tasks assigned (no unassigned tasks or developers available)")
+        try:
+            # Perform task assignments
+            assignments = self.assign_tasks(project, sprint)
+            
+            if not assignments:
+                logger.info("No tasks assigned (no unassigned tasks or developers available)")
+                return Response(
+                    {"message": "No tasks were assigned (no unassigned tasks or developers available)"},
+                    status=status.HTTP_200_OK
+                )
+            
+            # Clean the assignments data to ensure JSON serialization works
+            # This removes any non-JSON-serializable values (inf, -inf, NaN)
+            safe_assignments = []
+            for assignment in assignments:
+                safe_assignment = {}
+                for key, value in assignment.items():
+                    if key == 'score' and (value == float('inf') or value == float('-inf') or 
+                                          (isinstance(value, float) and math.isnan(value))):
+                        safe_assignment[key] = None
+                    else:
+                        safe_assignment[key] = value
+                safe_assignments.append(safe_assignment)
+            
+            # Group assignments by developer for summary
+            dev_assignments = {}
+            for a in safe_assignments:
+                if a['developer']:
+                    if a['developer'] not in dev_assignments:
+                        dev_assignments[a['developer']] = []
+                    dev_assignments[a['developer']].append(a)
+            
+            # Create assignment summary
+            assignment_summary = []
+            for dev, tasks in dev_assignments.items():
+                hours = sum(t['estimated_effort'] for t in tasks if t['estimated_effort'])
+                assignment_summary.append({
+                    'developer': dev,
+                    'task_count': len(tasks),
+                    'total_hours': hours
+                })
+            
+            assigned_count = sum(1 for a in safe_assignments if a['developer'] is not None)
+            logger.info(f"Request completed: assigned {assigned_count} of {len(safe_assignments)} tasks")
             return Response(
-                {"message": "No tasks were assigned (no unassigned tasks or developers available)"},
+                {
+                    "message": f"Assigned {assigned_count} of {len(safe_assignments)} tasks successfully",
+                    "summary": assignment_summary,
+                    "assignments": safe_assignments
+                },
                 status=status.HTTP_200_OK
             )
-        
-        assigned_count = sum(1 for a in assignments if a['developer'] is not None)
-        logger.info(f"Request completed: assigned {assigned_count} of {len(assignments)} tasks")
-        return Response(
-            {
-                "message": f"Assigned {assigned_count} of {len(assignments)} tasks successfully",
-                "assignments": assignments
-            },
-            status=status.HTTP_200_OK
-        )
+        except Exception as e:
+            # Log the exception
+            logger.error(f"Error during task assignment: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "An error occurred during task assignment", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
