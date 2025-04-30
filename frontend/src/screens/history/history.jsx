@@ -56,7 +56,7 @@ const History = () => {
   return (
     <div className="history-container">
       <div className="projects-school-links">
-        <a href="/projects" className="project-link">Projects</a>
+        <a href="/projects" className="project-link">Project</a>
         <span className="separator"> / </span>
         <span className="school-link">
           {selectedProjectId

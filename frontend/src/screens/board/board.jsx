@@ -116,7 +116,7 @@ const Board = ({ toggleComponent }) => {
     <div className="board-container">
       {/* Projects / School as hyperlinks */}
       <div className="projects-school-links">
-        <Link to="/projects" className="project-link">Projects</Link>
+        <Link to="/projects" className="project-link">Project</Link>
         <span className="separator"> / </span>
         <span className="school-link">
           {selectedProjectId ? projects.find((p) => p.id === selectedProjectId)?.name || "Unnamed Project" : "No Project Selected"}

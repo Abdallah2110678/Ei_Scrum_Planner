@@ -560,7 +560,7 @@ const Timeline = () => {
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="timeline-container">
         <div className="projects-school-links">
-          <a href="/projects" className="projects-link">Projects</a>
+          <a href="/projects" className="projects-link">Project</a>
           <span className="separator"> / </span>
           <span className="school-link">
             {selectedProjectId
