@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+from sprints.models import Sprint
 class DailyEmotion(models.Model):
     # Static emotion-to-weight mapping defined within the model
     EMOTION_WEIGHTS = {
@@ -14,12 +14,13 @@ class DailyEmotion(models.Model):
     }
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name='daily_emotions'
     )
+    sprint = models.ForeignKey(Sprint, on_delete=models.SET_NULL, null=True, blank=True, related_name='emotions')
     date = models.DateField(auto_now_add=True)
     first_emotion = models.CharField(max_length=50, blank=True)
     second_emotion = models.CharField(max_length=50, blank=True)

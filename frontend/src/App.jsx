@@ -10,7 +10,7 @@ import IntroductionPage from "./screens/Introduction/IntroductionPage.jsx";
 import Dashboard from "./screens/Dashboard/Dashboard";
 import { Navigate } from "react-router-dom";
 import {useSelector} from 'react-redux';
-import AcceptInvitation from "./components/acceptInvitation.jsx";
+import AcceptInvitation from "./components/acceptinvitation/acceptInvitation.jsx";
 import GamificationPaga from "./screens/gamification/gamification.jsx";
 import ParticipantsPage from "./screens/participant/participant.jsx";
 import Profile from "./screens/profile/profile.jsx";

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import AddUserModal from '../../components/addUserModal';
+import AddUserModal from '../../components/adduser/addUserModal.jsx';
 import ProjectsDropdown from "../../components/projectsdropdown/ProjectsDropdown.jsx";
 import { logout, reset, setLoading } from '../../features/auth/authSlice';
 import LoginForm from '../login/login.jsx';

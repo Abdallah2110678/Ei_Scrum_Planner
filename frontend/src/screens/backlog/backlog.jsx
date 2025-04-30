@@ -2,7 +2,7 @@ import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import axios from 'axios';
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import TaskAssignmentButton from '../../components/taskAssignmentButton';
+import TaskAssignmentButton from '../../components/taskassignmentbutton/taskAssignmentButton.jsx';
 import TaskItem from "../../components/taskList/taskItem";
 import TaskList from "../../components/taskList/taskList";
 import UserAvatars from '../../components/userAvatars/UserAvatars';

@@ -8,11 +8,13 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from datetime import timedelta
+from project_users.models import ProjectUsers
+from sprints.models import Sprint
+
 # Set up logging
 logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
-@authentication_classes([JWTAuthentication])
 @permission_classes([AllowAny])
 def emotion_detection_view(request):
     try:
@@ -67,7 +69,6 @@ def emotion_detection_view(request):
         return JsonResponse({'error': f'Internal server error: {str(e)}'}, status=500)
 
 @api_view(['GET'])
-@authentication_classes([JWTAuthentication])
 @permission_classes([AllowAny])
 def get_daily_emotions(request):
     try:
@@ -117,27 +118,36 @@ def get_daily_emotions(request):
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def team_emotions(request):
-    """
-    Get emotions for all team members (for dashboard display)
-    """
     try:
-        # Get authenticated user
-        user = request.user
+        project_id = request.query_params.get('project_id')
+        sprint_id = request.query_params.get('sprint_id')
         
-        # Admin or manager role check could be added here
+        logger.info(f"Fetching team emotions for project_id={project_id}, sprint_id={sprint_id}")
+
+        # Base query with date filter
+        from_date = timezone.now().date() - timedelta(days=7)
+        query = DailyEmotion.objects.filter(date__gte=from_date)
+
+        # Add filters if parameters are provided
+        if project_id:
+            # Get all users in the project
+            project_users = ProjectUsers.objects.filter(
+                project_id=project_id
+            ).values_list('user_id', flat=True)
+            logger.info(f"Found project users: {list(project_users)}")
+            query = query.filter(user_id__in=project_users)
+
+        if sprint_id:
+            logger.info(f"Filtering by sprint_id: {sprint_id}")
+            query = query.filter(sprint_id=sprint_id)
+
+        # Select related user data to avoid N+1 queries
+        emotions = query.select_related('user', 'sprint')
         
-        # Query for all daily emotions from the last 7 days 
-        # (you can adjust the timeframe as needed)
-        from_date = timezone.now().date() - timezone.timedelta(days=7)
-        
-        # Get emotions for all users
-        emotions = DailyEmotion.objects.filter(
-            date__gte=from_date
-        ).select_related('user')
-        
-        # Prepare response data
+        logger.info(f"Found {emotions.count()} emotions")
+
         result = []
         for emotion in emotions:
             emotion_data = {
@@ -149,23 +159,24 @@ def team_emotions(request):
                 'first_emotion_weight': emotion.first_emotion_weight,
                 'second_emotion_weight': emotion.second_emotion_weight,
                 'third_emotion_weight': emotion.third_emotion_weight,
-                'average_emotion_weight': emotion.average_emotion_weight
+                'average_emotion_weight': emotion.average_emotion_weight,
+                'sprint_id': emotion.sprint.id if emotion.sprint else None
             }
             
-            # Add user information if available
             if emotion.user:
                 emotion_data['user'] = {
                     'id': emotion.user.id,
                     'name': emotion.user.name,
                     'email': emotion.user.email
                 }
-                emotion_data['user_email'] = emotion.user.email
-            else:
-                emotion_data['user_email'] = 'Anonymous'
             
             result.append(emotion_data)
-        
+
+        logger.info(f"Returning {len(result)} emotion records")
         return Response(result)
     except Exception as e:
-        logger.error(f"Error in team_emotions view: {str(e)}")
-        return Response({'error': f'Internal server error: {str(e)}'}, status=500)
+        logger.error(f"Error in team_emotions view: {str(e)}", exc_info=True)
+        return Response(
+            {'error': 'Internal server error', 'detail': str(e)}, 
+            status=500
+        )

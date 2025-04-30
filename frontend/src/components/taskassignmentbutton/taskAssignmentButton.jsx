@@ -23,13 +23,18 @@ const TaskAssignmentButton = ({ projectId, sprintId }) => {
         project_id: projectId,
         sprint_id: sprintId,
       });
-      setMessage(response.data.message);
-      console.log('Assignments:', response.data.assignments);
+      console.log("Full API Response:", response.data);
+      setMessage(response.data.message || "No message returned");
+    
+      if (response.data.assignments) {
+        console.log("Assignments:", response.data.assignments);
+      } else {
+        console.warn("⚠️ 'assignments' not found in response", response.data);
+      }
+    
     } catch (error) {
-      setMessage(error.response?.data?.error || 'Failed to assign tasks');
       console.error('Task assignment error:', error);
-    } finally {
-      setLoading(false);
+      setMessage(error.response?.data?.error || 'Failed to assign tasks');
     }
   };
 

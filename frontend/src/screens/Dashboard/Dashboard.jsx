@@ -11,7 +11,7 @@ import {
   Tooltip
 } from 'chart.js';
 import React, { useEffect, useState } from 'react';
-import { Bar, Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSprints } from '../../features/sprints/sprintSlice';
 import Navbar from '../navbar/navbar';
@@ -28,6 +28,8 @@ const Dashboard = () => {
   const [complexities, setComplexities] = useState([]);
   const [users, setUsers] = useState([]);
 
+
+  const [emotionUserId, setEmotionUserId] = useState('');
   const [emotionData, setEmotionData] = useState([]);
   const [reworkData, setReworkData] = useState(null);
   const [chartData, setChartData] = useState(null);
@@ -145,40 +147,103 @@ const Dashboard = () => {
 
   const fetchEmotionData = async () => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user?.access}` } };
-      const res = await axios.get('http://localhost:8000/emotion_detection/team_emotions/', config);
-      
-      // Group emotions by sprint
-      const sprintEmotions = {};
-      res.data.forEach(emotion => {
-        const sprintId = emotion.sprint_id;
-        if (!sprintEmotions[sprintId]) {
-          sprintEmotions[sprintId] = [];
+      if (!selectedProjectId) {
+        console.warn('No project selected');
+        setEmotionData([]);
+        return;
+      }
+
+      setError(null); // Clear any previous errors
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user?.access}`,
+          'Content-Type': 'application/json',
+        },
+        params: {
+          project_id: selectedProjectId
         }
-        sprintEmotions[sprintId].push(emotion);
-      });
-      
-      setEmotionData(res.data || []);
+      };
+
+      const res = await axios.get('http://localhost:8000/emotion_detection/team_emotions/', config);
+      if (res.data) {
+        setEmotionData(res.data);
+      } else {
+        setEmotionData([]);
+      }
     } catch (err) {
-      console.error('Emotion data fetch failed:', err);
+      console.error('Emotion data fetch failed:', err.response?.data || err.message);
+      setError(err.response?.data?.detail || 'Failed to fetch emotion data');
+      setEmotionData([]);
     }
   };
 
   const getEmotionChartData = () => {
-    if (!emotionData.length) return null;
-    const emotionTypes = ['happy', 'sad', 'angry', 'neutral', 'surprised'];
-    const colors = ['rgba(75, 192, 192, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(255, 205, 86, 0.6)', 'rgba(153, 102, 255, 0.6)'];
-    return {
-      labels: emotionData.map(d => d.user?.name || d.user_email || 'Anonymous'),
-      datasets: emotionTypes.map((emotion, idx) => ({
-        label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
-        data: emotionData.map(d => [d.first_emotion, d.second_emotion, d.third_emotion].filter(e => e === emotion).length),
-        backgroundColor: colors[idx],
-        borderColor: colors[idx].replace('0.6', '1'),
-        borderWidth: 2
-      }))
-    };
+    if (!emotionData.length) {
+      return {
+        labels: [],
+        datasets: []
+      };
+    }
+
+    const emotionTypes = ['happy', 'neutral', 'sad', 'angry', 'surprise', 'fear', 'disgust'];
+    const colors = [
+      'rgba(75, 192, 192, 0.6)',  // happy
+      'rgba(54, 162, 235, 0.6)',  // neutral
+      'rgba(255, 99, 132, 0.6)',  // sad
+      'rgba(255, 159, 64, 0.6)',  // angry
+      'rgba(153, 102, 255, 0.6)', // surprise
+      'rgba(201, 203, 207, 0.6)', // fear
+      'rgba(255, 205, 86, 0.6)'   // disgust
+    ];
+
+    // Filter by selected user only
+    const filtered = emotionData.filter(d =>
+      !emotionUserId || String(d.user?.id) === String(emotionUserId)
+    );
+
+    if (!filtered.length) {
+      console.log('No data after filtering');
+      return {
+        labels: [],
+        datasets: []
+      };
+    }
+
+    // Group data by user
+    const grouped = {};
+    filtered.forEach(d => {
+      const userKey = d.user?.name || d.user?.email || 'Anonymous';
+      if (!grouped[userKey]) {
+        grouped[userKey] = {
+          emotions: [],
+          weights: []
+        };
+      }
+      // Only add emotions that are not empty or null
+      if (d.first_emotion) grouped[userKey].emotions.push(d.first_emotion.toLowerCase());
+      if (d.second_emotion) grouped[userKey].emotions.push(d.second_emotion.toLowerCase());
+      if (d.third_emotion) grouped[userKey].emotions.push(d.third_emotion.toLowerCase());
+    });
+
+    const labels = Object.keys(grouped);
+
+    const datasets = emotionTypes.map((emotion, idx) => ({
+      label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
+      data: labels.map(user => {
+        const userEmotions = grouped[user].emotions;
+        return userEmotions.filter(e => e === emotion.toLowerCase()).length;
+      }),
+      backgroundColor: colors[idx],
+      borderColor: colors[idx].replace('0.6', '1'),
+      borderWidth: 2
+    }));
+
+    return { labels, datasets };
   };
+
+  const emotionChartData = getEmotionChartData();
+
 
   const getReworkChartData = () => {
     if (!reworkData?.per_user) return null;
@@ -197,8 +262,6 @@ const Dashboard = () => {
       }]
     };
   };
-
-  // Remove the duplicate getEmotionChartData function here
 
   const handleGenerateReport = async () => {
     try {
@@ -238,6 +301,75 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderEmotionsSection = () => {
+    return (
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Emotional States by Developer</h3>
+
+        <div className="mb-6">
+          <select
+            onChange={e => setEmotionUserId(e.target.value)}
+            value={emotionUserId}
+            className="w-full p-2 border rounded"
+          >
+            <option value=''>All Developers</option>
+            {users.map((u, i) => (
+              <option key={i} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {error ? (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+            <p>Error: {error}</p>
+          </div>
+        ) : emotionData.length === 0 || getEmotionChartData().labels.length === 0 ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+            <p className="text-gray-600 mb-2">No emotion data available</p>
+            <p className="text-gray-500 text-sm">
+              There is no emotion data recorded for the selected developer.
+            </p>
+          </div>
+        ) : (
+          <div className="chart-container" style={{ minHeight: "300px" }}>
+            <Bar
+              data={getEmotionChartData()}
+              options={{
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                  legend: { position: 'top' },
+                  title: {
+                    display: true,
+                    text: 'Detected Emotions per Team Member',
+                    padding: 20
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    stacked: true,
+                    title: {
+                      display: true,
+                      text: 'Number of Detections'
+                    }
+                  },
+                  x: {
+                    stacked: true,
+                    title: {
+                      display: true,
+                      text: 'Team Members'
+                    }
+                  }
+                }
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -322,12 +454,8 @@ const Dashboard = () => {
           </div>
 
           {/* Emotions */}
-          {emotionData.length > 0 && (
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Emotional States by Developer</h3>
-              <Line data={getEmotionChartData()} options={{ responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Detected Emotions per Team Member' } }, scales: { y: { beginAtZero: true } } }} />
-            </div>
-          )}
+          {renderEmotionsSection()}
+
         </div>
       </div>
     </>
