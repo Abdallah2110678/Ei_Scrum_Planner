@@ -99,12 +99,12 @@
   gap: 1.5rem;
 }
 
-.form-group {
+.profile-form-group {
   display: grid;
   gap: 0.5rem;
 }
 
-.form-group label {
+.profile-form-group label {
   font-weight: 500;
   color: #666;
   font-size: 0.9rem;
@@ -181,9 +181,17 @@
   cursor: not-allowed;
 }
 
-.cancel-button {
+.profile-cancel-button {
   background-color: #dc3545;
   color: white;
+  padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    min-width: 120px;
+    text-align: center;
 }
 
 /* Media Queries */
