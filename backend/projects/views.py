@@ -304,7 +304,7 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
         max_hours_per_dev = min(avg_hours_per_dev * 1.6, max_capacity)  # At most 160% of average, up to max capacity
         
         logger.info(f"Fair distribution targets: {min_tasks_per_dev}-{max_tasks_per_dev} tasks per dev, "
-                   f"{min_hours_per_dev:.1f}-{max_hours_per_dev:.1f} hours per dev")
+                f"{min_hours_per_dev:.1f}-{max_hours_per_dev:.1f} hours per dev")
         
         return min_tasks_per_dev, max_tasks_per_dev, min_hours_per_dev, max_hours_per_dev
     
@@ -405,7 +405,7 @@ class TaskAssignmentViewSet(viewsets.ViewSet):
                 
                 # Calculate score for this assignment
                 score = self.calculate_task_score(
-                    task, dev.id, performance_data, rework_data, 
+                    task, dev.id, performance_data, rework_data,
                     emotion_data, developer_hours[dev.id]
                 )
                 

@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProjectParticipants } from "../../features/projects/projectSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
 import { deleteTask, fetchTasks, predictEffort, updateTask, updateTaskInState } from "../../features/tasks/taskSlice";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import './taskList.css';
 
@@ -71,7 +73,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const handleEstimateEffort = async () => {
     try {
       setLoadingEstimate(true);
-
+  
       const response = await dispatch(
         predictEffort({
           taskId: task.id,
@@ -83,20 +85,22 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
           sprintId: task.sprint ? Number(task.sprint) : null,
         })
       ).unwrap();
-
-
+  
       if (response?.estimated_effort !== undefined) {
         const updatedTask = { ...taskData, estimated_effort: response.estimated_effort };
         setTaskData(updatedTask);
-
+  
         dispatch(updateTaskInState({
           id: task.id,
           updatedFields: { estimated_effort: response.estimated_effort }
         }));
-
+  
+        toast.success(`✅ Estimated effort: ${response.estimated_effort.toFixed(1)} hrs`);
       }
     } catch (error) {
-      console.error("Error estimating effort:", error);
+      const message = error?.message || "Estimation failed.";
+      console.error("❌ Error estimating effort:", message);
+      toast.error(`❌ ${message}`);
     } finally {
       setLoadingEstimate(false);
     }
@@ -390,8 +394,10 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
           </div>
         </div>
       )}
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </>
   );
 };
+
 
 export default TaskItem;
