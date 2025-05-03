@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import { format, addDays, addMonths, parseISO, differenceInDays, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSprints, updateSprint } from "../../features/sprints/sprintSlice";
-import { fetchTasks } from '../../features/tasks/taskSlice';
-import "./timeline.css";
-import { FaSearch, FaEdit, FaSave, FaTimes, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { fetchTasks, updateTask } from '../../features/tasks/taskSlice';
+import "./Timeline.css";
+import { FaSearch, FaPlus, FaTasks, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+
 
 const Timeline = () => {
+
   const dispatch = useDispatch();
   const { sprints } = useSelector((state) => state.sprints);
   const { selectedProjectId, projects } = useSelector((state) => state.projects);
@@ -14,15 +17,25 @@ const Timeline = () => {
   const [selectedView, setSelectedView] = useState("months");
   const [currentDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedSprint, setExpandedSprint] = useState(null);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [activeSprintId, setActiveSprintId] = useState(null);
+  const [taskFormData, setTaskFormData] = useState({
+    task_name: "",
+    task_duration: 1,
+    task_complexity: 1,
+    story_points: 1,
+    status: "TO DO",
+    user_experience: 1
+  });
   const [editingSprint, setEditingSprint] = useState(null);
-  const [expandedSprints, setExpandedSprints] = useState({});
-  const [tasks, setTasks] = useState({});
   const [editFormData, setEditFormData] = useState({
     sprint_name: "",
     start_date: "",
     duration: 14,
     sprint_goal: ""
   });
+  const [tasks, setTasks] = useState({});
 
   useEffect(() => {
     // Only proceed if we have a valid project ID
@@ -35,8 +48,8 @@ const Timeline = () => {
       if (!isNaN(projectId)) {
         // Get sprints first
         dispatch(fetchSprints(projectId));
-        
-        // Fetch tasks for the selected project
+
+        // Then fetch tasks for the selected project
         dispatch(fetchTasks({ project: projectId }));
       } else {
         console.log('Invalid project ID format');
@@ -60,6 +73,12 @@ const Timeline = () => {
             tasksBySprint[sprintId] = [];
           }
           tasksBySprint[sprintId].push(task);
+        } else {
+          // Handle unassigned tasks
+          if (!tasksBySprint['unassigned']) {
+            tasksBySprint['unassigned'] = [];
+          }
+          tasksBySprint['unassigned'].push(task);
         }
       });
 
@@ -67,7 +86,7 @@ const Timeline = () => {
     } else {
       setTasks({});
     }
-  }, [allTasks]);
+  }, [allTasks, sprints]);
 
   const generateTimelineHeaders = () => {
     const headers = [];
@@ -148,27 +167,48 @@ const Timeline = () => {
     };
   };
 
-  const calculateTaskBar = (task, sprint) => {
-    if (!sprint.start_date) return null;
+  const handleAddTask = async () => {
+    try {
+      if (!taskFormData.task_name.trim()) {
+        return;
+      }
 
-    const sprintStart = parseISO(sprint.start_date);
-    const timelineHeaders = generateTimelineHeaders();
-    const totalDays = timelineHeaders.reduce((sum, header) => sum + header.days, 0);
-    const viewStart = timelineHeaders[0].start;
+      const response = await fetch('http://localhost:8000/api/tasks/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token if authentication is needed
+        },
+        body: JSON.stringify({
+          ...taskFormData,
+          sprint: activeSprintId,
+          project: selectedProjectId
+        }),
+      });
 
-    // Position task at the start of the sprint by default
-    // You could enhance this to use actual task start dates if available
-    const taskStart = sprintStart;
-    const taskDuration = task.task_duration || 1; // Default to 1 day if not specified
-    
-    const daysFromStart = Math.max(0, differenceInDays(taskStart, viewStart));
-    const left = (daysFromStart / totalDays) * 100;
-    const width = (taskDuration / totalDays) * 100;
+      if (response.ok) {
+        // Reset form state
+        setShowTaskForm(false);
+        setActiveSprintId(null);
+        setTaskFormData({
+          task_name: "",
+          task_duration: 1,
+          task_complexity: 1,
+          story_points: 1,
+          status: "TO DO",
+          user_experience: 1
+        });
 
-    return {
-      left: `${left}%`,
-      width: `${width}%`,
-    };
+        // Refresh data
+        dispatch(fetchSprints(selectedProjectId));
+        dispatch(fetchTasks({ project: selectedProjectId }));
+      } else {
+        const errorData = await response.json();
+        console.error('Error adding task:', errorData);
+      }
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   };
 
   const handleEditClick = (sprint) => {
@@ -202,13 +242,6 @@ const Timeline = () => {
     } catch (error) {
       console.error('Failed to update sprint:', error);
     }
-  };
-
-  const toggleSprintExpansion = (sprintId) => {
-    setExpandedSprints(prev => ({
-      ...prev,
-      [sprintId]: !prev[sprintId]
-    }));
   };
 
   const renderSprintBar = (sprint) => {
@@ -247,21 +280,11 @@ const Timeline = () => {
       );
     }
 
-    const sprintTasks = tasks[String(sprint.id)] || [];
-    const taskCount = sprintTasks.length;
-
     return (
       <div className="sprint-bar">
-        <div className="sprint-bar-header" onClick={() => toggleSprintExpansion(sprint.id)}>
-          {expandedSprints[sprint.id] ? <FaChevronDown /> : <FaChevronRight />}
-          <span>{sprint.sprint_name}</span>
-          {taskCount > 0 && <span className="task-count">({taskCount})</span>}
-        </div>
+        <span>{sprint.sprint_name}</span>
         <FaEdit
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEditClick(sprint);
-          }}
+          onClick={() => handleEditClick(sprint)}
           className="edit-icon"
         />
       </div>
@@ -305,8 +328,6 @@ const Timeline = () => {
             {filteredSprints.length > 0 ? (
               filteredSprints.map((sprint) => {
                 const barPosition = calculateGanttBar(sprint);
-                const sprintTasks = tasks[String(sprint.id)] || [];
-                const isExpanded = expandedSprints[sprint.id];
 
                 return (
                   <React.Fragment key={sprint.id}>
@@ -314,6 +335,15 @@ const Timeline = () => {
                       <td className="fixed-column sprint-name">
                         <div className="sprint-name-container">
                           {renderSprintBar(sprint)}
+                          <button
+                            className="add-task-button"
+                            onClick={() => {
+                              setShowTaskForm(true);
+                              setActiveSprintId(sprint.id);
+                            }}
+                          >
+                            <FaPlus />
+                          </button>
                         </div>
                       </td>
                       <td colSpan={timelineHeaders.length} className="gantt-chart-cell">
@@ -337,39 +367,98 @@ const Timeline = () => {
                         )}
                       </td>
                     </tr>
-                    
-                    {isExpanded && sprintTasks.map(task => (
-                      <tr key={task.id} className="task-row">
-                        <td className="fixed-column task-name">
-                          <div className="task-name-container">
-                            <span>{task.task_name}</span>
+                    {tasks[String(sprint.id)]?.map((task) => {
+                      // Use default date if sprint isn't started
+                      const sprintStart = sprint.start_date ? parseISO(sprint.start_date) : new Date();
+
+                      // Use task duration or default to 1 day
+                      const taskDuration = task.task_duration || 1;
+                      const taskWidth = (taskDuration / totalDays) * 100;
+
+                      // Calculate position relative to timeline start
+                      const taskLeft = (differenceInDays(sprintStart, timelineHeaders[0].start) / totalDays) * 100;
+
+                      const taskBarPosition = {
+                        left: `${taskLeft}%`,
+                        width: `${taskWidth}%`,
+                      };
+
+                      return (
+                        <tr key={task.id} className="task-row">
+                          <td className="fixed-column task-name">
+                            {task.task_name}
                             <span className={`task-status ${task.status.toLowerCase().replace(' ', '-')}`}>
                               {task.status}
                             </span>
-                          </div>
-                        </td>
-                        <td colSpan={timelineHeaders.length} className="gantt-chart-cell">
-                          <div className="gantt-grid">
-                            {timelineHeaders.map((header, index) => (
-                              <div
-                                key={index}
-                                className="gantt-grid-line"
-                                style={{ width: `${(header.days / totalDays) * 100}%` }}
-                              />
-                            ))}
-                          </div>
-                          {calculateTaskBar(task, sprint) && (
+                          </td>
+                          <td colSpan={timelineHeaders.length} className="gantt-chart-cell">
+                            <div className="gantt-grid">
+                              {timelineHeaders.map((header, index) => (
+                                <div
+                                  key={index}
+                                  className="gantt-grid-line"
+                                  style={{ width: `${(header.days / totalDays) * 100}%` }}
+                                />
+                              ))}
+                            </div>
                             <div
                               className={`task-bar ${task.status.toLowerCase().replace(' ', '-')}`}
-                              style={calculateTaskBar(task, sprint)}
-                              title={`${task.task_name} (${task.task_duration || 1} days)`}
+                              style={taskBarPosition}
+                              title={`${task.task_name} (${taskDuration} days)`}
                             >
                               {task.task_name}
                             </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    <tr className="add-task-row">
+                      <td colSpan={timelineHeaders.length + 1}>
+                        {showTaskForm && activeSprintId === sprint.id ? (
+                          <div className="task-form">
+                            <input
+                              type="text"
+                              placeholder="What needs to be done?"
+                              value={taskFormData.task_name}
+                              onChange={(e) => setTaskFormData({
+                                ...taskFormData,
+                                task_name: e.target.value
+                              })}
+                            />
+                            <button
+                              onClick={handleAddTask}
+                              disabled={!taskFormData.task_name.trim()}
+                            >
+                              Add Task
+                            </button>
+                            <button onClick={() => {
+                              setShowTaskForm(false);
+                              setActiveSprintId(null);
+                              setTaskFormData({
+                                task_name: "",
+                                task_duration: 1,
+                                task_complexity: 1,
+                                story_points: 1,
+                                status: "TO DO",
+                                user_experience: 1
+                              });
+                            }}>
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="create-task-button"
+                            onClick={() => {
+                              setShowTaskForm(true);
+                              setActiveSprintId(sprint.id);
+                            }}
+                          >
+                            <FaPlus />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
                   </React.Fragment>
                 );
               })
@@ -386,61 +475,145 @@ const Timeline = () => {
     );
   };
 
-  return (
-    <div className="timeline-container">
-      <div className="projects-school-links">
-        <a href="/projects" className="projects-link">Project</a>
-        <span className="separator"> / </span>
-        <span className="school-link">
-          {selectedProjectId
-            ? projects.find((p) => p.id === selectedProjectId)?.name || "Unnamed Project"
-            : "No Project Selected"}
-        </span>
-      </div>
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
 
-      <div className="timeline-content">
-        <div className="timeline-header-section">
-          <h2>Timeline</h2>
-          <div className="timeline-controls">
-            <div className="search-container">
-              <input
-                type="text"
-                placeholder="Search sprints..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-              <FaSearch className="search-icon" />
+    if (!destination) return;
+
+    const sourceSprintId = source.droppableId;
+    const destSprintId = destination.droppableId;
+
+    if (sourceSprintId === destSprintId) {
+      // Reorder within same sprint
+      const sprintTasks = Array.from(tasks[sourceSprintId]);
+      const [removed] = sprintTasks.splice(source.index, 1);
+      sprintTasks.splice(destination.index, 0, removed);
+
+      setTasks({
+        ...tasks,
+        [sourceSprintId]: sprintTasks
+      });
+    } else {
+      // Move to different sprint
+      const sourceTasks = Array.from(tasks[sourceSprintId]);
+      const destTasks = Array.from(tasks[destSprintId] || []);
+      const [movedTask] = sourceTasks.splice(source.index, 1);
+      destTasks.splice(destination.index, 0, movedTask);
+
+      // Update task's sprint assignment
+      const newSprintId = destSprintId === 'unassigned' ? null : destSprintId;
+      await dispatch(updateTask({
+        id: draggableId,
+        sprint: newSprintId
+      }));
+
+      setTasks({
+        ...tasks,
+        [sourceSprintId]: sourceTasks,
+        [destSprintId]: destTasks
+      });
+    }
+  };
+
+  const renderTaskList = (sprintId) => {
+    const sprintTasks = tasks[sprintId] || [];
+
+    return (
+      <Droppable droppableId={String(sprintId)}>
+        {(provided) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="task-list"
+          >
+            {sprintTasks.map((task, index) => (
+              <Draggable
+                key={task.id}
+                draggableId={String(task.id)}
+                index={index}
+              >
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className={`task-item ${snapshot.isDragging ? 'dragging' : ''}`}
+                  >
+                    <div className="task-content">
+                      <span className="task-name">{task.task_name}</span>
+                      <span className={`task-status ${task.status.toLowerCase().replace(' ', '-')}`}>
+                        {task.status}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    );
+  };
+
+  return (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="timeline-container">
+        <div className="projects-school-links">
+          <a href="/projects" className="projects-link">Project</a>
+          <span className="separator"> / </span>
+          <span className="school-link">
+            {selectedProjectId
+              ? projects.find((p) => p.id === selectedProjectId)?.name || "Unnamed Project"
+              : "No Project Selected"}
+          </span>
+        </div>
+
+
+        <div className="timeline-content">
+          <div className="timeline-header-section">
+            <h2>Timeline</h2>
+            <div className="timeline-controls">
+              <div className="search-container">
+                <input
+                  type="text"
+                  placeholder="Search sprints..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
+                />
+                <FaSearch className="search-icon" />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="timeline-header">
-          <div className="view-controls">
-            <button
-              className={selectedView === "weeks" ? "active" : ""}
-              onClick={() => setSelectedView("weeks")}
-            >
-              Weeks
-            </button>
-            <button
-              className={selectedView === "months" ? "active" : ""}
-              onClick={() => setSelectedView("months")}
-            >
-              Months
-            </button>
-            <button
-              className={selectedView === "quarters" ? "active" : ""}
-              onClick={() => setSelectedView("quarters")}
-            >
-              Quarters
-            </button>
+          <div className="timeline-header">
+            <div className="view-controls">
+              <button
+                className={selectedView === "weeks" ? "active" : ""}
+                onClick={() => setSelectedView("weeks")}
+              >
+                Weeks
+              </button>
+              <button
+                className={selectedView === "months" ? "active" : ""}
+                onClick={() => setSelectedView("months")}
+              >
+                Months
+              </button>
+              <button
+                className={selectedView === "quarters" ? "active" : ""}
+                onClick={() => setSelectedView("quarters")}
+              >
+                Quarters
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="timeline-grid">{renderGanttChart()}</div>
+          <div className="timeline-grid">{renderGanttChart()}</div>
+        </div>
       </div>
-    </div>
+    </DragDropContext>
   );
 };
 
