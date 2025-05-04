@@ -120,7 +120,7 @@
     border-bottom: 1px solid #e0e0e0;
     background: white;
     border-radius: 8px 8px 0 0;
-        position: relative;
+    position: relative;
 }
 
 .profile-info {
@@ -140,12 +140,14 @@
     justify-content: center;
     font-weight: bold;
     font-size: 16px;
-  }
+}
 
 .profile-details {
     flex: 1;
-    min-width: 0;
+    min-width: 120px;
+    word-break: break-all;
 }
+
 
 .profile-name {
     font-weight: 500;
@@ -206,8 +208,13 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Mobile Dropdown Menu */
@@ -233,12 +240,12 @@
         padding: 8px 0;
     }
 
-        .navbar-search {
-            width: 100%;
-            margin: 8px 0;
+    .navbar-search {
+        width: 100%;
+        margin: 8px 0;
     }
 
-        .navbar-search input {
+    .navbar-search input {
         width: 100%;
     }
 }
@@ -246,11 +253,11 @@
 @media screen and (max-width: 480px) {
     .navbar-links {
         flex-direction: column;
-            align-items: flex-start;
+        align-items: flex-start;
     }
 
-        .project-selector {
-            width: 100%;
+    .project-selector {
+        width: 100%;
     }
 }
 

@@ -129,7 +129,7 @@ def send_task_assignment_email(sender, instance, created, **kwargs):
     should_send_email = (old_user != new_user and new_user and new_user.email)
 
     if should_send_email:
-        subject = f"Task Assigned"
+        subject = "Task Assigned"
         from_email = f"Ei Scrum Team <{settings.DEFAULT_FROM_EMAIL}>"
         to_email = [new_user.email]
 
