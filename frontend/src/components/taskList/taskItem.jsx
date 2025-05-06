@@ -65,7 +65,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
       .unwrap()
       .then(() => {
 
-        dispatch(fetchTasks());
+        dispatch(fetchSprints(selectedProjectId));
       })
       .catch((error) => console.error("Error updating task:", error));
   };
@@ -73,7 +73,7 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
   const handleEstimateEffort = async () => {
     try {
       setLoadingEstimate(true);
-  
+
       const response = await dispatch(
         predictEffort({
           taskId: task.id,
@@ -85,16 +85,16 @@ const TaskItem = ({ task, sprints, selectedProjectId }) => {
           sprintId: task.sprint ? Number(task.sprint) : null,
         })
       ).unwrap();
-  
+
       if (response?.estimated_effort !== undefined) {
         const updatedTask = { ...taskData, estimated_effort: response.estimated_effort };
         setTaskData(updatedTask);
-  
+
         dispatch(updateTaskInState({
           id: task.id,
           updatedFields: { estimated_effort: response.estimated_effort }
         }));
-  
+
         toast.success(`✅ Estimated effort: ${response.estimated_effort.toFixed(1)} hrs`);
       }
     } catch (error) {
