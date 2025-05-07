@@ -78,9 +78,11 @@ def predict_effort_view(request):
         task_id = data.get("task_id")
         task_category = data.get("task_category")
         task_complexity = data.get("task_complexity")
+        sprint_id = data.get("sprint_id")
 
         task = Task.objects.get(id=task_id)
-        predicted = predict_effort(task.project_id, task_complexity, task_category)
+
+        predicted = predict_effort(task.project_id, task_complexity, task_category, sprint_id)
 
         task.estimated_effort = predicted
         task.save()
@@ -91,10 +93,18 @@ def predict_effort_view(request):
             "task_category": task.task_category,
             "task_complexity": task.task_complexity,
         })
+
     except Task.DoesNotExist:
-        return Response({"error": "Task not found"}, status=404)
+        return Response({"error": "Task not found."}, status=404)
+
+    except ValueError as ve:
+        # Return clean error message from model logic (e.g., NaNs or input issues)
+        return Response({"error": str(ve)}, status=400)
+
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
+        import traceback
+        print(traceback.format_exc())  # For debugging in logs
+        return Response({"error": "Prediction failed: " + str(e)}, status=500)
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()

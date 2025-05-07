@@ -19,6 +19,9 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
   const { userInfo, user } = useSelector((state) => state.auth);
+  console.log(userInfo.email);
+  console.log("userInfo from Redux:", userInfo);
+  console.log("user from Redux:", user);
 
   // Function for emotion detection and logout
   const handleLogout = async () => {
@@ -138,7 +141,10 @@ const Navbar = () => {
                   </div>
                   <div className="profile-details">
                     <div className="profile-name">{userInfo?.name || 'User'}</div>
-                    <div className="profile-email">{userInfo?.email}</div>
+                    <div style={{ color: 'black', fontSize: '12px', display: 'block' }}>
+                      {userInfo?.email || 'no-email'}
+                    </div>
+
                     <div className="profile-email">{userInfo?.specialist}</div>
                   </div>
                 </div>
