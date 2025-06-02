@@ -75,8 +75,8 @@ def train_model(project_id):
         denominator = np.maximum(y_test, 1)  # Avoid division by zero and near-zero
         mape = np.mean(np.abs((y_test - y_pred) / denominator)) * 100
         accuracy = max(0, 100 - mape)
-        print("Sample y_test:", y_test[:5].tolist())
-        print("Sample y_pred:", y_pred[:5].tolist())
+        #print("Sample y_test:", y_test[:5].tolist())
+        #print("Sample y_pred:", y_pred[:5].tolist())
 
 
         print(f"{name}: Accuracy = {accuracy:.2f}% (MAPE = {mape:.2f}%)")

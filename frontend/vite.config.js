@@ -7,6 +7,7 @@ export default defineConfig({
     tailwindcss(),
     react()
   ],
+  base: process.env.VITE_BASE_URL || '/Ei_Scrum_Planner_frontend',
   server: {
     port: parseInt(process.env.VITE_PORT) || 3000
   }
