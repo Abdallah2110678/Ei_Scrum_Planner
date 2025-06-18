@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks, clearTasks } from "../../features/tasks/taskSlice";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
 import TaskItem from "./taskItem";
-import CreateIssueButton from "../../components/taskButton/CreateTaskButton";
-import "./TaskList.css";
+import CreateIssueButton from "../../components/taskButton/createTaskButton";
+import "./taskList.css";
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 
 

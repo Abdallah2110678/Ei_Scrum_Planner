@@ -3,7 +3,7 @@ import { format, addDays, addMonths, parseISO, differenceInDays, startOfDay, end
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSprints, updateSprint } from "../../features/sprints/sprintSlice";
 import { fetchTasks, updateTask } from '../../features/tasks/taskSlice';
-import "./Timeline.css";
+import "./timeline.css";
 import { FaSearch, FaPlus, FaTasks, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 

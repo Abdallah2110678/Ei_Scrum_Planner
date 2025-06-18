@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSprints } from "../../features/sprints/sprintSlice";
-import "./History.css";
+import "./history.css";
 import HistoryTasks from "../../components/historyList/historyTasks";
 import UserAvatars from '../../components/userAvatars/UserAvatars';
 

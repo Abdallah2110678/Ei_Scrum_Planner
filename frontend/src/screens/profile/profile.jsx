@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import './Profile.css';
+import './profile.css';
 
 const Profile = () => {
   const { user, userInfo } = useSelector((state) => state.auth);
