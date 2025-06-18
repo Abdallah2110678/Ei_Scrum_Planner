@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import './profile.css';
 
 const Profile = () => {
   const { user, userInfo } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: userInfo?.name || '',
@@ -13,6 +14,7 @@ const Profile = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handle form input change
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -20,28 +22,36 @@ const Profile = () => {
     });
   };
 
+  // Handle form submit to update profile
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       const response = await axios.patch(
-        'http://localhost:8000/auth/users/me/',
+        'http://localhost:8000/api/v1/auth/users/me/', // Update the URL as needed
         formData,
         {
           headers: {
-            'Authorization': `Bearer ${user.access}`,
+            Authorization: `Bearer ${user.access}`,
             'Content-Type': 'application/json'
           }
         }
       );
 
+      // If the profile is successfully updated, update Redux state and localStorage
       if (response.status === 200) {
         toast.success('Profile updated successfully');
-        setIsEditing(false);
+        dispatch(setCredentials({ user: response.data, userInfo: response.data }));
+        localStorage.setItem("userInfo", JSON.stringify(response.data));
+        setIsEditing(false);  // Exit edit mode
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      toast.error(
+        error.response?.data?.message || 
+        error.response?.data?.detail ||
+        'Failed to update profile'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +82,6 @@ const Profile = () => {
                   disabled
                   className="input-disabled"
                 />
-                <span className="input-hint">Email cannot be changed</span>
               </div>
               <div className="form-group">
                 <label>Full Name</label>
@@ -97,15 +106,15 @@ const Profile = () => {
                 />
               </div>
               <div className="form-actions">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="save-button"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Saving...' : 'Save Changes'}
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="cancel-button"
                   onClick={() => {
                     setIsEditing(false);
@@ -133,7 +142,7 @@ const Profile = () => {
                 <label>Specialist Role</label>
                 <p className="info-value">{userInfo.specialist}</p>
               </div>
-              <button 
+              <button
                 className="edit-button"
                 onClick={() => setIsEditing(true)}
               >

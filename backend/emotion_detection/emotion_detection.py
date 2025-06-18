@@ -4,8 +4,6 @@ from collections import Counter
 import time
 from .models import DailyEmotion
 from django.utils import timezone
-from django.contrib.auth import get_user_model
-from sprints.models import Sprint  # ✅ Add this import
 import logging
 
 # Set up logging
@@ -15,13 +13,13 @@ def detect_emotions(request):
     user = request.user if hasattr(request, 'user') and request.user.is_authenticated and not request.user.is_anonymous else None
     request_type = request.GET.get('type', 'DEFAULT')
     logger.info(f"Detecting emotions for request type: {request_type}, user authenticated: {user is not None}")
-    
+
     detector = FER()
     video_capture = cv2.VideoCapture(0)
     if not video_capture.isOpened():
         logger.error("Could not open video capture device")
         return {'error': 'Could not open video.'}
-    
+
     detected_emotions = []
     start_time = time.time()
     duration = 10
@@ -41,24 +39,16 @@ def detect_emotions(request):
             break
     video_capture.release()
     cv2.destroyAllWindows()
-    
+
     if detected_emotions:
         emotion_counter = Counter(detected_emotions)
         most_common_emotion, count = emotion_counter.most_common(1)[0]
         today = timezone.now().date()
-        
+
         daily_emotion = None
-        current_sprint = None
-        
+
         if user:
             logger.info(f"User authenticated, associating emotion with user: {user.email}")
-            
-            # ✅ Get current active sprint for the user
-            current_sprint = Sprint.objects.filter(
-                project__projectusers__user=user,
-                is_active=True
-            ).first()
-
             try:
                 daily_emotion, created = DailyEmotion.objects.get_or_create(
                     date=today,
@@ -66,15 +56,9 @@ def detect_emotions(request):
                     defaults={
                         'first_emotion': '',
                         'second_emotion': '',
-                        'third_emotion': '',
-                        'sprint': current_sprint  # ✅ Save sprint
+                        'third_emotion': ''
                     }
                 )
-
-                # ✅ Ensure sprint is saved if it was missing
-                if current_sprint and not daily_emotion.sprint:
-                    daily_emotion.sprint = current_sprint
-                    daily_emotion.save()
 
                 # Emotion saving logic
                 if request_type == 'LOGIN' or (created and not daily_emotion.first_emotion):
@@ -111,7 +95,7 @@ def detect_emotions(request):
                 logger.error(f"Error saving emotion for user {user.email}: {str(e)}")
         else:
             logger.info("No authenticated user, emotion will not be associated with any user")
-        
+
         response = {
             'emotion': most_common_emotion,
             'count': count,
@@ -128,9 +112,7 @@ def detect_emotions(request):
                     'name': user.name,
                     'email': user.email
                 }
-            if current_sprint:
-                response['sprint_id'] = current_sprint.id
-        
+
         return response
     else:
         logger.warning("No emotions detected in the video stream")

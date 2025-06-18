@@ -18,12 +18,21 @@ class ProjectModelTests(TestCase):
         self.assertEqual(str(project), "Test Project")
     
     def test_project_unique_name(self):
-        """Test that project names must be unique"""
-        Project.objects.create(name="Unique Project")
+        """Test that project names must be unique per user"""
+        # Create a test user
+        user = User.objects.create_user(
+            email="test@example.com",
+            password="password123",
+            name="Test User",
+            specialist="Developer"
+        )
         
-        # Attempting to create another project with the same name should raise an error
+        # Create a project with a user
+        Project.objects.create(name="Unique Project", created_by=user)
+        
+        # Attempting to create another project with the same name and same user should raise an error
         with self.assertRaises(Exception):
-            Project.objects.create(name="Unique Project")
+            Project.objects.create(name="Unique Project", created_by=user)
 
 
 class ProjectSerializerTests(TestCase):
@@ -49,13 +58,28 @@ class ProjectSerializerTests(TestCase):
     
     def test_project_serializer_create(self):
         """Test creating a project with the serializer"""
-        serializer = ProjectSerializer(data=self.project_data)
-        self.assertTrue(serializer.is_valid())
+        # Create a test user for the project
+        user = User.objects.create_user(
+            email="serializer_test@example.com",
+            password="password123",
+            name="Serializer Test User",
+            specialist="Developer"
+        )
+        
+        # Include the user in the project data
+        project_data = {
+            'name': 'Test Project',
+            'created_by': user.id
+        }
+        
+        serializer = ProjectSerializer(data=project_data)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
         
         project = serializer.save()
         
         # Check that the project was created with the correct data
         self.assertEqual(project.name, 'Test Project')
+        self.assertEqual(project.created_by, user)
 
 
 class ProjectAPITests(APITestCase):

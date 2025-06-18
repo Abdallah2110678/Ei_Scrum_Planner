@@ -20,7 +20,7 @@ class DailyEmotion(models.Model):
         blank=True,
         related_name='daily_emotions'
     )
-    sprint = models.ForeignKey(Sprint, on_delete=models.SET_NULL, null=True, blank=True, related_name='emotions')
+    sprint = models.ForeignKey(Sprint, on_delete=models.SET_NULL, null=True, blank=True, related_name="daily_emotions")
     date = models.DateField(auto_now_add=True)
     first_emotion = models.CharField(max_length=50, blank=True)
     second_emotion = models.CharField(max_length=50, blank=True)

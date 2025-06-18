@@ -13,6 +13,7 @@ const initialState = {
   message: "",
 };
 
+// Register
 export const register = createAsyncThunk(
   "auth/register",
   async (userData, thunkAPI) => {
@@ -21,70 +22,70 @@ export const register = createAsyncThunk(
       return response;
     } catch (error) {
       let errorMessage = "Registration failed due to an unknown error";
-      
       if (error.response) {
         if (error.response.data && typeof error.response.data === "object") {
           errorMessage = Object.entries(error.response.data)
             .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
             .join("; ");
         } else {
-          errorMessage = error.response.data?.detail || 
-                        error.response.data?.message || 
-                        error.response.statusText || 
-                        "Server error occurred";
+          errorMessage =
+            error.response.data?.detail ||
+            error.response.data?.message ||
+            error.response.statusText ||
+            "Server error occurred";
         }
       } else if (error.request) {
         errorMessage = "Network error: Unable to connect to the server";
       } else {
         errorMessage = error.message || error.toString();
       }
-
       console.error("Registration Error:", errorMessage);
       return thunkAPI.rejectWithValue(errorMessage);
     }
   }
 );
 
-
+// Login
 export const login = createAsyncThunk(
   "auth/login",
   async (userData, thunkAPI) => {
-      try {
-          return await authService.login(userData)
-      } catch (error) {
-          const message = (error.response && error.response.data
-              && error.response.data.message) ||
-              error.message || error.toString()
-
-          return thunkAPI.rejectWithValue(message)
-      }
+    try {
+      return await authService.login(userData);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
   }
 );
 
-export const logout = createAsyncThunk(
-  "auth/logout",
-  async () => {
-      authService.logout()
-  }
-)
+// Logout
+export const logout = createAsyncThunk("auth/logout", async () => {
+  authService.logout();
+});
 
-
-
+// Get user info
 export const getUserInfo = createAsyncThunk(
   "auth/getUserInfo",
   async (_, thunkAPI) => {
-      try {
-          const accessToken = thunkAPI.getState().auth.user.access
-          return await authService.getUserInfo(accessToken)
-      } catch (error) {
-          const message = (error.response && error.response.data
-              && error.response.data.message) ||
-              error.message || error.toString()
-
-          return thunkAPI.rejectWithValue(message)
-      }
+    try {
+      const accessToken = thunkAPI.getState().auth.user.access;
+      return await authService.getUserInfo(accessToken);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
   }
-)
+);
 
 export const authSlice = createSlice({
   name: "auth",
@@ -94,53 +95,71 @@ export const authSlice = createSlice({
       state.isLoading = false;
       state.isError = false;
       state.isSuccess = false;
-      state.message = false;
+      state.message = "";
     },
     setLoading: (state, action) => {
       state.isLoading = action.payload;
     },
+    setCredentials: (state, action) => {
+      state.user = action.payload.user;
+      state.userInfo = action.payload.userInfo;
+      localStorage.setItem("userInfo", JSON.stringify(action.payload.userInfo));
+    },
   },
   extraReducers: (builder) => {
     builder
+      // Register
       .addCase(register.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(register.fulfilled, (state, action) => {
+      .addCase(register.fulfilled, (state) => {
         state.isLoading = false;
         state.isSuccess = true;
-        // state.user = action.payload;
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.isError = true;
-
         state.message = action.payload;
-      }) .addCase(login.pending, (state) => {
-        state.isLoading = true
-    })
-    .addCase(login.fulfilled, (state, action) => {
-        state.isLoading = false
-        state.isSuccess = true
-        state.user = action.payload
-    })
-    .addCase(login.rejected, (state, action) => {
-        state.isLoading = false
-        state.isSuccess = false
-        state.isError = true
-        state.message = action.payload
-        state.user = null
-    })
-    .addCase(logout.fulfilled, (state) => {
-        state.user = null
-    })
-     .addCase(getUserInfo.fulfilled, (state, action) => {
-      state.userInfo = action.payload;
-      localStorage.setItem("userInfo", JSON.stringify(action.payload));
-  });
+      })
+      // Login
+      .addCase(login.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.user = { access: action.payload.access }; // Save only the token
+        state.userInfo = action.payload.user; // ✅ Save user info separately
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ access: action.payload.access })
+        );
+        localStorage.setItem("userInfo", JSON.stringify(action.payload.user));
+      })
+
+      .addCase(login.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.message = action.payload;
+        state.user = null;
+      })
+      // Logout
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.userInfo = {};
+        localStorage.removeItem("user");
+        localStorage.removeItem("userInfo");
+      })
+      // Get user info
+      .addCase(getUserInfo.fulfilled, (state, action) => {
+        state.userInfo = action.payload;
+        localStorage.setItem("userInfo", JSON.stringify(action.payload));
+      });
   },
 });
 
-export const { reset, setLoading } = authSlice.actions;
+export const { reset, setLoading, setCredentials } = authSlice.actions;
 
 export default authSlice.reducer;

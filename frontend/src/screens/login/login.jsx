@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, reset, getUserInfo } from '../../features/auth/authSlice';
@@ -61,25 +61,25 @@ const LoginForm = () => {
       try {
         // First attempt login
         const loginResult = await dispatch(login(userData)).unwrap();
-        
+
         if (loginResult) {
           dispatch(reset());
-          
+
           // Wait a moment for the token to be stored in localStorage
           setTimeout(async () => {
             try {
               // Get user info first
               await dispatch(getUserInfo()).unwrap();
-              
+
               // Then perform emotion detection
               detectEmotion('LOGIN');
-              
-             // Schedule second emotion detection randomly between 2-3 hours later
-             const randomDelay = 2000 + Math.random() * 1000;  // Random value between 2000 and 30000 ms
-                const randomMilliseconds = randomDelay * 60 * 60 ;
+
+              // Schedule second emotion detection randomly between 2-3 hours later
+              const randomDelay = 2000 + Math.random() * 1000;  // Random value between 2000 and 30000 ms
+              const randomMilliseconds = randomDelay * 60 * 60;
               setTimeout(() => {
-              detectEmotion('FOLLOWUP');
-                }, randomMilliseconds); // Random time between 2-3 hours in milliseconds
+                detectEmotion('FOLLOWUP');
+              }, randomMilliseconds); // Random time between 2-3 hours in milliseconds
 
               navigate('/eiscrum');
             } catch (error) {
@@ -99,12 +99,12 @@ const LoginForm = () => {
       // Get the token directly from localStorage to ensure it's the most up-to-date
       const storedUser = JSON.parse(localStorage.getItem('user'));
       const authToken = storedUser?.access;
-      
+
       if (!authToken) {
         console.warn('No authentication token available for emotion detection');
         return;
       }
-      
+
       // Set up headers with authentication token
       const config = {
         headers: {
@@ -115,15 +115,15 @@ const LoginForm = () => {
           timestamp: new Date().getTime() // Add timestamp to ensure unique requests
         }
       };
-      
+
       const response = await axios.get(`http://localhost:8000/emotion_detection/`, config);
-      
+
       if (response.data.emotion) {
         toast.success(`Detected emotion: ${response.data.emotion}`);
         if (response.data.daily_average) {
           toast.info(`Daily average emotion: ${response.data.daily_average}`);
         }
-        
+
         // If user information is included in the response, display a personalized message
         if (response.data.user && response.data.user.name) {
           toast.info(`Emotion recorded for: ${response.data.user.name}`);
@@ -132,7 +132,7 @@ const LoginForm = () => {
         // If no emotions were detected and this is not a logout request, schedule a retry
         if (type !== 'LOGOUT' && retryCount < 3) {  // Limit to 3 retries
           toast.info(`No face detected. Will try again in 10 minute. (Attempt ${retryCount + 1}/3)`);
-          
+
           // Schedule retry after 10 minute
           setTimeout(() => {
             detectEmotion(type, retryCount + 1);
@@ -145,11 +145,11 @@ const LoginForm = () => {
       }
     } catch (emotionError) {
       console.error('Error detecting emotion:', emotionError);
-      
+
       // If there was an error and this is not a logout request, schedule a retry
       if (type !== 'LOGOUT' && retryCount < 3) {  // Limit to 3 retries
         toast.warning(`Emotion detection failed. Will try again in 1 minute. (Attempt ${retryCount + 1}/3)`);
-        
+
         // Schedule retry after 1 minute
         setTimeout(() => {
           detectEmotion(type, retryCount + 1);
@@ -202,8 +202,8 @@ const LoginForm = () => {
           {errors.password && <div className="error-message">{errors.password}</div>}
         </div>
 
-         {/* Remember Me Checkbox */}
-         <div className="form-group remember-me">
+        {/* Remember Me Checkbox */}
+        <div className="form-group remember-me">
           <label htmlFor="rememberMe">
             <input
               type="checkbox"
@@ -219,7 +219,7 @@ const LoginForm = () => {
         {isError && <div className="error-message"> Email or Password are incorrect </div>}
 
         <button type="submit" className="submit-button" disabled={isLoading}>
-            {isLoading ? "Loading..." : "Login"}
+          {isLoading ? "Loading..." : "Login"}
         </button>
       </form>
 

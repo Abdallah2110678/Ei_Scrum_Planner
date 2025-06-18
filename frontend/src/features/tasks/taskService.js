@@ -69,7 +69,10 @@ const predictEffort = async (taskData) => {
       "❌ Error in effort prediction:",
       error.response?.data || error.message
     );
-    throw error;
+    throw new Error(
+      error.response?.data?.error || "Something went wrong during prediction."
+    );
+    
   }
 };
 
